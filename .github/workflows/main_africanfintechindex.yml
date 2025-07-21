@@ -39,6 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     
+    
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
@@ -52,4 +53,4 @@ jobs:
           app-name: 'africanfintechindex'
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_3F435A1CA5FF4E3A9D00A63962178321 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_2F52E4850C0E432DAF7FA6BD44BFB59C }}
