@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import type { User } from '../types';
 
 const UserManagementPage: React.FC = () => {
+  const apiUrl = import.meta.env.VITE_API_URL;
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [unverifiedUsers, setUnverifiedUsers] = useState<any[]>([]);
   const [loadingUnverified, setLoadingUnverified] = useState(false);
@@ -47,7 +48,7 @@ const UserManagementPage: React.FC = () => {
   useEffect(() => {
     if (currentUser?.role === 'admin' && currentUser.token) {
       setLoadingUnverified(true);
-      fetch('/api/users/unverified', {
+      fetch(`${apiUrl}/users/unverified`, {
         headers: { Authorization: `Bearer ${currentUser.token}` },
       })
         .then(res => res.json())
@@ -57,7 +58,7 @@ const UserManagementPage: React.FC = () => {
         })
         .catch(() => setLoadingUnverified(false));
       setLoadingUsers(true);
-      fetch('/api/users', {
+      fetch(`${apiUrl}/users`, {
         headers: { Authorization: `Bearer ${currentUser.token}` },
       })
         .then(res => res.json())
@@ -73,7 +74,7 @@ const UserManagementPage: React.FC = () => {
     if (!currentUser?.token) return;
     if (window.confirm('Are you sure you want to verify this user?')) {
       try {
-        await fetch(`/api/users/${userId}/verify`, {
+        await fetch(`${apiUrl}/users/${userId}/verify`, {
           method: 'PATCH',
           headers: { Authorization: `Bearer ${currentUser.token}` },
         });
@@ -101,14 +102,14 @@ const UserManagementPage: React.FC = () => {
   const handleSaveEdit = async () => {
     if (!editingUser || !currentUser?.token) return;
     try {
-      await fetch(`/api/users/${editingUser._id}`, {
+      await fetch(`${apiUrl}/users/${editingUser._id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${currentUser.token}` },
         body: JSON.stringify(editForm),
       });
       setEditingUser(null);
       setLoadingUsers(true);
-      fetch('/api/users', {
+      fetch(`${apiUrl}/users`, {
         headers: { Authorization: `Bearer ${currentUser.token}` },
       })
         .then(res => res.json())
@@ -130,7 +131,7 @@ const UserManagementPage: React.FC = () => {
     if (!currentUser?.token) return;
     if (window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
       try {
-        await fetch(`/api/users/${userId}`, {
+        await fetch(`${apiUrl}/users/${userId}`, {
           method: 'DELETE',
           headers: { Authorization: `Bearer ${currentUser.token}` },
         });
@@ -194,7 +195,7 @@ const UserManagementPage: React.FC = () => {
                 }
                 
                 try {
-                  const res = await fetch('/api/users', {
+                  const res = await fetch(`${apiUrl}/users`, {
                     method: 'POST',
                     headers: {
                       'Content-Type': 'application/json',
@@ -214,7 +215,7 @@ const UserManagementPage: React.FC = () => {
                   if (!res.ok) throw new Error('Failed to register user');
                   setNotification({ type: 'success', message: 'User registered successfully.' });
                   setLoadingUsers(true);
-                  fetch('/api/users', {
+                  fetch(`${apiUrl}/users`, {
                     headers: { Authorization: `Bearer ${currentUser.token}` },
                   })
                     .then(res => res.json())

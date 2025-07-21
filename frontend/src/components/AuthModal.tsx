@@ -64,6 +64,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
     setMessage({ type: '', text: '' });
 
     try {
+      const apiUrl = import.meta.env.VITE_API_URL;
       if (mode === 'register') {
         // Validate required fields
         if (!formData.firstName || !formData.lastName || !formData.country) {
@@ -77,7 +78,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
           return;
         }
         // Call backend register API
-        const res = await fetch('/api/auth/register', {
+        const res = await fetch(`${apiUrl}/auth/register`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -101,7 +102,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
       }
       // Login
       if (mode === 'login') {
-        const res = await fetch('/api/auth/login', {
+        const res = await fetch(`${apiUrl}/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
