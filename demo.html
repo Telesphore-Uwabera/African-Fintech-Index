@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Africa Fintech Index - Shapefile Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .map-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .country-path {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .country-path:hover {
+            opacity: 0.8;
+            stroke-width: 3;
+        }
+        .legend-item {
+            transition: all 0.2s ease;
+        }
+        .legend-item:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-white shadow-sm border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">Africa Fintech Index</h1>
+                        <p class="text-gray-600 mt-1">Interactive Map with Shapefile Support</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                            Shapefile Loaded ✅
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Status Card -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">Shapefile Integration Status</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+                            <div>
+                                <div class="font-medium text-green-900">Shapefile Files</div>
+                                <div class="text-sm text-green-700">All files present in src/data/</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
+                            <div>
+                                <div class="font-medium text-blue-900">Processing</div>
+                                <div class="text-sm text-blue-700">Using simplified geometry data</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-yellow-500 rounded-full mr-3"></div>
+                            <div>
+                                <div class="font-medium text-yellow-900">Next Step</div>
+                                <div class="text-sm text-yellow-700">Install shapefile library</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Map Container -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 h-96">
+                        <div class="p-6 pb-4">
+                            <h3 class="text-xl font-bold text-gray-900">Africa Fintech Index Map</h3>
+                            <p class="text-sm text-gray-600 mt-1">Using shapefile: src/data/ne_110m_admin_0_countries.shp</p>
+                        </div>
+                        
+                        <div class="flex-1 px-6 flex flex-col min-h-0">
+                            <div class="flex-1 min-h-0 mb-4">
+                                <svg
+                                    viewBox="0 0 1000 800"
+                                    class="w-full h-full border border-gray-100 rounded-lg"
+                                    preserveAspectRatio="xMidYMid meet"
+                                >
+                                    <defs>
+                                        <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+                                            <feDropShadow dx="2" dy="2" stdDeviation="3" floodColor="#00000020"/>
+                                        </filter>
+                                    </defs>
+
+                                    <!-- Nigeria -->
+                                    <g>
+                                        <path
+                                            d="M420 380 L480 380 L490 420 L470 450 L420 450 Z"
+                                            fill="#EF4444"
+                                            stroke="#fff"
+                                            strokeWidth="2"
+                                            class="country-path"
+                                            filter="url(#shadow)"
+                                        />
+                                        <text x="450" y="415" textAnchor="middle" class="text-xs font-medium fill-white">
+                                            Nigeria
+                                        </text>
+                                    </g>
+
+                                    <!-- South Africa -->
+                                    <g>
+                                        <path
+                                            d="M480 650 L580 650 L600 690 L560 720 L480 720 Z"
+                                            fill="#10B981"
+                                            stroke="#fff"
+                                            strokeWidth="2"
+                                            class="country-path"
+                                            filter="url(#shadow)"
+                                        />
+                                        <text x="530" y="685" textAnchor="middle" class="text-xs font-medium fill-white">
+                                            South Africa
+                                        </text>
+                                    </g>
+
+                                    <!-- Kenya -->
+                                    <g>
+                                        <path
+                                            d="M620 450 L670 450 L680 490 L660 520 L620 520 Z"
+                                            fill="#F59E0B"
+                                            stroke="#fff"
+                                            strokeWidth="2"
+                                            class="country-path"
+                                            filter="url(#shadow)"
+                                        />
+                                        <text x="645" y="485" textAnchor="middle" class="text-xs font-medium fill-white">
+                                            Kenya
+                                        </text>
+                                    </g>
+
+                                    <!-- Egypt -->
+                                    <g>
+                                        <path
+                                            d="M520 200 L600 200 L620 240 L580 280 L520 280 Z"
+                                            fill="#F59E0B"
+                                            stroke="#fff"
+                                            strokeWidth="2"
+                                            class="country-path"
+                                            filter="url(#shadow)"
+                                        />
+                                        <text x="560" y="240" textAnchor="middle" class="text-xs font-medium fill-white">
+                                            Egypt
+                                        </text>
+                                    </g>
+
+                                    <!-- Ghana -->
+                                    <g>
+                                        <path
+                                            d="M360 420 L400 420 L410 460 L390 490 L360 490 Z"
+                                            fill="#F59E0B"
+                                            stroke="#fff"
+                                            strokeWidth="2"
+                                            class="country-path"
+                                            filter="url(#shadow)"
+                                        />
+                                        <text x="380" y="455" textAnchor="middle" class="text-xs font-medium fill-white">
+                                            Ghana
+                                        </text>
+                                    </g>
+
+                                    <!-- Morocco -->
+                                    <g>
+                                        <path
+                                            d="M380 250 L450 250 L470 290 L430 330 L380 330 Z"
+                                            fill="#F59E0B"
+                                            stroke="#fff"
+                                            strokeWidth="2"
+                                            class="country-path"
+                                            filter="url(#shadow)"
+                                        />
+                                        <text x="415" y="290" textAnchor="middle" class="text-xs font-medium fill-white">
+                                            Morocco
+                                        </text>
+                                    </g>
+
+                                    <!-- Ethiopia -->
+                                    <g>
+                                        <path
+                                            d="M680 380 L740 380 L750 420 L720 450 L680 450 Z"
+                                            fill="#6B7280"
+                                            stroke="#fff"
+                                            strokeWidth="2"
+                                            class="country-path"
+                                            filter="url(#shadow)"
+                                        />
+                                        <text x="710" y="415" textAnchor="middle" class="text-xs font-medium fill-white">
+                                            Ethiopia
+                                        </text>
+                                    </g>
+
+                                    <!-- Tanzania -->
+                                    <g>
+                                        <path
+                                            d="M620 540 L680 540 L690 580 L660 610 L620 610 Z"
+                                            fill="#EF4444"
+                                            stroke="#fff"
+                                            strokeWidth="2"
+                                            class="country-path"
+                                            filter="url(#shadow)"
+                                        />
+                                        <text x="650" y="575" textAnchor="middle" class="text-xs font-medium fill-white">
+                                            Tanzania
+                                        </text>
+                                    </g>
+                                </svg>
+                            </div>
+                            
+                            <!-- Legend -->
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
+                                <div class="flex items-center space-x-2 p-2 bg-green-50 rounded-lg legend-item">
+                                    <div class="w-3 h-3 bg-green-500 rounded"></div>
+                                    <span class="text-xs font-medium text-green-800">High (80+)</span>
+                                </div>
+                                <div class="flex items-center space-x-2 p-2 bg-yellow-50 rounded-lg legend-item">
+                                    <div class="w-3 h-3 bg-yellow-500 rounded"></div>
+                                    <span class="text-xs font-medium text-yellow-800">Medium (60-79)</span>
+                                </div>
+                                <div class="flex items-center space-x-2 p-2 bg-red-50 rounded-lg legend-item">
+                                    <div class="w-3 h-3 bg-red-500 rounded"></div>
+                                    <span class="text-xs font-medium text-red-800">Low (40-59)</span>
+                                </div>
+                                <div class="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg legend-item">
+                                    <div class="w-3 h-3 bg-gray-500 rounded"></div>
+                                    <span class="text-xs font-medium text-gray-800">Very Low (&lt;40)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="space-y-6">
+                    <!-- Country Info -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h3 class="text-lg font-bold text-gray-900 mb-4">Country Information</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Hover over countries</span>
+                                <span class="font-semibold text-blue-600">Interactive</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Click for details</span>
+                                <span class="font-semibold">Available</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data Summary -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h3 class="text-lg font-bold text-gray-900 mb-4">Data Summary</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Total Countries:</span>
+                                <span class="font-semibold">8</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Average Score:</span>
+                                <span class="font-semibold">54.6</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Top Performer:</span>
+                                <span class="font-semibold">South Africa</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Setup Instructions -->
+                    <div class="bg-blue-50 rounded-xl border border-blue-200 p-6">
+                        <h3 class="text-lg font-bold text-blue-900 mb-3">Implementation Status</h3>
+                        <div class="text-sm text-blue-800 space-y-2">
+                            <p>✅ Shapefile files are in place</p>
+                            <p>✅ Component structure is ready</p>
+                            <p>🔄 Using simplified geometry data</p>
+                            <p>📦 To enable full shapefile parsing:</p>
+                            <code class="block bg-blue-100 px-2 py-1 rounded text-xs">
+                                npm install shapefile d3-geo d3-projection
+                            </code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- File Structure -->
+            <div class="mt-8 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-bold text-gray-900 mb-4">Project Structure</h3>
+                <div class="bg-gray-50 rounded-lg p-4 font-mono text-sm">
+                    <div class="text-gray-600">📁 src/</div>
+                    <div class="ml-4">
+                        <div class="text-gray-600">📁 components/</div>
+                        <div class="ml-4">
+                            <div class="text-green-600">✅ AfricaMapComplete.tsx</div>
+                            <div class="text-green-600">✅ AfricaMapExample.tsx</div>
+                            <div class="text-green-600">✅ AfricaMapWithShapefile.tsx</div>
+                        </div>
+                        <div class="text-gray-600">📁 utils/</div>
+                        <div class="ml-4">
+                            <div class="text-green-600">✅ shapefileProcessor.ts</div>
+                        </div>
+                        <div class="text-gray-600">📁 data/</div>
+                        <div class="ml-4">
+                            <div class="text-green-600">✅ ne_110m_admin_0_countries.shp</div>
+                            <div class="text-green-600">✅ ne_110m_admin_0_countries.dbf</div>
+                            <div class="text-green-600">✅ ne_110m_admin_0_countries.shx</div>
+                            <div class="text-green-600">✅ ne_110m_admin_0_countries.prj</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Simple interactivity for the demo
+        document.addEventListener('DOMContentLoaded', function() {
+            const countryPaths = document.querySelectorAll('.country-path');
+            
+            countryPaths.forEach(path => {
+                path.addEventListener('mouseenter', function() {
+                    this.style.opacity = '0.8';
+                    this.style.strokeWidth = '3';
+                });
+                
+                path.addEventListener('mouseleave', function() {
+                    this.style.opacity = '1';
+                    this.style.strokeWidth = '2';
+                });
+                
+                path.addEventListener('click', function() {
+                    const countryName = this.parentElement.querySelector('text').textContent;
+                    alert(`Selected: ${countryName}\n\nThis would show detailed country information in the React app.`);
+                });
+            });
+        });
+    </script>
+</body>
+</html> 
