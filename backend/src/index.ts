@@ -14,6 +14,9 @@ const PORT = process.env.PORT || 5000;
 
 app.use(cors({
   origin: 'https://africanfintechindex.netlify.app',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 
