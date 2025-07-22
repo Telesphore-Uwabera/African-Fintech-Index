@@ -62,9 +62,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
     e.preventDefault();
     setLoading(true);
     setMessage({ type: '', text: '' });
+    const apiUrl = import.meta.env.VITE_API_URL;
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL;
       if (mode === 'register') {
         // Validate required fields
         if (!formData.firstName || !formData.lastName || !formData.country) {
