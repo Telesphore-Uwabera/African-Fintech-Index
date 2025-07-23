@@ -1,13 +1,21 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { CountryTable } from '../components/CountryTable';
 import { AfricaMapComplete } from '../components/AfricaMapComplete';
-import { mockCountryData, availableYears } from '../data/mockData';
+import { availableYears } from '../data/mockData';
 import { getLocalShapefilePath } from '../utils/shapefileProcessor';
 import type { CountryData } from '../types';
 
 const CountriesPage: React.FC<{ selectedYear: number; onYearChange: (year: number) => void }> = ({ selectedYear, onYearChange }) => {
   const [hoveredCountry, setHoveredCountry] = useState<CountryData | null>(null);
-  const currentData = mockCountryData.filter(country => country.year === selectedYear);
+  const [countryData, setCountryData] = useState<CountryData[]>([]);
+  useEffect(() => {
+    const apiUrl = import.meta.env.VITE_API_URL;
+    fetch(`${apiUrl}/country-data?year=${selectedYear}`)
+      .then(res => res.json())
+      .then(data => setCountryData(data))
+      .catch(() => setCountryData([]));
+  }, [selectedYear]);
+  const currentData = countryData;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex flex-col">

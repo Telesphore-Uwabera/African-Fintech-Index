@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Footer } from './Footer';
 import { StatsCards } from './StatsCards';
 import { AfricaMap } from './AfricaMap';
@@ -11,8 +11,7 @@ import { AuthModal } from './AuthModal';
 import { FinanceNews } from './FinanceNews';
 import { InteractiveChart } from './InteractiveChart';
 import { FintechStartups } from './FintechStartups';
-import { mockCountryData, calculateDashboardStats, availableYears } from '../data/mockData';
-import { useDataPersistence } from '../hooks/useDataPersistence';
+import { calculateDashboardStats, availableYears } from '../data/mockData';
 import type { CountryData } from '../types';
 import { getLocalShapefilePath } from '../utils/shapefileProcessor';
 
@@ -149,16 +148,27 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange }) => 
     }
   };
 
-  const { data: countryData, isLoading, updateData, clearData, getDataInfo } = useDataPersistence(mockCountryData);
+  const [countryData, setCountryData] = useState<CountryData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  useEffect(() => {
+    const apiUrl = import.meta.env.VITE_API_URL;
+    setIsLoading(true);
+    fetch(`${apiUrl}/country-data`)
+      .then(res => res.json())
+      .then(data => {
+        setCountryData(data);
+        setIsLoading(false);
+      })
+      .catch(() => {
+        setCountryData([]);
+        setIsLoading(false);
+      });
+  }, []);
   const currentData = countryData.filter(country => country.year === selectedYear);
   const currentStats = calculateDashboardStats(currentData);
 
   const handleDataUpdate = (newData: CountryData[]) => {
-    if (currentUser?.role !== 'admin') {
-      alert('Admin authentication required to update data');
-      return;
-    }
-    updateData(newData);
+    setCountryData(newData);
   };
 
   const handleAuthSuccess = (user: any) => {
@@ -197,8 +207,8 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange }) => 
           {currentUser?.role === 'admin' && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 w-full max-w-full min-w-0 overflow-x-hidden">
               <DataManagement 
-                getDataInfo={getDataInfo}
-                clearData={clearData}
+                getDataInfo={() => ({ total: countryData.length, years: availableYears })}
+                clearData={() => {}}
                 isAuthenticated={true}
               />
               <FileUpload 

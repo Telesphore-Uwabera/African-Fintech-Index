@@ -1,11 +1,19 @@
 import React from 'react';
 import { InteractiveChart } from '../components/InteractiveChart';
-import { mockCountryData, availableYears } from '../data/mockData';
+import { availableYears } from '../data/mockData';
+import { useEffect, useState } from 'react';
 import { useDataPersistence } from '../hooks/useDataPersistence';
 
 const AnalyticsPage: React.FC<{ selectedYear: number; onYearChange: (year: number) => void }> = ({ selectedYear, onYearChange }) => {
-  const { data: countryData } = useDataPersistence(mockCountryData);
-  const currentData = countryData.filter(country => country.year === selectedYear);
+  const [countryData, setCountryData] = useState([]);
+  useEffect(() => {
+    const apiUrl = import.meta.env.VITE_API_URL;
+    fetch(`${apiUrl}/country-data`)
+      .then(res => res.json())
+      .then(data => setCountryData(data))
+      .catch(() => setCountryData([]));
+  }, []);
+  const currentData = countryData.filter((country: any) => country.year === selectedYear);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex flex-col">
