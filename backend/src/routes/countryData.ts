@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import CountryData, { ICountryData } from '../models/CountryData';
 import { requireRole, requireAnyRole } from '../middleware/role';
+import { authMiddleware } from './auth';
 
 // AuthRequest interface for req.user
 interface AuthRequest extends Request {
@@ -107,7 +108,7 @@ router.get('/countries', async (req: Request, res: Response) => {
 });
 
 // POST /api/country-data - Add new country data (admin/editor only)
-router.post('/', requireAnyRole(['admin', 'editor']), async (req: AuthRequest, res: Response) => {
+router.post('/', authMiddleware, requireAnyRole(['admin', 'editor']), async (req: AuthRequest, res: Response) => {
   try {
     const countryData = new CountryData({
       ...req.body,
@@ -261,7 +262,7 @@ router.delete('/delete-all', requireRole('admin'), async (req: Request, res: Res
 });
 
 // POST /api/country-data/bulk - Add multiple country data records (admin or editor)
-router.post('/bulk', requireAnyRole(['admin', 'editor']), async (req: AuthRequest, res: Response) => {
+router.post('/bulk', authMiddleware, requireAnyRole(['admin', 'editor']), async (req: AuthRequest, res: Response) => {
   try {
     const { data } = req.body;
     

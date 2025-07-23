@@ -55,7 +55,7 @@ router.post('/login', async (req, res) => {
 });
 
 // Middleware to verify JWT
-function authMiddleware(req: any, res: any, next: any) {
+export function authMiddleware(req: any, res: any, next: any) {
   const auth = req.headers.authorization;
   if (!auth || !auth.startsWith('Bearer ')) return res.status(401).json({ message: 'No token' });
   try {
