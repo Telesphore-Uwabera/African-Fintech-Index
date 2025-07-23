@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Upload, FileSpreadsheet, AlertCircle, CheckCircle, X, RefreshCw } from 'lucide-react';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
-import { CountryData } from '../types';
+import type { CountryData } from '../types';
 
 interface FileUploadProps {
   onDataUpdate: (data: CountryData[]) => void;
@@ -150,24 +150,54 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onDataUpdate, currentYea
     }
   };
 
-  const handleParsedData = (data: any[]) => {
+  const handleParsedData = async (data: any[]) => {
     const validation = validateData(data);
+    const apiUrl = import.meta.env.VITE_API_URL;
 
     if (validation.isValid) {
-      onDataUpdate(validation.validData);
-      const totalCompanies = validation.validData.reduce((sum, country) => sum + (country.fintechCompanies || 0), 0);
-      const years = [...new Set(validation.validData.map(country => country.year))].sort((a, b) => b - a);
-      
-      setUploadStatus({
-        type: 'success',
-        message: `Successfully imported ${validation.validData.length} countries`,
-        details: [
-          `Dataset completely overwritten with new data`,
-          `Years included: ${years.join(', ')}`,
-          `Total fintech companies: ${totalCompanies}`,
-          `All previous data has been replaced`
-        ]
-      });
+      try {
+        // Send data to backend bulk endpoint
+        const user = JSON.parse(localStorage.getItem('fintechUser') || '{}');
+        const res = await fetch(`${apiUrl}/country-data/bulk`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: user?.token ? `Bearer ${user.token}` : ''
+          },
+          body: JSON.stringify({ data: validation.validData })
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          setUploadStatus({
+            type: 'error',
+            message: 'Failed to upload data to backend',
+            details: [err.error || 'Unknown error']
+          });
+          return;
+        }
+        // Fetch latest data from backend
+        const latestRes = await fetch(`${apiUrl}/country-data`);
+        const latestData = await latestRes.json();
+        onDataUpdate(latestData);
+        const totalCompanies = latestData.reduce((sum: number, country: any) => sum + (country && typeof country.fintechCompanies === 'number' ? country.fintechCompanies : 0), 0);
+        const years = [...new Set(latestData.map((country: any) => country && typeof country.year === 'number' ? country.year : 0))].sort((a, b) => (typeof b === 'number' && typeof a === 'number' ? b - a : 0));
+        setUploadStatus({
+          type: 'success',
+          message: `Successfully imported ${latestData.length} countries`,
+          details: [
+            `Dataset completely overwritten with new data`,
+            `Years included: ${years.join(', ')}`,
+            `Total fintech companies: ${totalCompanies}`,
+            `All previous data has been replaced`
+          ]
+        });
+      } catch (error: any) {
+        setUploadStatus({
+          type: 'error',
+          message: 'Failed to upload or fetch data',
+          details: [error.message || 'Unknown error']
+        });
+      }
     } else {
       setUploadStatus({
         type: 'error',
