@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { DataManagement } from '../components/DataManagement';
 import { FileUpload } from '../components/FileUpload';
-import { mockCountryData } from '../data/mockData';
 import { useDataPersistence } from '../hooks/useDataPersistence';
 
 const DataManagementPage: React.FC = () => {
@@ -9,7 +8,7 @@ const DataManagementPage: React.FC = () => {
     const stored = localStorage.getItem('fintechUser');
     return stored ? JSON.parse(stored) : null;
   });
-  const { data, updateData, clearData, getDataInfo } = useDataPersistence(mockCountryData);
+  const { data, updateData, clearData, getDataInfo } = useDataPersistence();
   const [selectedYear, setSelectedYear] = useState(2024);
 
   if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'editor')) {

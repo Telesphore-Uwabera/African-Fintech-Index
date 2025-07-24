@@ -10,7 +10,6 @@ import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import type { User } from './types';
 import { AuthModal } from './components/AuthModal';
-import { mockCountryData, availableYears } from './data/mockData';
 
 export const AuthContext = createContext<any>(null);
 
@@ -26,7 +25,8 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode;
 function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [selectedYear, setSelectedYear] = useState(availableYears[0]);
+  const [availableYears, setAvailableYears] = useState<number[]>([]);
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
   // Use a custom hook to access navigate inside App
   function WithNavigate() {
     const navigate = useNavigate();
@@ -42,6 +42,19 @@ function App() {
   useEffect(() => {
     const stored = localStorage.getItem('fintechUser');
     if (stored) setCurrentUser(JSON.parse(stored));
+  }, []);
+
+  useEffect(() => {
+    const apiUrl = import.meta.env.VITE_API_URL;
+    fetch(`${apiUrl}/country-data/years`)
+      .then(res => res.json())
+      .then(years => {
+        setAvailableYears(years);
+        if (years.length > 0 && selectedYear === null) {
+          setSelectedYear(years[0]); // Default to latest year
+        }
+      })
+      .catch(() => setAvailableYears([]));
   }, []);
 
   const handleSignIn = (user: User) => {
@@ -86,9 +99,9 @@ function App() {
             )}
             <main className={`flex-1 min-w-0 w-full max-w-full overflow-x-hidden p-8 text-black ${currentUser ? 'lg:ml-64' : ''}`}>
               <Routes>
-                <Route path="/" element={<DashboardPage selectedYear={selectedYear} onYearChange={setSelectedYear} />} />
-                <Route path="/analytics" element={<AnalyticsPage selectedYear={selectedYear} onYearChange={setSelectedYear} />} />
-                <Route path="/countries" element={<CountriesPage selectedYear={selectedYear} onYearChange={setSelectedYear} />} />
+                <Route path="/" element={<DashboardPage selectedYear={selectedYear} onYearChange={setSelectedYear} availableYears={availableYears} />} />
+                <Route path="/analytics" element={<AnalyticsPage selectedYear={selectedYear} onYearChange={setSelectedYear} availableYears={availableYears} />} />
+                <Route path="/countries" element={<CountriesPage selectedYear={selectedYear} onYearChange={setSelectedYear} availableYears={availableYears} />} />
                 <Route path="/startups" element={<StartupsPage />} />
                 <Route path="/user-management" element={
                   <ProtectedRoute allowedRoles={['admin']}>

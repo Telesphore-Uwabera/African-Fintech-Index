@@ -32,6 +32,7 @@ export const AfricaMapComplete: React.FC<AfricaMapProps> = ({
   width = 1000,
   height = 800
 }) => {
+  console.log('AfricaMapComplete data:', data);
   const [geoData, setGeoData] = useState<ProcessedGeoData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

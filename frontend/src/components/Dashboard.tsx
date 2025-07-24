@@ -11,16 +11,16 @@ import { AuthModal } from './AuthModal';
 import { FinanceNews } from './FinanceNews';
 import { InteractiveChart } from './InteractiveChart';
 import { FintechStartups } from './FintechStartups';
-import { calculateDashboardStats, availableYears } from '../data/mockData';
 import type { CountryData } from '../types';
 import { getLocalShapefilePath } from '../utils/shapefileProcessor';
 
 interface DashboardProps {
   selectedYear: number;
   onYearChange: (year: number) => void;
+  availableYears: number[];
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange }) => {
+const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange, availableYears }) => {
   const apiUrl = import.meta.env.VITE_API_URL;
   const [hoveredCountry, setHoveredCountry] = useState<CountryData | null>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -148,24 +148,52 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange }) => 
     }
   };
 
+  // Fetch all years' country data once
   const [countryData, setCountryData] = useState<CountryData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
     const apiUrl = import.meta.env.VITE_API_URL;
-    setIsLoading(true);
     fetch(`${apiUrl}/country-data`)
       .then(res => res.json())
       .then(data => {
-        setCountryData(data);
-        setIsLoading(false);
+        const isoA3toA2 = {
+          DZA: 'DZ', AGO: 'AO', BEN: 'BJ', BWA: 'BW', BFA: 'BF', BDI: 'BI', CMR: 'CM', CPV: 'CV', CAF: 'CF', TCD: 'TD',
+          COM: 'KM', COG: 'CG', COD: 'CD', DJI: 'DJ', EGY: 'EG', GNQ: 'GQ', ERI: 'ER', ETH: 'ET', GAB: 'GA', GMB: 'GM',
+          GHA: 'GH', GIN: 'GN', GNB: 'GW', CIV: 'CI', KEN: 'KE', LSO: 'LS', LBR: 'LR', LBY: 'LY', MDG: 'MG', MWI: 'MW',
+          MLI: 'ML', MRT: 'MR', MUS: 'MU', MAR: 'MA', MOZ: 'MZ', NAM: 'NA', NER: 'NE', NGA: 'NG', RWA: 'RW', STP: 'ST',
+          SEN: 'SN', SYC: 'SC', SLE: 'SL', SOM: 'SO', ZAF: 'ZA', SSD: 'SS', SDN: 'SD', SWZ: 'SZ', TZA: 'TZ', TGO: 'TG',
+          TUN: 'TN', UGA: 'UG', ZMB: 'ZM', ZWE: 'ZW'
+        };
+        const mapped = data.map((item: any) => ({
+          ...item,
+          id: isoA3toA2[item.id as keyof typeof isoA3toA2] || item.id
+        }));
+        setCountryData(mapped);
       })
-      .catch(() => {
-        setCountryData([]);
-        setIsLoading(false);
-      });
+      .catch(() => setCountryData([]));
   }, []);
+
+  // Filter for the selected year
   const currentData = countryData.filter(country => country.year === selectedYear);
-  const currentStats = calculateDashboardStats(currentData);
+  const getYearData = (year: number) => countryData.filter(c => c.year === year);
+  const prevYear = selectedYear - 1;
+  const prevYearData = getYearData(prevYear);
+  const prevAvgScore = prevYearData.length > 0 ? prevYearData.reduce((sum, c) => sum + (c.finalScore || 0), 0) / prevYearData.length : 0;
+  const avgScore = currentData.length > 0 ? currentData.reduce((sum, c) => sum + (c.finalScore || 0), 0) / currentData.length : 0;
+  const yearOverYearChange = prevAvgScore !== 0 ? parseFloat((((avgScore - prevAvgScore) / prevAvgScore) * 100).toFixed(1)) : 0;
+  const topPerformerObj = currentData.length > 0 ? currentData.reduce((top, c) => c.finalScore > top.finalScore ? c : top, currentData[0]) : null;
+  const topPerformer = topPerformerObj ? `${topPerformerObj.name} (${topPerformerObj.finalScore.toFixed(1)})` : 'N/A';
+  const totalFintechCompanies = currentData.reduce((sum, c) => sum + (c.fintechCompanies || 0), 0);
+  const averageFintechCompanies = currentData.length > 0 ? totalFintechCompanies / currentData.length : 0;
+
+  const currentStats = {
+    totalCountries: countryData.length,
+    averageScore: avgScore,
+    topPerformer,
+    yearOverYearChange,
+    totalFintechCompanies,
+    averageFintechCompanies,
+  };
 
   const handleDataUpdate = (newData: CountryData[]) => {
     setCountryData(newData);
@@ -180,7 +208,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange }) => 
     localStorage.removeItem('fintechUser');
   };
 
-  if (isLoading) {
+  if (countryData.length === 0) { // Changed from isLoading to countryData.length
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
         <div className="text-center">
@@ -234,11 +262,9 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange }) => 
                 <div className="w-full min-w-0 h-64 xl:h-96">
                   <AfricaMapComplete 
                     data={currentData}
-                    onCountryHover={setHoveredCountry}
-                    hoveredCountry={hoveredCountry}
                     shapefilePath={getLocalShapefilePath()}
-                    width={undefined}
-                    height={undefined}
+                    hoveredCountry={hoveredCountry}
+                    onCountryHover={setHoveredCountry}
                   />
                 </div>
               ) : (

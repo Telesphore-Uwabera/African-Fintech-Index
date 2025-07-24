@@ -24,4 +24,23 @@ router.post('/', async (req, res) => {
   }
 });
 
+// POST /api/startups/bulk - bulk add startups
+router.post('/bulk', async (req, res) => {
+  try {
+    const { data } = req.body;
+    if (!Array.isArray(data) || data.length === 0) {
+      return res.status(400).json({ error: 'Data array is required and must not be empty' });
+    }
+    const result = await Startup.insertMany(data, { ordered: false });
+    res.status(201).json({
+      message: `Successfully added ${result.length} startups`,
+      insertedCount: result.length,
+      startups: result
+    });
+  } catch (err) {
+    console.error('Error creating bulk startups:', err);
+    res.status(400).json({ error: 'Failed to create bulk startups' });
+  }
+});
+
 export default router; 

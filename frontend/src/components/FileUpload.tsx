@@ -181,16 +181,16 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onDataUpdate, currentYea
         onDataUpdate(latestData);
         const totalCompanies = latestData.reduce((sum: number, country: any) => sum + (country && typeof country.fintechCompanies === 'number' ? country.fintechCompanies : 0), 0);
         const years = [...new Set(latestData.map((country: any) => country && typeof country.year === 'number' ? country.year : 0))].sort((a, b) => (typeof b === 'number' && typeof a === 'number' ? b - a : 0));
-        setUploadStatus({
-          type: 'success',
+      setUploadStatus({
+        type: 'success',
           message: `Successfully imported ${latestData.length} countries`,
-          details: [
-            `Dataset completely overwritten with new data`,
-            `Years included: ${years.join(', ')}`,
-            `Total fintech companies: ${totalCompanies}`,
-            `All previous data has been replaced`
-          ]
-        });
+        details: [
+          `Dataset completely overwritten with new data`,
+          `Years included: ${years.join(', ')}`,
+          `Total fintech companies: ${totalCompanies}`,
+          `All previous data has been replaced`
+        ]
+      });
       } catch (error: any) {
         setUploadStatus({
           type: 'error',

@@ -84,7 +84,7 @@ export const Header: React.FC<HeaderProps> = ({
                   <select
                     value={selectedYear}
                     onChange={(e) => onYearChange(Number(e.target.value))}
-                    className="appearance-none bg-white border border-gray-300 rounded-lg px-3 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-0 text-black"
+                    className="border rounded px-2 py-1 sm:px-3 sm:py-2 text-base sm:text-lg"
                   >
                     {availableYears.map(year => (
                       <option key={year} value={year} className="text-black">{year}</option>
