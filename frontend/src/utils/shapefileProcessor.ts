@@ -244,18 +244,22 @@ export const coordinatesToPath = (coordinates: number[][][]): string => {
 };
 
 /**
- * Get country color based on score with consistent ranges matching analytics
+ * Get country color based on score with expanded ranges for better visual differentiation
  */
 export const getCountryColor = (countryData: CountryData | null): string => {
   if (!countryData) return '#E5E7EB'; // Light gray for no data
 
   const score = countryData.finalScore;
   
-  // Match the ranges used in analytics charts
-  if (score >= 80) return '#10B981'; // Green - High (80+)
-  if (score >= 60) return '#F59E0B'; // Yellow - Medium (60-79)
-  if (score >= 40) return '#EF4444'; // Red - Low (40-59)
-  return '#6B7280'; // Gray - Very Low (<40)
+  // Expanded ranges for better visual differentiation
+  if (score >= 90) return '#059669'; // Dark Green - Excellent (90+)
+  if (score >= 80) return '#10B981'; // Green - Very High (80-89)
+  if (score >= 70) return '#34D399'; // Light Green - High (70-79)
+  if (score >= 60) return '#F59E0B'; // Yellow - Medium (60-69)
+  if (score >= 50) return '#F97316'; // Orange - Below Medium (50-59)
+  if (score >= 40) return '#EF4444'; // Red - Low (40-49)
+  if (score >= 30) return '#DC2626'; // Dark Red - Very Low (30-39)
+  return '#6B7280'; // Gray - Extremely Low (<30)
 };
 
 /**

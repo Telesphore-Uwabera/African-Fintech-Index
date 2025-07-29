@@ -137,29 +137,29 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser })
   });
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
-            <Building2 className="w-5 h-5 text-white" />
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-2 sm:p-3 md:p-4 lg:p-6 w-full max-w-full min-w-0 overflow-hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-3 sm:gap-0">
+        <div className="flex items-center space-x-2 sm:space-x-3">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-600 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
           </div>
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">Fintech Startups</h2>
-            <p className="text-sm text-gray-600">Discover and add fintech companies across Africa</p>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 truncate">Fintech Startups</h2>
+            <p className="text-xs sm:text-sm text-gray-600 truncate">Discover and add fintech companies across Africa</p>
           </div>
         </div>
 
         {(currentUser && (currentUser.role === 'admin' || currentUser.role === 'editor' || currentUser.role === 'viewer')) && (
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <button
               onClick={() => setShowAddForm(true)}
-              className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              className="flex items-center justify-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
               <span>Add Startup</span>
             </button>
-            <label className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
-              Bulk Upload (.xlsx)
+            <label className="flex items-center justify-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer text-sm">
+              <span>Bulk Upload (.xlsx)</span>
               <input
                 type="file"
                 accept=".xlsx, .xls"
@@ -172,122 +172,150 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser })
       </div>
 
       {uploadStatus && (
-        <div className={`mb-4 p-2 rounded ${uploadStatus.startsWith('Successfully') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{uploadStatus}</div>
+        <div className={`mb-3 sm:mb-4 p-2 sm:p-3 rounded text-xs sm:text-sm ${uploadStatus.startsWith('Successfully') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+          {uploadStatus}
+        </div>
       )}
 
       {/* Filters */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-6">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
           <input
             type="text"
             placeholder="Search startups..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-white bg-gray-900 placeholder-gray-300"
+            className="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm bg-white placeholder-gray-400"
           />
         </div>
 
-        <select
-          value={selectedCountry}
-          onChange={(e) => setSelectedCountry(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-white bg-gray-900"
-        >
-          <option value="">All Countries</option>
-          {countries.map(country => (
-            <option key={country} value={country}>{country}</option>
-          ))}
-        </select>
+        <div className="relative">
+          <select
+            value={selectedCountry}
+            onChange={(e) => setSelectedCountry(e.target.value)}
+            className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm bg-white appearance-none cursor-pointer"
+          >
+            <option value="">All Countries</option>
+            {countries.map(country => (
+              <option key={country} value={country}>{country}</option>
+            ))}
+          </select>
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
 
-        <select
-          value={selectedSector}
-          onChange={(e) => setSelectedSector(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-white bg-gray-900"
-        >
-          <option value="">All Sectors</option>
-          {sectors.map(sector => (
-            <option key={sector} value={sector}>{sector}</option>
-          ))}
-        </select>
+        <div className="relative">
+          <select
+            value={selectedSector}
+            onChange={(e) => setSelectedSector(e.target.value)}
+            className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm bg-white appearance-none cursor-pointer"
+          >
+            <option value="">All Sectors</option>
+            {sectors.map(sector => (
+              <option key={sector} value={sector}>{sector}</option>
+            ))}
+          </select>
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
       </div>
 
       {/* Add Startup Form */}
       {showAddForm && (
-        <div className="mb-6 p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Add New Fintech Startup</h3>
-          <form onSubmit={handleAddStartup} className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <input
-              type="text"
-              placeholder="Startup Name"
-              value={newStartup.name}
-              onChange={(e) => setNewStartup({ ...newStartup, name: e.target.value })}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-white bg-gray-900 placeholder-gray-300"
-              required
-            />
+        <div className="mb-4 sm:mb-6 p-3 sm:p-4 md:p-6 bg-gray-50 rounded-lg border border-gray-200">
+          <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Add New Fintech Startup</h3>
+          <form onSubmit={handleAddStartup} className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 md:gap-4">
+            <div className="sm:col-span-1">
+              <input
+                type="text"
+                placeholder="Startup Name"
+                value={newStartup.name}
+                onChange={(e) => setNewStartup({ ...newStartup, name: e.target.value })}
+                className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm bg-white placeholder-gray-400"
+                required
+              />
+            </div>
 
-            <select
-              value={newStartup.country}
-              onChange={(e) => setNewStartup({ ...newStartup, country: e.target.value })}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-white bg-gray-900"
-              required
-            >
-              <option value="">Select Country</option>
-              {countries.map(country => (
-                <option key={country} value={country}>{country}</option>
-              ))}
-            </select>
+            <div className="sm:col-span-1">
+              <select
+                value={newStartup.country}
+                onChange={(e) => setNewStartup({ ...newStartup, country: e.target.value })}
+                className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm bg-white"
+                required
+              >
+                <option value="">Select Country</option>
+                {countries.map(country => (
+                  <option key={country} value={country}>{country}</option>
+                ))}
+              </select>
+            </div>
 
-            <select
-              value={newStartup.sector}
-              onChange={(e) => setNewStartup({ ...newStartup, sector: e.target.value })}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-white bg-gray-900"
-              required
-            >
-              <option value="">Select Sector</option>
-              {sectors.map(sector => (
-                <option key={sector} value={sector}>{sector}</option>
-              ))}
-            </select>
+            <div className="sm:col-span-1">
+              <select
+                value={newStartup.sector}
+                onChange={(e) => setNewStartup({ ...newStartup, sector: e.target.value })}
+                className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm bg-white"
+                required
+              >
+                <option value="">Select Sector</option>
+                {sectors.map(sector => (
+                  <option key={sector} value={sector}>{sector}</option>
+                ))}
+              </select>
+            </div>
 
-            <input
-              type="number"
-              placeholder="Founded Year"
-              value={newStartup.foundedYear}
-              onChange={(e) => setNewStartup({ ...newStartup, foundedYear: parseInt(e.target.value) })}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-white bg-gray-900 placeholder-gray-300"
-              min="1990"
-              max={new Date().getFullYear()}
-              required
-            />
+            <div className="sm:col-span-1">
+              <input
+                type="number"
+                placeholder="Founded Year"
+                value={newStartup.foundedYear}
+                onChange={(e) => setNewStartup({ ...newStartup, foundedYear: parseInt(e.target.value) })}
+                className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm bg-white placeholder-gray-400"
+                min="1990"
+                max={new Date().getFullYear()}
+                required
+              />
+            </div>
 
-            <input
-              type="url"
-              placeholder="Website (optional)"
-              value={newStartup.website}
-              onChange={(e) => setNewStartup({ ...newStartup, website: e.target.value })}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-white bg-gray-900 placeholder-gray-300"
-            />
+            <div className="sm:col-span-2">
+              <input
+                type="url"
+                placeholder="Website (optional)"
+                value={newStartup.website}
+                onChange={(e) => setNewStartup({ ...newStartup, website: e.target.value })}
+                className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm bg-white placeholder-gray-400"
+              />
+            </div>
 
-            <textarea
-              placeholder="Description"
-              value={newStartup.description}
-              onChange={(e) => setNewStartup({ ...newStartup, description: e.target.value })}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent col-span-1 sm:col-span-2 text-white bg-gray-900 placeholder-gray-300"
-              rows={3}
-              required
-            />
+            <div className="sm:col-span-2">
+              <textarea
+                placeholder="Description"
+                value={newStartup.description}
+                onChange={(e) => setNewStartup({ ...newStartup, description: e.target.value })}
+                className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm bg-white placeholder-gray-400"
+                rows={3}
+                required
+              />
+            </div>
 
-            <div className="col-span-1 sm:col-span-2 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
+            <div className="sm:col-span-2 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
               <button
                 type="submit"
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
               >
                 Add Startup
               </button>
               <button
                 type="button"
                 onClick={() => setShowAddForm(false)}
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors text-sm font-medium"
               >
                 Cancel
               </button>
@@ -298,32 +326,35 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser })
 
       {/* Startups Grid */}
       {loading ? (
-        <div>Loading startups...</div>
+        <div className="text-center py-8">
+          <div className="w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-sm text-gray-600">Loading startups...</p>
+        </div>
       ) : error ? (
-        <div className="text-red-600">{error}</div>
+        <div className="text-red-600 text-sm p-4 text-center">{error}</div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 w-full max-w-full overflow-x-hidden">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 md:gap-6 w-full max-w-full min-w-0 overflow-hidden">
         {filteredStartups.map((startup) => (
-            <div key={startup.id} className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow w-full max-w-full">
-              <div className="flex items-start justify-between mb-3 w-full max-w-full">
-                <h3 className="text-base sm:text-lg font-semibold text-gray-900 flex-1 min-w-0 mr-2 truncate">{startup.name}</h3>
-                <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full flex-shrink-0 truncate">
+            <div key={startup.id} className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow w-full max-w-full min-w-0 overflow-hidden bg-white">
+              <div className="flex items-start justify-between mb-2 sm:mb-3 w-full max-w-full min-w-0">
+                <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 flex-1 min-w-0 mr-2 break-words leading-tight">{startup.name}</h3>
+                <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full flex-shrink-0 truncate ml-2">
                 {startup.sector}
               </span>
             </div>
-              <p className="text-xs sm:text-sm text-gray-600 mb-3 line-clamp-2 break-words">{startup.description}</p>
-              <div className="space-y-2 text-xs sm:text-sm text-gray-500">
-              <div className="flex items-center space-x-2">
-                  <Globe className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span className="truncate">{startup.country}</span>
+              <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 line-clamp-3 break-words leading-relaxed">{startup.description}</p>
+              <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-500">
+              <div className="flex items-center space-x-1.5 sm:space-x-2">
+                  <Globe className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 text-gray-400" />
+                  <span className="truncate font-medium">{startup.country}</span>
               </div>
-              <div className="flex items-center space-x-2">
-                  <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+              <div className="flex items-center space-x-1.5 sm:space-x-2">
+                  <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 text-gray-400" />
                 <span>Founded {startup.foundedYear}</span>
               </div>
-              <div className="flex items-center space-x-2">
-                  <User className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span className="truncate">Added by {startup.addedBy || 'Unknown'}</span>
+              <div className="flex items-center space-x-1.5 sm:space-x-2">
+                  <User className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 text-gray-400" />
+                  <span className="truncate text-xs">Added by {startup.addedBy || 'Unknown'}</span>
                 </div>
               </div>
             {startup.website && (
@@ -331,7 +362,7 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser })
                 href={startup.website}
                 target="_blank"
                 rel="noopener noreferrer"
-                  className="inline-block mt-3 text-green-600 hover:text-green-700 text-xs sm:text-sm font-medium truncate"
+                  className="inline-block mt-3 sm:mt-4 text-green-600 hover:text-green-700 text-xs sm:text-sm font-medium truncate border-t border-gray-100 pt-2 sm:pt-3"
               >
                 Visit Website →
               </a>
@@ -341,14 +372,14 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser })
       </div>
       )}
 
-      {filteredStartups.length === 0 && (
-        <div className="text-center py-12">
-          <Building2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600">No startups found matching your criteria</p>
+      {filteredStartups.length === 0 && !loading && (
+        <div className="text-center py-8 sm:py-12">
+          <Building2 className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-3 sm:mb-4" />
+          <p className="text-sm sm:text-base text-gray-600 mb-2">No startups found matching your criteria</p>
           {currentUser && (
             <button
               onClick={() => setShowAddForm(true)}
-              className="mt-2 text-green-600 hover:text-green-700 font-medium"
+              className="text-green-600 hover:text-green-700 font-medium text-sm"
             >
               Add the first startup
             </button>

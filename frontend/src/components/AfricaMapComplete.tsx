@@ -212,20 +212,36 @@ export const AfricaMapComplete: React.FC<AfricaMapProps> = ({
             <div className="text-xs font-semibold text-gray-700 mb-1 sm:mb-2">Fintech Index Score Ranges</div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-2">
               <div className="flex items-center space-x-1 sm:space-x-2">
+                <div className="w-2 h-2 sm:w-3 sm:h-3 bg-emerald-700 rounded flex-shrink-0"></div>
+                <span className="text-xs text-gray-600">Excellent (90+)</span>
+              </div>
+              <div className="flex items-center space-x-1 sm:space-x-2">
                 <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-500 rounded flex-shrink-0"></div>
-                <span className="text-xs text-gray-600">High (80+)</span>
+                <span className="text-xs text-gray-600">Very High (80-89)</span>
+              </div>
+              <div className="flex items-center space-x-1 sm:space-x-2">
+                <div className="w-2 h-2 sm:w-3 sm:h-3 bg-emerald-400 rounded flex-shrink-0"></div>
+                <span className="text-xs text-gray-600">High (70-79)</span>
               </div>
               <div className="flex items-center space-x-1 sm:space-x-2">
                 <div className="w-2 h-2 sm:w-3 sm:h-3 bg-yellow-500 rounded flex-shrink-0"></div>
-                <span className="text-xs text-gray-600">Medium (60-79)</span>
+                <span className="text-xs text-gray-600">Medium (60-69)</span>
+              </div>
+              <div className="flex items-center space-x-1 sm:space-x-2">
+                <div className="w-2 h-2 sm:w-3 sm:h-3 bg-orange-500 rounded flex-shrink-0"></div>
+                <span className="text-xs text-gray-600">Below Medium (50-59)</span>
               </div>
               <div className="flex items-center space-x-1 sm:space-x-2">
                 <div className="w-2 h-2 sm:w-3 sm:h-3 bg-red-500 rounded flex-shrink-0"></div>
-                <span className="text-xs text-gray-600">Low (40-59)</span>
+                <span className="text-xs text-gray-600">Low (40-49)</span>
+              </div>
+              <div className="flex items-center space-x-1 sm:space-x-2">
+                <div className="w-2 h-2 sm:w-3 sm:h-3 bg-red-700 rounded flex-shrink-0"></div>
+                <span className="text-xs text-gray-600">Very Low (30-39)</span>
               </div>
               <div className="flex items-center space-x-1 sm:space-x-2">
                 <div className="w-2 h-2 sm:w-3 sm:h-3 bg-gray-500 rounded flex-shrink-0"></div>
-                <span className="text-xs text-gray-600">Very Low (&lt;40)</span>
+                <span className="text-xs text-gray-600">Extremely Low (&lt;30)</span>
               </div>
             </div>
           </div>

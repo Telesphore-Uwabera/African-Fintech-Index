@@ -376,7 +376,7 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
       )}
 
       {/* Chart Container */}
-      <div className="h-40 sm:h-48 md:h-56 lg:h-64 xl:h-72 2xl:h-80 w-full max-w-full min-w-0 overflow-hidden">
+      <div className="h-80 sm:h-96 md:h-[448px] lg:h-[512px] xl:h-[576px] 2xl:h-[640px] w-full max-w-full min-w-0 overflow-hidden">
         {chartType === 'trend' && (
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={trendData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>

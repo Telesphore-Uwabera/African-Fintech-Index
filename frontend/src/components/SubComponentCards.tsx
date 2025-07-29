@@ -70,12 +70,6 @@ export const SubComponentCards: React.FC<SubComponentCardsProps> = ({ data }) =>
                   <span className="text-xs font-medium text-gray-600">Top Performer:</span>
                   <span className="text-xs font-bold text-gray-900">{topCountry.name}</span>
                 </div>
-                <div className="flex justify-between items-center bg-gray-50 rounded p-2">
-                  <span className="text-xs font-medium text-gray-600">Score:</span>
-                  <span className="text-xs font-bold text-blue-700">
-                    {(topCountry[component.key] as number).toFixed(1)}
-                  </span>
-                </div>
                 <div className="space-y-1">
                   <div className="flex justify-between text-xs text-gray-500">
                     <span>Progress</span>
@@ -121,12 +115,6 @@ export const SubComponentCards: React.FC<SubComponentCardsProps> = ({ data }) =>
                   <span className="text-xs font-medium text-gray-600">Top Performer:</span>
                   <span className="text-xs font-bold text-gray-900">{topCountry.name}</span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-xs font-medium text-gray-600">Score:</span>
-                  <span className="text-xs font-bold text-blue-700">
-                    {(topCountry[component.key] as number).toFixed(1)}
-                  </span>
-                </div>
                 <div className="space-y-1">
                   <div className="flex justify-between text-xs text-gray-500">
                     <span>Progress</span>
@@ -171,12 +159,6 @@ export const SubComponentCards: React.FC<SubComponentCardsProps> = ({ data }) =>
                 <div className="flex justify-between items-center bg-gray-50 rounded-lg p-3">
                   <span className="text-sm font-medium text-gray-600">Top Performer:</span>
                   <span className="text-sm font-bold text-gray-900">{topCountry.name}</span>
-                </div>
-                <div className="flex justify-between items-center bg-gray-50 rounded-lg p-3">
-                  <span className="text-sm font-medium text-gray-600">Score:</span>
-                  <span className="text-sm font-bold text-blue-700">
-                    {(topCountry[component.key] as number).toFixed(1)}
-                  </span>
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm text-gray-500">

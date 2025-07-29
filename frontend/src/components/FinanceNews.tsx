@@ -247,76 +247,76 @@ export const FinanceNews: React.FC = () => {
   }
 
   return (
-    <div className="w-full h-auto max-w-full min-w-0 bg-white rounded-xl shadow-sm border border-gray-200 p-2 sm:p-4 flex flex-col gap-2">
+    <div className="w-full h-full max-w-full min-w-0 bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="p-6 pb-4 flex-shrink-0">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-              <Newspaper className="w-5 h-5 text-white" />
+      <div className="p-2 sm:p-3 md:p-4 lg:p-6 pb-2 sm:pb-3 md:pb-4 lg:pb-6 flex-shrink-0">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Newspaper className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">Finance News</h2>
-              <p className="text-sm text-gray-600">
+            <div className="min-w-0 flex-1">
+              <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 truncate">Finance News</h2>
+              <p className="text-xs sm:text-sm text-gray-600 truncate">
                 {lastUpdated ? `Updated at ${formatLastUpdated()}` : 'Latest fintech developments in Africa'}
               </p>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <TrendingUp className="w-5 h-5 text-green-500" />
+          <div className="flex items-center space-x-1 sm:space-x-2">
+            <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 flex-shrink-0" />
             <button
               onClick={fetchNews}
               disabled={loading}
-              className="p-2 text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
+              className="p-1 sm:p-2 text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
               title="Refresh news"
             >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-3 h-3 sm:w-4 sm:h-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
           </div>
         </div>
 
         {error && (
-          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-sm text-yellow-700">{error} - Showing recent headlines</p>
+          <div className="mt-2 sm:mt-4 p-2 sm:p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-xs sm:text-sm text-yellow-700 break-words">{error} - Showing recent headlines</p>
           </div>
         )}
       </div>
 
       {/* News Content */}
-      <div className="flex-1 px-6 overflow-y-auto min-h-0">
-        <div className="space-y-4 pb-4">
+      <div className="flex-1 px-2 sm:px-3 md:px-4 lg:px-6 overflow-y-auto min-h-0">
+        <div className="space-y-2 sm:space-y-3 md:space-y-4 pb-2 sm:pb-3 md:pb-4">
           {news.slice(0, 6).map((article, index) => (
-            <div key={index} className="border-b border-gray-100 pb-4 last:border-b-0 last:pb-0">
-              <div className="flex space-x-4">
+            <div key={index} className="border-b border-gray-100 pb-2 sm:pb-3 md:pb-4 last:border-b-0 last:pb-0">
+              <div className="flex space-x-2 sm:space-x-3 md:space-x-4">
                 {article.urlToImage && (
                   <img
                     src={article.urlToImage}
                     alt={article.title}
-                    className="w-20 h-20 object-cover rounded-lg flex-shrink-0"
+                    className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg flex-shrink-0"
                     onError={(e) => {
                       e.currentTarget.src = 'https://images.pexels.com/photos/3483098/pexels-photo-3483098.jpeg';
                     }}
                   />
                 )}
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 mb-1 leading-tight">
+                  <h3 className="text-xs sm:text-sm font-semibold text-gray-900 line-clamp-2 mb-1 leading-tight break-words">
                     {article.title}
                   </h3>
-                  <p className="text-xs text-gray-600 line-clamp-2 mb-2 leading-relaxed">
+                  <p className="text-xs text-gray-600 line-clamp-2 mb-2 leading-relaxed break-words">
                     {article.description}
                   </p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2 text-xs text-gray-500">
-                      <Calendar className="w-3 h-3" />
-                      <span>{formatDate(article.publishedAt)}</span>
-                      <span>•</span>
-                      <span className="truncate max-w-20">{article.source.name}</span>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
+                    <div className="flex items-center space-x-1 sm:space-x-2 text-xs text-gray-500 min-w-0">
+                      <Calendar className="w-3 h-3 flex-shrink-0" />
+                      <span className="truncate">{formatDate(article.publishedAt)}</span>
+                      <span className="hidden sm:inline">•</span>
+                      <span className="truncate max-w-16 sm:max-w-20">{article.source.name}</span>
                     </div>
                     <a
                       href={article.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-700 text-xs flex items-center space-x-1 transition-colors flex-shrink-0"
+                      className="text-blue-600 hover:text-blue-700 text-xs flex items-center space-x-1 transition-colors flex-shrink-0 self-start sm:self-auto"
                     >
                       <span>Read</span>
                       <ExternalLink className="w-3 h-3" />
@@ -330,8 +330,8 @@ export const FinanceNews: React.FC = () => {
       </div>
 
       {/* Footer */}
-      <div className="p-6 pt-4 border-t border-gray-100 flex-shrink-0">
-        <p className="text-xs text-gray-500 text-center">
+      <div className="p-2 sm:p-3 md:p-4 lg:p-6 pt-2 sm:pt-3 md:pt-4 lg:pt-6 border-t border-gray-100 flex-shrink-0">
+        <p className="text-xs text-gray-500 text-center break-words">
           News updates automatically every hour • Last refresh: {lastUpdated ? formatLastUpdated() : 'Never'}
         </p>
       </div>
