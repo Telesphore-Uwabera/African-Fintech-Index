@@ -193,11 +193,13 @@ export const FinanceNews: React.FC = () => {
     } else if (diffInHours < 24) {
       return `${diffInHours}h ago`;
     } else {
-      return date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-      });
+      return date
+  ? new Date(date).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    })
+  : 'Date not available';
     }
   };
 

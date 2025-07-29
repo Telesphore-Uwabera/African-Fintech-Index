@@ -237,7 +237,9 @@ export const DataManagement: React.FC<DataManagementProps> = ({
               <span className="text-sm font-medium text-blue-800">Last Updated</span>
             </div>
             <p className="text-sm text-blue-700">
-              {dataInfo.lastUpdated.toLocaleDateString()} at {dataInfo.lastUpdated.toLocaleTimeString()}
+            {dataInfo.lastUpdated 
+  ? `${new Date(dataInfo.lastUpdated).toLocaleDateString()} at ${new Date(dataInfo.lastUpdated).toLocaleTimeString()}`
+  : "Date not available"}
             </p>
           </div>
 

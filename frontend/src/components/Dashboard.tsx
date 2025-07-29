@@ -187,7 +187,11 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange, avail
   const averageFintechCompanies = currentData.length > 0 ? totalFintechCompanies / currentData.length : 0;
 
   const currentStats = {
+<<<<<<< HEAD
     totalCountries: currentData.length,
+=======
+    totalCountries: countryData.length,
+>>>>>>> 20e6078560fe7d34698c83773cefceec8a01a69f
     averageScore: avgScore,
     topPerformer,
     yearOverYearChange,
@@ -269,6 +273,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange, avail
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 xl:gap-8 w-full max-w-full min-w-0 overflow-hidden">
             <div className="lg:col-span-1 xl:col-span-2 flex items-center justify-center w-full max-w-full min-w-0 overflow-hidden">
               {useNewMap ? (
+<<<<<<< HEAD
                 <div className="w-full min-w-0 h-48 sm:h-64 md:h-80 xl:h-96 overflow-hidden flex items-center justify-center">
                   <div className="w-full h-full max-w-4xl mx-auto">
                     <AfricaMapComplete 
@@ -278,6 +283,15 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange, avail
                       onCountryHover={setHoveredCountry}
                     />
                   </div>
+=======
+                <div className="w-full min-w-0 h-64 xl:h-96">
+                  <AfricaMapComplete 
+                    data={currentData}
+                    shapefilePath={getLocalShapefilePath()}
+                    hoveredCountry={hoveredCountry}
+                    onCountryHover={setHoveredCountry}
+                  />
+>>>>>>> 20e6078560fe7d34698c83773cefceec8a01a69f
                 </div>
               ) : (
                 <div className="w-full min-w-0 h-48 sm:h-64 md:h-80 xl:h-96 overflow-hidden flex items-center justify-center">
