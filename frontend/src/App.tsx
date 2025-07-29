@@ -93,7 +93,6 @@ function App() {
             onAuthClick={openAuthModal}
             onLogout={handleSignOut}
           />
-<<<<<<< HEAD
           
           {/* Sidebar - Only render when user is signed in */}
           {currentUser && (
@@ -123,30 +122,6 @@ function App() {
                 </Routes>
                 <AuthModal isOpen={showAuthModal} onClose={closeAuthModal} onAuthSuccess={handleAuthSuccess} currentUser={currentUser} />
               </div>
-=======
-          <div className="flex flex-row flex-1 relative z-10 w-full max-w-full min-w-0 overflow-x-hidden">
-            {currentUser && (
-              <Sidebar currentUser={currentUser} onSignIn={openAuthModal} onSignOut={handleSignOut} />
-            )}
-            <main className={`flex-1 min-w-0 w-full max-w-full overflow-x-hidden p-8 text-black ${currentUser ? 'lg:ml-64' : ''}`}>
-              <Routes>
-                <Route path="/" element={<DashboardPage selectedYear={selectedYear} onYearChange={setSelectedYear} availableYears={availableYears} />} />
-                <Route path="/analytics" element={<AnalyticsPage selectedYear={selectedYear} onYearChange={setSelectedYear} availableYears={availableYears} />} />
-                <Route path="/countries" element={<CountriesPage selectedYear={selectedYear} onYearChange={setSelectedYear} availableYears={availableYears} />} />
-                <Route path="/startups" element={<StartupsPage />} />
-                <Route path="/user-management" element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <UserManagementPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/data-management" element={
-                  <ProtectedRoute allowedRoles={['admin', 'editor']}>
-                    <DataManagementPage />
-                  </ProtectedRoute>
-                } />
-              </Routes>
-              <AuthModal isOpen={showAuthModal} onClose={closeAuthModal} onAuthSuccess={handleAuthSuccess} currentUser={currentUser} />
->>>>>>> 20e6078560fe7d34698c83773cefceec8a01a69f
             </main>
           </div>
         </div>
