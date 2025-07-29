@@ -170,17 +170,17 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
     
     return (
       <g>
-        <circle cx={cx} cy={cy} r={4} fill={country.color} stroke="white" strokeWidth={2} />
+        <circle cx={cx} cy={cy} r={3} fill={country.color} stroke="white" strokeWidth={1} />
         <text
-          x={cx + 10}
+          x={cx + 5}
           y={cy}
           fill={country.color}
-          fontSize="12"
+          fontSize="10"
           fontWeight="600"
           textAnchor="start"
           dominantBaseline="middle"
         >
-          {country.name} ({payload[dataKey]?.toFixed(1)})
+          {country.name.substring(0, 2).toUpperCase()} ({payload[dataKey]?.toFixed(0)})
         </text>
       </g>
     );
@@ -190,14 +190,15 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
   const totalYearsShown = endYear - startYear + 1;
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-2 sm:p-6 w-full max-w-full min-w-0 overflow-x-hidden">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 w-full max-w-full min-w-0 overflow-x-hidden gap-3 md:gap-0">
-        <div className="flex items-center space-x-3 min-w-0">
-          <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
-            <Activity className="w-5 h-5 text-white" />
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2 sm:p-3 md:p-4 lg:p-6 w-full max-w-full min-w-0 overflow-hidden">
+      {/* Header Section */}
+      <div className="flex flex-col space-y-2 sm:space-y-3 mb-3 sm:mb-4 lg:mb-6 w-full max-w-full min-w-0 overflow-hidden">
+        <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
+          <div className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Activity className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 text-white" />
           </div>
-          <div className="min-w-0">
-            <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 break-words whitespace-normal">Interactive Analytics</h2>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl font-bold text-gray-900 break-words whitespace-normal">Interactive Analytics</h2>
             <p className="text-xs sm:text-sm md:text-base text-gray-600 break-words whitespace-normal">
               {chartType === 'trend' 
                 ? `Showing data from ${startYear} to ${endYear} (${totalYearsShown} year${totalYearsShown > 1 ? 's' : ''})`
@@ -206,17 +207,19 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
             </p>
           </div>
         </div>
-        <div className="flex flex-col sm:flex-row flex-wrap items-start md:items-center gap-2 md:gap-2 min-w-0 w-full md:w-auto text-xs sm:text-sm md:text-base">
+
+        {/* Controls Section */}
+        <div className="flex flex-col space-y-1 sm:space-y-2 min-w-0 w-full text-xs sm:text-sm overflow-hidden">
           {chartType === 'trend' && (
             <>
               {/* Year Range Selector */}
-              <div className="flex items-center space-x-2 px-3 py-2 bg-gray-50 rounded-lg min-w-0">
-                <Calendar className="w-4 h-4 text-gray-500" />
-                <span className="text-sm text-black whitespace-nowrap">Range:</span>
+              <div className="flex items-center space-x-1 sm:space-x-2 px-1.5 sm:px-2 md:px-3 py-1 sm:py-1.5 md:py-2 bg-gray-50 rounded-lg min-w-0 flex-shrink-0">
+                <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-gray-500 flex-shrink-0" />
+                <span className="text-xs sm:text-sm text-black whitespace-nowrap">Range:</span>
                 <select
                   value={yearRange}
                   onChange={(e) => setYearRange(e.target.value === 'custom' ? 'custom' : Number(e.target.value))}
-                  className="text-sm border-0 bg-transparent focus:ring-0 focus:outline-none text-black"
+                  className="text-xs sm:text-sm border-0 bg-transparent focus:ring-0 focus:outline-none text-black min-w-0"
                 >
                   {yearRangeOptions.map(option => (
                     <option key={option.value} value={option.value} className="text-black">{option.label}</option>
@@ -226,21 +229,21 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
 
               {/* Custom Year Range Controls */}
               {yearRange === 'custom' && (
-                <div className="flex items-center space-x-2 px-3 py-2 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="flex items-center space-x-1 sm:space-x-2 px-1.5 sm:px-2 md:px-3 py-1 sm:py-1.5 md:py-2 bg-blue-50 rounded-lg border border-blue-200 flex-shrink-0">
                   <select
                     value={customStartYear}
                     onChange={(e) => setCustomStartYear(Number(e.target.value))}
-                    className="text-sm border-0 bg-transparent focus:ring-0 focus:outline-none text-black"
+                    className="text-xs sm:text-sm border-0 bg-transparent focus:ring-0 focus:outline-none text-black min-w-0"
                   >
                     {availableYears.map(year => (
                       <option key={year} value={year} className="text-black">{year}</option>
                     ))}
                   </select>
-                  <span className="text-sm text-black">to</span>
+                  <span className="text-xs sm:text-sm text-black">to</span>
                   <select
                     value={customEndYear}
                     onChange={(e) => setCustomEndYear(Number(e.target.value))}
-                    className="text-sm border-0 bg-transparent focus:ring-0 focus:outline-none text-black"
+                    className="text-xs sm:text-sm border-0 bg-transparent focus:ring-0 focus:outline-none text-black min-w-0"
                   >
                     {availableYears.filter(year => year >= customStartYear).map(year => (
                       <option key={year} value={year} className="text-black">{year}</option>
@@ -252,56 +255,65 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
               {/* Show All Years Button */}
               <button
                 onClick={resetToAllYears}
-                className="flex items-center space-x-2 px-3 py-2 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors text-sm font-medium border border-green-200"
+                className="flex items-center space-x-1 sm:space-x-2 px-1.5 sm:px-2 md:px-3 py-1 sm:py-1.5 md:py-2 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors text-xs sm:text-sm font-medium border border-green-200 flex-shrink-0"
                 title="Show all available years"
               >
-                <RotateCcw className="w-4 h-4" />
-                <span>All Years</span>
+                <RotateCcw className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">All Years</span>
+                <span className="sm:hidden">All</span>
                 <span className="text-xs">({minYear}-{maxYear})</span>
               </button>
 
               <button
                 onClick={() => setShowCountrySelector(!showCountrySelector)}
-                className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-600 hover:bg-gray-100"
+                className="flex items-center space-x-1 sm:space-x-2 px-1.5 sm:px-2 md:px-3 py-1 sm:py-1.5 md:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors text-gray-600 hover:bg-gray-100 flex-shrink-0"
               >
-                <Settings className="w-4 h-4" />
+                <Settings className="w-3 h-3 sm:w-4 sm:h-4" />
                 <span>Countries</span>
-                <ChevronDown className={`w-4 h-4 transition-transform ${showCountrySelector ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform ${showCountrySelector ? 'rotate-180' : ''}`} />
               </button>
             </>
           )}
           
-          <div className="flex space-x-2">
+          {/* Chart Type Buttons */}
+          <div className="flex flex-wrap gap-1 sm:gap-2">
             {chartTypes.map((type) => (
               <button
                 key={type.id}
                 onClick={() => setChartType(type.id as any)}
-                className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`flex items-center space-x-1 sm:space-x-2 px-1.5 sm:px-2 md:px-3 py-1 sm:py-1.5 md:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors flex-shrink-0 ${
                   chartType === type.id
                     ? 'bg-purple-100 text-purple-700 border border-purple-200'
                     : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
-                <type.icon className="w-4 h-4" />
-                <span>{type.label}</span>
+                <type.icon className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">{type.label}</span>
+                <span className="sm:hidden">
+                  {type.id === 'trend' ? 'Trend' : type.id === 'comparison' ? 'Compare' : 'Dist'}
+                </span>
               </button>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Available Years Info */}
+      {/* Available Years Info - Responsive */}
       {chartType === 'trend' && (
-        <div className="mb-4 p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
-            <div className="flex items-center space-x-2">
-              <Calendar className="w-4 h-4 text-blue-600" />
-              <span className="text-sm font-medium text-blue-900">
-                Available Data: {availableYears.join(', ')} 
-                <span className="text-blue-700 ml-1">({availableYears.length} years total)</span>
-              </span>
+        <div className="mb-2 sm:mb-3 md:mb-4 p-2 sm:p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+          <div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex items-start space-x-1 sm:space-x-2">
+              <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div className="min-w-0 flex-1">
+                <span className="text-xs sm:text-sm font-medium text-blue-900 break-words">
+                  Available Data: {availableYears.join(', ')}
+                </span>
+                <div className="text-xs text-blue-700 mt-1">
+                  ({availableYears.length} years total)
+                </div>
+              </div>
             </div>
-            <div className="text-xs text-blue-700">
+            <div className="text-xs text-blue-700 sm:text-right">
               Currently showing: {startYear} - {endYear} ({totalYearsShown} year{totalYearsShown > 1 ? 's' : ''})
             </div>
           </div>
@@ -310,26 +322,26 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
 
       {/* Country Selection for Trend Chart */}
       {chartType === 'trend' && showCountrySelector && (
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="text-sm font-medium text-gray-900">Select Countries to Display</h4>
-            <div className="flex items-center space-x-2">
+        <div className="mb-3 sm:mb-4 md:mb-6 p-2 sm:p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="flex flex-col space-y-1 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between mb-2 sm:mb-3">
+            <h4 className="text-xs sm:text-sm font-medium text-gray-900">Select Countries to Display</h4>
+            <div className="flex items-center space-x-1 sm:space-x-2">
               <span className="text-xs text-gray-500">
                 Showing {startYear}-{endYear}
               </span>
               <button
                 onClick={toggleAllCountries}
-                className="px-3 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+                className="px-1.5 sm:px-2 md:px-3 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
               >
                 {visibleCountries.size === allCountries.length ? 'Hide All' : 'Show All'}
               </button>
             </div>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1 sm:gap-2">
             {allCountries.map((country) => (
               <label
                 key={country.id}
-                className="flex items-center space-x-2 p-2 rounded-lg cursor-pointer hover:bg-white transition-colors"
+                className="flex items-center space-x-1 sm:space-x-2 p-1 sm:p-1.5 md:p-2 rounded-lg cursor-pointer hover:bg-white transition-colors"
               >
                 <input
                   type="checkbox"
@@ -338,7 +350,7 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
                   className="sr-only"
                 />
                 <div
-                  className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                  className={`w-3 h-3 sm:w-4 sm:h-4 rounded border-2 flex items-center justify-center ${
                     visibleCountries.has(country.id) ? 'border-transparent' : 'border-gray-300'
                   }`}
                   style={{
@@ -346,16 +358,16 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
                   }}
                 >
                   {visibleCountries.has(country.id) && (
-                    <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-1.5 h-1.5 sm:w-2 sm:h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   )}
                 </div>
-                <span className="text-sm text-gray-700">{country.name}</span>
+                <span className="text-xs sm:text-sm text-gray-700">{country.name}</span>
               </label>
             ))}
           </div>
-          <p className="text-xs text-gray-500 mt-3">
+          <p className="text-xs text-gray-500 mt-2 sm:mt-3">
             Showing {visibleCountries.size} of {allCountries.length} countries • 
             Trend shows {totalYearsShown} year{totalYearsShown > 1 ? 's' : ''} from {startYear} to {endYear} • 
             Country names and scores displayed at line endpoints
@@ -363,25 +375,26 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
         </div>
       )}
 
-      <div className="h-48 md:h-64 lg:h-80 w-full max-w-full min-w-0 overflow-x-hidden">
+      {/* Chart Container */}
+      <div className="h-40 sm:h-48 md:h-56 lg:h-64 xl:h-72 2xl:h-80 w-full max-w-full min-w-0 overflow-hidden">
         {chartType === 'trend' && (
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={trendData} margin={{ top: 20, right: 150, left: 20, bottom: 20 }}>
+            <LineChart data={trendData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis 
                 dataKey="year" 
                 stroke="#6b7280"
-                tick={{ fontSize: 12 }}
+                tick={{ fontSize: 8 }}
                 domain={[startYear, endYear]}
                 type="number"
                 scale="linear"
-                tickCount={Math.min(totalYearsShown, 8)}
+                tickCount={Math.min(totalYearsShown, 4)}
               />
               <YAxis 
                 stroke="#6b7280" 
                 domain={[0, 100]}
-                tick={{ fontSize: 12 }}
-                label={{ value: 'Fintech Index Score', angle: -90, position: 'insideLeft' }}
+                tick={{ fontSize: 8 }}
+                label={{ value: 'Score', angle: -90, position: 'insideLeft', fontSize: 8 }}
               />
               <Tooltip 
                 contentStyle={{ 
@@ -407,10 +420,10 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
                     type="monotone"
                     dataKey={country.id}
                     stroke={country.color}
-                    strokeWidth={2.5}
+                    strokeWidth={1.5}
                     name={country.name}
                     dot={<CustomDot />}
-                    activeDot={{ r: 6, stroke: country.color, strokeWidth: 2, fill: 'white' }}
+                    activeDot={{ r: 3, stroke: country.color, strokeWidth: 1, fill: 'white' }}
                     connectNulls={false}
                   />
                 )
@@ -421,21 +434,21 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
 
         {chartType === 'comparison' && (
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={comparisonData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+            <BarChart data={comparisonData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis 
                 dataKey="name" 
                 stroke="#6b7280"
-                tick={{ fontSize: 11 }}
+                tick={{ fontSize: 8 }}
                 interval={0}
                 angle={-45}
                 textAnchor="end"
-                height={80}
+                height={50}
               />
               <YAxis 
                 stroke="#6b7280"
-                tick={{ fontSize: 12 }}
-                label={{ value: 'Score', angle: -90, position: 'insideLeft' }}
+                tick={{ fontSize: 8 }}
+                label={{ value: 'Score', angle: -90, position: 'insideLeft', fontSize: 8 }}
               />
               <Tooltip 
                 contentStyle={{ 
@@ -454,8 +467,8 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
                   name === 'fintechCompanies' ? 'Fintech Companies' : name
                 ]}
               />
-              <Bar dataKey="finalScore" fill="#8b5cf6" name="Final Score" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="fintechCompanies" fill="#10b981" name="Fintech Companies" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="finalScore" fill="#8b5cf6" name="Final Score" radius={[1, 1, 0, 0]} />
+              <Bar dataKey="fintechCompanies" fill="#10b981" name="Fintech Companies" radius={[1, 1, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         )}
@@ -469,7 +482,7 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
                 cy="50%"
                 labelLine={false}
                 label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
-                outerRadius={120}
+                outerRadius={50}
                 fill="#8884d8"
                 dataKey="value"
               >
@@ -491,25 +504,32 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
         )}
       </div>
 
+      {/* Footer Info - Responsive */}
       {chartType === 'trend' && (
-        <div className="mt-4 text-xs text-gray-500 text-center">
-          Showing fintech index trends from {startYear} to {endYear} • 
-          Country names and latest scores displayed at line endpoints • 
-          Use controls above to adjust time period or view all {availableYears.length} available years ({minYear}-{maxYear})
+        <div className="mt-2 sm:mt-3 md:mt-4 text-xs text-gray-500 text-center px-2">
+          <div className="break-words leading-relaxed">
+            <p className="mb-1">Showing fintech index trends from {startYear} to {endYear}</p>
+            <p className="mb-1">Country names and latest scores displayed at line endpoints</p>
+            <p>Use controls above to adjust time period or view all {availableYears.length} available years ({minYear}-{maxYear})</p>
+          </div>
         </div>
       )}
       
       {chartType === 'comparison' && (
-        <div className="mt-4 text-xs text-gray-500 text-center">
-          Top 10 countries by fintech index score for {selectedYear} • 
-          Only countries with scores above zero are included
+        <div className="mt-2 sm:mt-3 md:mt-4 text-xs text-gray-500 text-center px-2">
+          <div className="break-words">
+            Top 10 countries by fintech index score for {selectedYear} • 
+            Only countries with scores above zero are included
+          </div>
         </div>
       )}
       
       {chartType === 'distribution' && (
-        <div className="mt-4 text-xs text-gray-500 text-center">
-          Distribution of countries by fintech index score ranges for {selectedYear} • 
-          Zero-score countries excluded
+        <div className="mt-2 sm:mt-3 md:mt-4 text-xs text-gray-500 text-center px-2">
+          <div className="break-words">
+            Distribution of countries by fintech index score ranges for {selectedYear} • 
+            Zero-score countries excluded
+          </div>
         </div>
       )}
     </div>

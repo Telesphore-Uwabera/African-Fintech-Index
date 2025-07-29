@@ -9,81 +9,192 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onSignIn, onSignOut }) => {
-  const [open, setOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const role = currentUser?.role;
 
-  // Helper to close sidebar on mobile
+  // Don't render sidebar if no user is signed in
+  if (!currentUser) {
+    return null;
+  }
+
+  // Close sidebar on mobile when clicking outside or on a link
   const handleNavClick = () => {
-    if (window.innerWidth < 1024) setOpen(false);
+    if (window.innerWidth < 1024) {
+      setIsOpen(false);
+    }
   };
+
+  // Handle window resize for responsive behavior
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setIsOpen(false); // Close mobile sidebar on desktop
+      }
+      if (window.innerWidth >= 1280) {
+        setIsCollapsed(false); // Expand sidebar on large screens
+      } else if (window.innerWidth >= 1024) {
+        setIsCollapsed(true); // Collapse sidebar on medium screens
+      }
+    };
+
+    handleResize(); // Set initial state
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Listen for sidebar-toggle event from Header
   useEffect(() => {
-    const handler = () => setOpen(true);
+    const handler = () => setIsOpen(true);
     window.addEventListener('sidebar-toggle', handler);
     return () => window.removeEventListener('sidebar-toggle', handler);
   }, []);
 
-  // Sidebar content
+  // Close sidebar when clicking on backdrop
+  const handleBackdropClick = () => {
+    setIsOpen(false);
+  };
+
+  // Prevent body scroll when mobile sidebar is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
+  const navItems = [
+    { to: '/', icon: FaChartBar, label: 'Dashboard', show: true },
+    { to: '/analytics', icon: FaTable, label: 'Analytics', show: role === 'admin' || role === 'editor' || role === 'viewer' },
+    { to: '/countries', icon: FaGlobeAfrica, label: 'Countries', show: true },
+    { to: '/startups', icon: FaBuilding, label: 'Startups', show: role === 'admin' || role === 'editor' || role === 'viewer' },
+    { to: '/data-management', icon: FaDatabase, label: 'Data Management', show: role === 'admin' || role === 'editor' },
+    { to: '/user-management', icon: FaUsers, label: 'User Management', show: role === 'admin' },
+  ].filter(item => item.show);
+
   const SidebarContent = (
-    <div className="flex flex-col h-full bg-gradient-to-b from-white via-blue-50 to-purple-50">
-      <div className="flex items-center justify-center h-24 border-b border-gray-100 px-6 relative bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/90 via-purple-600/90 to-indigo-700/90 backdrop-blur-sm"></div>
-        <span className="text-2xl font-black text-white flex items-center gap-3 tracking-tight relative z-10 drop-shadow-lg">
-          <FaGlobeAfrica className="text-3xl drop-shadow-md" />
-          <span className="bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">African Fintech Index</span>
-        </span>
-        {/* Close button for mobile only */}
+    <div className="flex flex-col h-full bg-white shadow-xl border-r border-gray-200">
+      {/* Header */}
+      <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-purple-600">
+        <div className="flex items-center space-x-3">
+          <FaGlobeAfrica className="text-2xl text-white" />
+          {!isCollapsed && (
+            <span className="text-lg font-bold text-white whitespace-nowrap">
+              African Fintech Index
+            </span>
+          )}
+        </div>
+        {/* Close button for mobile */}
         <button
-          className="block lg:hidden absolute right-4 top-4 text-white hover:text-blue-200 transition-colors z-20"
-          onClick={() => setOpen(false)}
+          className="lg:hidden text-white hover:text-gray-200 transition-colors"
+          onClick={() => setIsOpen(false)}
           aria-label="Close sidebar"
         >
-          <FaTimes className="w-6 h-6" />
+          <FaTimes className="w-5 h-5" />
+        </button>
+        {/* Collapse button for desktop */}
+        <button
+          className="hidden lg:block text-white hover:text-gray-200 transition-colors"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          <FaBars className="w-4 h-4" />
         </button>
       </div>
 
-      <nav className="flex-1 px-4 py-6 space-y-2">
-        <NavLink to="/" onClick={handleNavClick} className={({ isActive }) => isActive ? 'flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold shadow-lg transform scale-105 transition-all duration-200' : 'flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-700 font-medium transition-all duration-200 hover:scale-105'} end>
-          <FaChartBar className="text-lg" /> Dashboard
-        </NavLink>
-        {(role === 'admin' || role === 'editor' || role === 'viewer') && (
-          <NavLink to="/analytics" onClick={handleNavClick} className={({ isActive }) => isActive ? 'flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold shadow-lg transform scale-105 transition-all duration-200' : 'flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-700 font-medium transition-all duration-200 hover:scale-105'}>
-            <FaTable className="text-lg" /> Analytics
+      {/* Navigation */}
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        {navItems.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            onClick={handleNavClick}
+            className={({ isActive }) =>
+              `flex items-center space-x-3 px-3 py-3 rounded-lg transition-all duration-200 group ${
+                isActive
+                  ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-md'
+                  : 'text-gray-700 hover:bg-gray-100 hover:text-blue-600'
+              }`
+            }
+          >
+            <item.icon className={`text-lg flex-shrink-0 ${isCollapsed ? 'mx-auto' : ''}`} />
+            {!isCollapsed && (
+              <span className="font-medium whitespace-nowrap">{item.label}</span>
+            )}
           </NavLink>
-        )}
-        <NavLink to="/countries" onClick={handleNavClick} className={({ isActive }) => isActive ? 'flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold shadow-lg transform scale-105 transition-all duration-200' : 'flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-700 font-medium transition-all duration-200 hover:scale-105'}>
-          <FaGlobeAfrica className="text-lg" /> Countries
-        </NavLink>
-        {(role === 'admin' || role === 'editor' || role === 'viewer') && (
-          <NavLink to="/startups" onClick={handleNavClick} className={({ isActive }) => isActive ? 'flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold shadow-lg transform scale-105 transition-all duration-200' : 'flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-700 font-medium transition-all duration-200 hover:scale-105'}>
-            <FaBuilding className="text-lg" /> Startups
-          </NavLink>
-        )}
-        {(role === 'admin' || role === 'editor') && (
-          <NavLink to="/data-management" onClick={handleNavClick} className={({ isActive }) => isActive ? 'flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold shadow-lg transform scale-105 transition-all duration-200' : 'flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-700 font-medium transition-all duration-200 hover:scale-105'}>
-            <FaDatabase className="text-lg" /> Data Management
-          </NavLink>
-        )}
-        {role === 'admin' && (
-          <NavLink to="/user-management" onClick={handleNavClick} className={({ isActive }) => isActive ? 'flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold shadow-lg transform scale-105 transition-all duration-200' : 'flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-700 font-medium transition-all duration-200 hover:scale-105'}>
-            <FaUsers className="text-lg" /> User Management
-          </NavLink>
-        )}
+        ))}
       </nav>
+
+      {/* User section */}
+      <div className="p-3 border-t border-gray-200">
+        {currentUser ? (
+          <div className={`flex items-center space-x-3 ${isCollapsed ? 'justify-center' : ''}`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium flex-shrink-0 ${
+              currentUser.role === 'admin' ? 'bg-purple-600' : 'bg-blue-600'
+            }`}>
+              {currentUser.email.charAt(0).toUpperCase()}
+            </div>
+            {!isCollapsed && (
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-gray-900 truncate">
+                  {currentUser.email}
+                </div>
+                <div className="text-xs text-gray-500 capitalize">
+                  {currentUser.role}
+                </div>
+              </div>
+            )}
+            <button
+              onClick={onSignOut}
+              className={`text-gray-500 hover:text-red-600 transition-colors ${isCollapsed ? 'mx-auto' : ''}`}
+              title="Sign Out"
+            >
+              <FaSignOutAlt className="w-4 h-4" />
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={onSignIn}
+            className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors ${
+              isCollapsed ? 'justify-center' : ''
+            }`}
+          >
+            <FaSignInAlt className="w-4 h-4" />
+            {!isCollapsed && <span>Sign In</span>}
+          </button>
+        )}
+      </div>
     </div>
   );
 
   return (
     <>
-      {/* Sidebar for large screens (always visible) */}
-      <aside className="hidden lg:block w-64 flex-shrink-0 bg-gradient-to-b from-white via-blue-50 to-purple-50 shadow-2xl z-40 flex flex-col fixed top-0 left-0 h-screen border-r border-gray-200/50 min-w-0">
+      {/* Desktop Sidebar */}
+      <aside 
+        className={`hidden lg:block fixed top-0 left-0 h-full z-40 transition-all duration-300 ease-in-out ${
+          isCollapsed ? 'w-16' : 'w-64'
+        }`}
+      >
         {SidebarContent}
       </aside>
-      {/* Sidebar overlay for mobile only */}
+
+      {/* Mobile Sidebar Overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-50 lg:hidden"
+          onClick={handleBackdropClick}
+        />
+      )}
+
+      {/* Mobile Sidebar */}
       <aside
-        className={`block lg:hidden fixed top-0 left-0 h-full w-64 flex-shrink-0 bg-gradient-to-b from-white via-blue-50 to-purple-50 shadow-2xl z-50 flex flex-col transition-transform duration-300 ${open ? 'translate-x-0' : '-translate-x-full'}`}
-        style={{ minHeight: '100vh' }}
+        className={`fixed top-0 left-0 h-full w-64 z-50 lg:hidden transform transition-transform duration-300 ease-in-out ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
       >
         {SidebarContent}
       </aside>

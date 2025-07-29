@@ -11,16 +11,16 @@ import { AuthModal } from './AuthModal';
 import { FinanceNews } from './FinanceNews';
 import { InteractiveChart } from './InteractiveChart';
 import { FintechStartups } from './FintechStartups';
-import { calculateDashboardStats, availableYears } from '../data/mockData';
 import type { CountryData } from '../types';
 import { getLocalShapefilePath } from '../utils/shapefileProcessor';
 
 interface DashboardProps {
   selectedYear: number;
   onYearChange: (year: number) => void;
+  availableYears: number[];
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange }) => {
+const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange, availableYears }) => {
   const apiUrl = import.meta.env.VITE_API_URL;
   const [hoveredCountry, setHoveredCountry] = useState<CountryData | null>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -148,24 +148,52 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange }) => 
     }
   };
 
+  // Fetch all years' country data once
   const [countryData, setCountryData] = useState<CountryData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
     const apiUrl = import.meta.env.VITE_API_URL;
-    setIsLoading(true);
     fetch(`${apiUrl}/country-data`)
       .then(res => res.json())
       .then(data => {
-        setCountryData(data);
-        setIsLoading(false);
+        const isoA3toA2 = {
+          DZA: 'DZ', AGO: 'AO', BEN: 'BJ', BWA: 'BW', BFA: 'BF', BDI: 'BI', CMR: 'CM', CPV: 'CV', CAF: 'CF', TCD: 'TD',
+          COM: 'KM', COG: 'CG', COD: 'CD', DJI: 'DJ', EGY: 'EG', GNQ: 'GQ', ERI: 'ER', ETH: 'ET', GAB: 'GA', GMB: 'GM',
+          GHA: 'GH', GIN: 'GN', GNB: 'GW', CIV: 'CI', KEN: 'KE', LSO: 'LS', LBR: 'LR', LBY: 'LY', MDG: 'MG', MWI: 'MW',
+          MLI: 'ML', MRT: 'MR', MUS: 'MU', MAR: 'MA', MOZ: 'MZ', NAM: 'NA', NER: 'NE', NGA: 'NG', RWA: 'RW', STP: 'ST',
+          SEN: 'SN', SYC: 'SC', SLE: 'SL', SOM: 'SO', ZAF: 'ZA', SSD: 'SS', SDN: 'SD', SWZ: 'SZ', TZA: 'TZ', TGO: 'TG',
+          TUN: 'TN', UGA: 'UG', ZMB: 'ZM', ZWE: 'ZW'
+        };
+        const mapped = data.map((item: any) => ({
+          ...item,
+          id: isoA3toA2[item.id as keyof typeof isoA3toA2] || item.id
+        }));
+        setCountryData(mapped);
       })
-      .catch(() => {
-        setCountryData([]);
-        setIsLoading(false);
-      });
+      .catch(() => setCountryData([]));
   }, []);
+
+  // Filter for the selected year
   const currentData = countryData.filter(country => country.year === selectedYear);
-  const currentStats = calculateDashboardStats(currentData);
+  const getYearData = (year: number) => countryData.filter(c => c.year === year);
+  const prevYear = selectedYear - 1;
+  const prevYearData = getYearData(prevYear);
+  const prevAvgScore = prevYearData.length > 0 ? prevYearData.reduce((sum, c) => sum + (c.finalScore || 0), 0) / prevYearData.length : 0;
+  const avgScore = currentData.length > 0 ? currentData.reduce((sum, c) => sum + (c.finalScore || 0), 0) / currentData.length : 0;
+  const yearOverYearChange = prevAvgScore !== 0 ? parseFloat((((avgScore - prevAvgScore) / prevAvgScore) * 100).toFixed(1)) : 0;
+  const topPerformerObj = currentData.length > 0 ? currentData.reduce((top, c) => c.finalScore > top.finalScore ? c : top, currentData[0]) : null;
+  const topPerformer = topPerformerObj ? `${topPerformerObj.name} (${topPerformerObj.finalScore.toFixed(1)})` : 'N/A';
+  const totalFintechCompanies = currentData.reduce((sum, c) => sum + (c.fintechCompanies || 0), 0);
+  const averageFintechCompanies = currentData.length > 0 ? totalFintechCompanies / currentData.length : 0;
+
+  const currentStats = {
+    totalCountries: currentData.length,
+    averageScore: avgScore,
+    topPerformer,
+    yearOverYearChange,
+    totalFintechCompanies,
+    averageFintechCompanies,
+  };
 
   const handleDataUpdate = (newData: CountryData[]) => {
     setCountryData(newData);
@@ -180,7 +208,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange }) => 
     localStorage.removeItem('fintechUser');
   };
 
-  if (isLoading) {
+  if (countryData.length === 0) { // Changed from isLoading to countryData.length
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
         <div className="text-center">
@@ -200,12 +228,15 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange }) => 
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-blue-300/10 to-purple-300/10 rounded-full blur-3xl"></div>
       </div>
       
-      <main className="flex-1 px-2 sm:px-4 md:px-8 pt-4 pb-8 space-y-10 relative z-10 w-full max-w-full min-w-0 overflow-x-hidden">
+      <main className="flex-1 px-2 sm:px-4 md:px-6 lg:px-8 pt-4 pb-6 sm:pb-8 space-y-6 sm:space-y-8 lg:space-y-10 relative z-10 w-full max-w-full min-w-0 overflow-hidden mx-auto max-w-7xl">
           {/* Stats Overview */}
-          <StatsCards stats={currentStats} />
+          <div className="w-full max-w-full min-w-0 overflow-hidden">
+            <StatsCards stats={currentStats} />
+          </div>
+          
           {/* Admin Data Management */}
           {currentUser?.role === 'admin' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 w-full max-w-full min-w-0 overflow-x-hidden">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 lg:gap-6 w-full max-w-full min-w-0 overflow-hidden">
               <DataManagement 
                 getDataInfo={() => ({ total: countryData.length, years: availableYears })}
                 clearData={() => {}}
@@ -217,236 +248,257 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange }) => 
               />
             </div>
           )}
+          
           {/* Sub-component Cards */}
-          <SubComponentCards data={currentData} />
-          {/* Interactive Analytics */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-12 py-8 w-full max-w-full min-w-0 overflow-x-hidden">
-            <InteractiveChart 
-              data={currentData} 
-              allYearsData={countryData} 
-              selectedYear={selectedYear}
-            />
+          <div className="w-full max-w-full min-w-0 overflow-hidden">
+            <SubComponentCards data={currentData} />
           </div>
+          
+          {/* Interactive Analytics */}
+          <div className="w-full max-w-full min-w-0 overflow-hidden">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-2 sm:p-3 md:p-4 lg:p-6 w-full max-w-full min-w-0 overflow-hidden">
+              <InteractiveChart 
+                data={currentData} 
+                allYearsData={countryData} 
+                selectedYear={selectedYear}
+              />
+            </div>
+          </div>
+          
           {/* Main Content Grid - Map and News */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 w-full max-w-full min-w-0 overflow-x-hidden">
-            <div className="md:col-span-1 xl:col-span-2 flex items-center justify-center w-full max-w-full min-w-0 overflow-x-hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 xl:gap-8 w-full max-w-full min-w-0 overflow-hidden">
+            <div className="lg:col-span-1 xl:col-span-2 flex items-center justify-center w-full max-w-full min-w-0 overflow-hidden">
               {useNewMap ? (
-                <div className="w-full min-w-0 h-64 xl:h-96">
-                  <AfricaMapComplete 
-                    data={currentData}
-                    onCountryHover={setHoveredCountry}
-                    hoveredCountry={hoveredCountry}
-                    shapefilePath={getLocalShapefilePath()}
-                    width={undefined}
-                    height={undefined}
-                  />
+                <div className="w-full min-w-0 h-48 sm:h-64 md:h-80 xl:h-96 overflow-hidden flex items-center justify-center">
+                  <div className="w-full h-full max-w-4xl mx-auto">
+                    <AfricaMapComplete 
+                      data={currentData}
+                      shapefilePath={getLocalShapefilePath()}
+                      hoveredCountry={hoveredCountry}
+                      onCountryHover={setHoveredCountry}
+                    />
+                  </div>
                 </div>
               ) : (
-                <div className="w-full min-w-0 h-64 xl:h-96">
-                  <AfricaMap 
-                    data={currentData}
-                    onCountryHover={setHoveredCountry}
-                    hoveredCountry={hoveredCountry}
-                  />
+                <div className="w-full min-w-0 h-48 sm:h-64 md:h-80 xl:h-96 overflow-hidden flex items-center justify-center">
+                  <div className="w-full h-full max-w-4xl mx-auto">
+                    <AfricaMap 
+                      data={currentData}
+                      onCountryHover={setHoveredCountry}
+                      hoveredCountry={hoveredCountry}
+                    />
+                  </div>
                 </div>
               )}
             </div>
-            <div className="md:col-span-1 xl:col-span-1 h-64 md:h-80 xl:h-96 bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-4 w-full max-w-full min-w-0 overflow-x-hidden">
+            <div className="lg:col-span-1 xl:col-span-1 h-48 sm:h-64 md:h-80 xl:h-96 bg-white rounded-xl shadow-sm border border-gray-200 p-2 sm:p-3 md:p-4 w-full max-w-full min-w-0 overflow-hidden">
               <FinanceNews />
             </div>
           </div>
+          
           {/* Fintech Startups */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 w-full max-w-full min-w-0 overflow-x-hidden">
-            <FintechStartups currentUser={currentUser} />
+          <div className="w-full max-w-full min-w-0 overflow-hidden">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-2 sm:p-3 md:p-4 lg:p-6 w-full max-w-full min-w-0 overflow-hidden">
+              <FintechStartups currentUser={currentUser} />
+            </div>
           </div>
+          
           {/* Country Rankings Table */}
           {currentData.length > 0 ? (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
-              <CountryTable data={currentData} />
+            <div className="w-full max-w-full min-w-0 overflow-hidden">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-2 sm:p-3 md:p-4 lg:p-6 w-full max-w-full min-w-0 overflow-hidden">
+                <CountryTable data={currentData} />
+              </div>
             </div>
           ) : (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-12 text-center">
-              <div className="text-gray-400 mb-4">
-                <svg className="w-12 h-12 sm:w-16 sm:h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
+            <div className="w-full max-w-full min-w-0 overflow-hidden">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 md:p-12 text-center w-full max-w-full min-w-0 overflow-hidden">
+                <div className="text-gray-400 mb-4">
+                  <svg className="w-12 h-12 sm:w-16 sm:h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No Data Available</h3>
+                <p className="text-sm sm:text-base text-gray-600 mb-4">
+                  {currentUser?.role === 'admin' 
+                    ? `Upload a CSV or Excel file to see country rankings for ${selectedYear}`
+                    : `Admin login required to upload data for ${selectedYear}`}
+                </p>
+                <p className="text-xs sm:text-sm text-gray-500">Make sure to include year and fintech companies data in your file</p>
               </div>
-              <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No Data Available</h3>
-              <p className="text-sm sm:text-base text-gray-600 mb-4">
-                {currentUser?.role === 'admin' 
-                  ? `Upload a CSV or Excel file to see country rankings for ${selectedYear}`
-                  : `Admin login required to upload data for ${selectedYear}`}
-              </p>
-              <p className="text-xs sm:text-sm text-gray-500">Make sure to include year and fintech companies data in your file</p>
             </div>
           )}
           {/* Admin: Unverified Users */}
           {currentUser?.role === 'admin' && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-6">
-              <h3 className="text-base sm:text-lg font-semibold mb-4 text-black">Unverified Users</h3>
-              {loadingUnverified ? (
-                <p>Loading...</p>
-              ) : unverifiedUsers.length === 0 ? (
-                <p>No unverified users.</p>
-              ) : (
-                <ul className="space-y-2">
-                  {unverifiedUsers.map(user => (
-                    <li key={user._id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b pb-2 gap-2">
-                      <span className="text-black text-sm sm:text-base">
-                        {user.email} ({user.role})
-                      </span>
-                      <button
-                        className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm w-fit"
-                        onClick={() => handleVerifyUser(user._id)}
-                      >
-                        Verify
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
+            <div className="w-full max-w-full min-w-0 overflow-hidden">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-4 md:p-6 mb-4 sm:mb-6">
+                <h3 className="text-base sm:text-lg font-semibold mb-4 text-black">Unverified Users</h3>
+                {loadingUnverified ? (
+                  <p>Loading...</p>
+                ) : unverifiedUsers.length === 0 ? (
+                  <p>No unverified users.</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {unverifiedUsers.map(user => (
+                      <li key={user._id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b pb-2 gap-2">
+                        <span className="text-black text-sm sm:text-base">
+                          {user.email} ({user.role})
+                        </span>
+                        <button
+                          className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm w-fit"
+                          onClick={() => handleVerifyUser(user._id)}
+                        >
+                          Verify
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
           )}
           {/* Admin: All Users */}
           {currentUser?.role === 'admin' && (
-            <div id="user-management" className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-6">
-              <h3 className="text-base sm:text-lg font-semibold mb-4">All Users</h3>
-              {/* Register New User Form */}
-              <div className="mb-6">
-                <h4 className="text-sm sm:text-md font-semibold mb-2">Register New User</h4>
-                <form
-                  className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4"
-                  onSubmit={async (e) => {
-                    e.preventDefault();
-                    if (!currentUser?.token) return;
-                    const form = e.target as HTMLFormElement;
-                    const name = (form.elements.namedItem('name') as HTMLInputElement).value;
-                    const email = (form.elements.namedItem('email') as HTMLInputElement).value;
-                    const password = (form.elements.namedItem('password') as HTMLInputElement).value;
-                    const role = (form.elements.namedItem('role') as HTMLSelectElement).value;
-                    try {
-                      const res = await fetch(`${apiUrl}/users`, {
-                        method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json',
-                          Authorization: `Bearer ${currentUser.token}`,
-                        },
-                        body: JSON.stringify({ name, email, password, role }),
-                      });
-                      if (!res.ok) throw new Error('Failed to register user');
-                      setNotification({ type: 'success', message: 'User registered successfully.' });
-                      setLoadingUsers(true);
-                      fetch(`${apiUrl}/users`, {
-                        headers: { Authorization: `Bearer ${currentUser.token}` },
-                      })
-                        .then(res => res.json())
-                        .then(data => {
-                          setAllUsers(data);
-                          setLoadingUsers(false);
+            <div id="user-management" className="w-full max-w-full min-w-0 overflow-hidden">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-4 md:p-6 mb-4 sm:mb-6">
+                <h3 className="text-base sm:text-lg font-semibold mb-4">All Users</h3>
+                {/* Register New User Form */}
+                <div className="mb-6">
+                  <h4 className="text-sm sm:text-md font-semibold mb-2">Register New User</h4>
+                  <form
+                    className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4"
+                    onSubmit={async (e) => {
+                      e.preventDefault();
+                      if (!currentUser?.token) return;
+                      const form = e.target as HTMLFormElement;
+                      const name = (form.elements.namedItem('name') as HTMLInputElement).value;
+                      const email = (form.elements.namedItem('email') as HTMLInputElement).value;
+                      const password = (form.elements.namedItem('password') as HTMLInputElement).value;
+                      const role = (form.elements.namedItem('role') as HTMLSelectElement).value;
+                      try {
+                        const res = await fetch(`${apiUrl}/users`, {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${currentUser.token}`,
+                          },
+                          body: JSON.stringify({ name, email, password, role }),
+                        });
+                        if (!res.ok) throw new Error('Failed to register user');
+                        setNotification({ type: 'success', message: 'User registered successfully.' });
+                        setLoadingUsers(true);
+                        fetch(`${apiUrl}/users`, {
+                          headers: { Authorization: `Bearer ${currentUser.token}` },
                         })
-                        .catch(() => setLoadingUsers(false));
-                      form.reset();
-                    } catch (err) {
-                      setNotification({ type: 'error', message: (err as Error).message });
-                    }
-                  }}
-                >
-                  <input name="name" type="text" className="border border-gray-300 rounded px-3 py-2 text-sm" placeholder="Full Name" required />
-                  <input name="email" type="email" className="border border-gray-300 rounded px-3 py-2 text-sm" placeholder="Email" required />
-                  <input name="password" type="password" className="border border-gray-300 rounded px-3 py-2 text-sm" placeholder="Password" required minLength={6} />
-                  <select name="role" className="border border-gray-300 rounded px-3 py-2 text-sm" required defaultValue="viewer">
-                    <option value="viewer">Viewer</option>
-                    <option value="editor">Editor</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                  <button type="submit" className="col-span-1 sm:col-span-2 bg-blue-600 text-white rounded px-4 py-2 mt-2 hover:bg-blue-700 transition text-sm">Register</button>
-                </form>
-              </div>
-              {loadingUsers ? (
-                <p>Loading...</p>
-              ) : allUsers.length === 0 ? (
-                <p>No users found.</p>
-              ) : (
-                <ul className="space-y-2">
-                  {notification && (
-                    <div className={`mb-4 p-3 rounded text-sm ${notification.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{notification.message}</div>
-                  )}
-                  {/* User search/filter */}
-                  <div className="mb-4">
-                    <input
-                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                      placeholder="Search users by email or name..."
-                      value={userSearch}
-                      onChange={e => setUserSearch(e.target.value)}
-                    />
-                  </div>
-                  {allUsers.filter(user =>
-                    user.email.toLowerCase().includes(userSearch.toLowerCase()) ||
-                    (user.name && user.name.toLowerCase().includes(userSearch.toLowerCase()))
-                  ).map(user => (
-                    <li key={user._id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b pb-2 gap-2">
-                      <span className={`text-sm sm:text-base ${user.isVerified ? 'text-black' : 'text-gray-500'}`}>
-                        {user.email} ({user.role}) {user.isVerified ? <span className="text-green-600">✔️</span> : <span className="text-red-600">❌</span>}
-                      </span>
-                      <div className="flex gap-2">
-                        <button
-                          className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
-                          onClick={() => handleEditUser(user)}
+                          .then(res => res.json())
+                          .then(data => {
+                            setAllUsers(data);
+                            setLoadingUsers(false);
+                          })
+                          .catch(() => setLoadingUsers(false));
+                        form.reset();
+                      } catch (err) {
+                        setNotification({ type: 'error', message: (err as Error).message });
+                      }
+                    }}
+                  >
+                    <input name="name" type="text" className="border border-gray-300 rounded px-3 py-2 text-sm" placeholder="Full Name" required />
+                    <input name="email" type="email" className="border border-gray-300 rounded px-3 py-2 text-sm" placeholder="Email" required />
+                    <input name="password" type="password" className="border border-gray-300 rounded px-3 py-2 text-sm" placeholder="Password" required minLength={6} />
+                    <select name="role" className="border border-gray-300 rounded px-3 py-2 text-sm" required defaultValue="viewer">
+                      <option value="viewer">Viewer</option>
+                      <option value="editor">Editor</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                    <button type="submit" className="col-span-1 sm:col-span-2 bg-blue-600 text-white rounded px-4 py-2 mt-2 hover:bg-blue-700 transition text-sm">Register</button>
+                  </form>
+                </div>
+                {loadingUsers ? (
+                  <p>Loading...</p>
+                ) : allUsers.length === 0 ? (
+                  <p>No users found.</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {notification && (
+                      <div className={`mb-4 p-3 rounded text-sm ${notification.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{notification.message}</div>
+                    )}
+                    {/* User search/filter */}
+                    <div className="mb-4">
+                      <input
+                        className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                        placeholder="Search users by email or name..."
+                        value={userSearch}
+                        onChange={e => setUserSearch(e.target.value)}
+                      />
+                    </div>
+                    {allUsers.filter(user =>
+                      user.email.toLowerCase().includes(userSearch.toLowerCase()) ||
+                      (user.name && user.name.toLowerCase().includes(userSearch.toLowerCase()))
+                    ).map(user => (
+                      <li key={user._id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b pb-2 gap-2">
+                        <span className={`text-sm sm:text-base ${user.isVerified ? 'text-black' : 'text-gray-500'}`}>
+                          {user.email} ({user.role}) {user.isVerified ? <span className="text-green-600">✔️</span> : <span className="text-red-600">❌</span>}
+                        </span>
+                        <div className="flex gap-2">
+                          <button
+                            className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                            onClick={() => handleEditUser(user)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
+                            onClick={() => handleDeleteUser(user._id)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {/* Edit Modal */}
+                {editingUser && (
+                  <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 w-96">
+                      <h4 className="text-lg font-semibold mb-4">Edit User</h4>
+                      <label className="block mb-2">Name
+                        <input
+                          className="w-full border border-gray-300 rounded px-2 py-1"
+                          name="name"
+                          value={editForm.name}
+                          onChange={handleEditFormChange}
+                        />
+                      </label>
+                      <label className="block mb-2">Role
+                        <select
+                          className="w-full border border-gray-300 rounded px-2 py-1"
+                          name="role"
+                          value={editForm.role}
+                          onChange={handleEditFormChange}
                         >
-                          Edit
-                        </button>
-                        <button
-                          className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
-                          onClick={() => handleDeleteUser(user._id)}
-                        >
-                          Delete
-                        </button>
+                          <option value="viewer">Viewer</option>
+                          <option value="editor">Editor</option>
+                          <option value="admin">Admin</option>
+                        </select>
+                      </label>
+                      <label className="block mb-4">Verified
+                        <input
+                          type="checkbox"
+                          name="isVerified"
+                          checked={!!editForm.isVerified}
+                          onChange={handleEditFormCheckbox}
+                          className="ml-2"
+                        />
+                      </label>
+                      <div className="flex gap-2 justify-end">
+                        <button className="px-3 py-1 bg-gray-300 rounded" onClick={() => setEditingUser(null)}>Cancel</button>
+                        <button className="px-3 py-1 bg-green-600 text-white rounded" onClick={handleSaveEdit}>Save</button>
                       </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {/* Edit Modal */}
-              {editingUser && (
-                <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-                  <div className="bg-white rounded-lg p-6 w-96">
-                    <h4 className="text-lg font-semibold mb-4">Edit User</h4>
-                    <label className="block mb-2">Name
-                      <input
-                        className="w-full border border-gray-300 rounded px-2 py-1"
-                        name="name"
-                        value={editForm.name}
-                        onChange={handleEditFormChange}
-                      />
-                    </label>
-                    <label className="block mb-2">Role
-                      <select
-                        className="w-full border border-gray-300 rounded px-2 py-1"
-                        name="role"
-                        value={editForm.role}
-                        onChange={handleEditFormChange}
-                      >
-                        <option value="viewer">Viewer</option>
-                        <option value="editor">Editor</option>
-                        <option value="admin">Admin</option>
-                      </select>
-                    </label>
-                    <label className="block mb-4">Verified
-                      <input
-                        type="checkbox"
-                        name="isVerified"
-                        checked={!!editForm.isVerified}
-                        onChange={handleEditFormCheckbox}
-                        className="ml-2"
-                      />
-                    </label>
-                    <div className="flex gap-2 justify-end">
-                      <button className="px-3 py-1 bg-gray-300 rounded" onClick={() => setEditingUser(null)}>Cancel</button>
-                      <button className="px-3 py-1 bg-green-600 text-white rounded" onClick={handleSaveEdit}>Save</button>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           )}
         </main>

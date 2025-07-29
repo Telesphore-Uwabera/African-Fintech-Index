@@ -32,6 +32,7 @@ export const AfricaMapComplete: React.FC<AfricaMapProps> = ({
   width = 1000,
   height = 800
 }) => {
+  console.log('AfricaMapComplete data:', data);
   const [geoData, setGeoData] = useState<ProcessedGeoData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -98,9 +99,9 @@ export const AfricaMapComplete: React.FC<AfricaMapProps> = ({
 
   const renderCountryPath = (feature: ShapefileFeature, isoCode: string) => {
     const countryInfo = countryMap.get(isoCode);
-    const color = getCountryColor(countryInfo?.data || null);
-    const isSelected = selectedCountry && countryInfo?.data && selectedCountry.id === countryInfo.data.id;
-
+    const countryData = countryInfo?.data;
+    const color = getCountryColor(countryData || null);
+    
     let pathData = '';
     if (feature.geometry.type === 'Polygon') {
       pathData = coordinatesToPath(feature.geometry.coordinates as number[][][]);
@@ -116,54 +117,74 @@ export const AfricaMapComplete: React.FC<AfricaMapProps> = ({
         key={isoCode}
         d={pathData}
         fill={color}
-        stroke={isSelected ? '#2563eb' : '#222'}
-        strokeWidth={isSelected ? 3 : 1.5}
-        filter={isSelected ? 'url(#shadow)' : undefined}
-        className="cursor-pointer hover:opacity-80 transition-all duration-200"
+        stroke="#ffffff"
+        strokeWidth="0.5"
+        className="cursor-pointer transition-all duration-200 hover:opacity-80"
         onClick={() => handleCountryClick(isoCode)}
+        onMouseEnter={handleCountryHover}
+        onMouseLeave={handleCountryHover}
       />
     );
   };
 
-  // Helper to get centroid of selected country
   function getSelectedCountryCentroid() {
-    if (!geoData || !selectedCountry) return null;
-    let feature = geoData.features.find(f => f.properties.ADMIN === selectedCountry.name);
-    if (!feature && selectedCountry.name === 'Tanzania') {
-      feature = geoData.features.find(f => f.properties.ADMIN === 'United Republic of Tanzania');
-    }
-    if (!feature) return null;
-    const coords = feature.geometry.coordinates;
-    let centerX = 0, centerY = 0;
-    if (feature.geometry.type === 'Polygon' && coords[0]) {
-      const points = coords[0] as number[][];
-      centerX = points.reduce((sum, p) => sum + p[0], 0) / points.length;
-      centerY = points.reduce((sum, p) => sum + p[1], 0) / points.length;
-    } else if (feature.geometry.type === 'MultiPolygon' && coords[0]?.[0]) {
-      const points = coords[0][0] as number[][];
-      centerX = points.reduce((sum, p) => sum + p[0], 0) / points.length;
-      centerY = points.reduce((sum, p) => sum + p[1], 0) / points.length;
-    }
-    if (isNaN(centerX) || isNaN(centerY)) return null;
-    return { centerX, centerY };
+    if (!selectedCountry || !geoData) return null;
+    
+    const countryInfo = countryMap.get(selectedCountry.id);
+    if (!countryInfo?.feature) return null;
+    
+    const coordinates = countryInfo.feature.geometry.coordinates;
+    if (!coordinates || coordinates.length === 0) return null;
+    
+    // Calculate centroid from coordinates
+    let centerX = 0, centerY = 0, totalPoints = 0;
+    
+    coordinates.forEach((coord: any) => {
+      if (Array.isArray(coord[0])) {
+        coord.forEach((point: any) => {
+          centerX += point[0];
+          centerY += point[1];
+          totalPoints++;
+        });
+      } else {
+        centerX += coord[0];
+        centerY += coord[1];
+        totalPoints++;
+      }
+    });
+    
+    return {
+      centerX: centerX / totalPoints,
+      centerY: centerY / totalPoints
+    };
   }
 
+  if (loading) {
     return (
-    <div className="w-full h-full flex items-center justify-center relative" style={{ minHeight: 400 }}>
-      {/* Overlay to clear selection when clicking outside the map */}
-      {selectedCountry && (
-        <div
-          className="fixed inset-0 z-30"
-          style={{ cursor: 'pointer' }}
-          onClick={() => setSelectedCountry(null)}
-        />
-      )}
-      {loading ? (
-        <div className="flex items-center justify-center h-full w-full">
-          <span className="text-gray-500">Loading map...</span>
+      <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-lg">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+          <p className="text-sm text-gray-600">Loading map data...</p>
         </div>
-      ) : (
-        <div className="relative w-full h-full">
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-lg">
+        <div className="text-center">
+          <p className="text-sm text-red-600 mb-2">Error loading map</p>
+          <p className="text-xs text-gray-500">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full h-full relative bg-white rounded-lg overflow-hidden">
+      {geoData && (
+        <div className="w-full h-full relative">
           <svg
             ref={svgRef}
             viewBox="0 0 1000 900"
@@ -179,38 +200,39 @@ export const AfricaMapComplete: React.FC<AfricaMapProps> = ({
                 <feDropShadow dx="2" dy="2" stdDeviation="3" floodColor="#00000040" />
               </filter>
             </defs>
-            {geoData && geoData.features.map((feature) => {
+            {geoData.features.map((feature) => {
               const isoCode = feature.properties.ISO_A2;
               return renderCountryPath(feature, isoCode);
             })}
             {/* No SVG text labels rendered */}
           </svg>
           
-          {/* Legend */}
-          <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 p-3 z-10">
-            <div className="text-xs font-semibold text-gray-700 mb-2">Fintech Index Score Ranges</div>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-green-500 rounded"></div>
+          {/* Responsive Legend */}
+          <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 p-2 sm:p-3 z-10 max-w-[calc(100%-1rem)]">
+            <div className="text-xs font-semibold text-gray-700 mb-1 sm:mb-2">Fintech Index Score Ranges</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-2">
+              <div className="flex items-center space-x-1 sm:space-x-2">
+                <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-500 rounded flex-shrink-0"></div>
                 <span className="text-xs text-gray-600">High (80+)</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-yellow-500 rounded"></div>
+              <div className="flex items-center space-x-1 sm:space-x-2">
+                <div className="w-2 h-2 sm:w-3 sm:h-3 bg-yellow-500 rounded flex-shrink-0"></div>
                 <span className="text-xs text-gray-600">Medium (60-79)</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-red-500 rounded"></div>
+              <div className="flex items-center space-x-1 sm:space-x-2">
+                <div className="w-2 h-2 sm:w-3 sm:h-3 bg-red-500 rounded flex-shrink-0"></div>
                 <span className="text-xs text-gray-600">Low (40-59)</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-gray-500 rounded"></div>
+              <div className="flex items-center space-x-1 sm:space-x-2">
+                <div className="w-2 h-2 sm:w-3 sm:h-3 bg-gray-500 rounded flex-shrink-0"></div>
                 <span className="text-xs text-gray-600">Very Low (&lt;40)</span>
               </div>
             </div>
           </div>
         </div>
       )}
-      {/* Floating details card for selected country, positioned at the country centroid */}
+      
+      {/* Responsive Floating details card for selected country */}
       {(() => {
         const centroid = getSelectedCountryCentroid();
         if (selectedCountry && centroid) {
@@ -228,33 +250,65 @@ export const AfricaMapComplete: React.FC<AfricaMapProps> = ({
               top = transformed.y;
             }
           }
+          
+          // Responsive positioning and sizing
+          const isMobile = window.innerWidth < 640;
+          const isTablet = window.innerWidth >= 640 && window.innerWidth < 1024;
+          
+          let cardWidth = 'w-80';
+          let cardPadding = 'p-4 sm:p-5';
+          let cardPosition = { left: left + 24, top: top + 24 };
+          
+          if (isMobile) {
+            cardWidth = 'w-[calc(100vw-2rem)] max-w-sm';
+            cardPadding = 'p-3';
+            // Center the card on mobile
+            cardPosition = { 
+              left: Math.max(8, Math.min(left, window.innerWidth - 320)), 
+              top: Math.max(8, Math.min(top, window.innerHeight - 200)) 
+            };
+          } else if (isTablet) {
+            cardWidth = 'w-72';
+            cardPadding = 'p-4';
+          }
+          
           return (
             <div
-              className="pointer-events-auto fixed z-50 w-80 max-w-full bg-white rounded-xl shadow-lg border border-gray-200 p-5 flex flex-col gap-2 animate-fade-in"
-              style={{ left: left + 24, top: top + 24 }}
+              className={`pointer-events-auto fixed z-50 ${cardWidth} bg-white rounded-xl shadow-lg border border-gray-200 ${cardPadding} flex flex-col gap-2 animate-fade-in`}
+              style={cardPosition}
             >
               <div className="flex items-center justify-between mb-2">
-                <h4 className="text-lg font-bold text-gray-900">{selectedCountry.name}</h4>
-                <span className="text-2xl font-bold text-blue-600">{selectedCountry.finalScore?.toFixed(1)}</span>
+                <h4 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900">{selectedCountry.name}</h4>
+                <span className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600">{selectedCountry.finalScore?.toFixed(1)}</span>
               </div>
-              <div className="grid grid-cols-2 gap-2 text-sm">
+              <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm">
                 <div className="bg-blue-50 p-2 rounded">
-                <div className="text-gray-600">Literacy Rate</div>
+                  <div className="text-gray-600">Literacy Rate</div>
                   <div className="font-semibold text-blue-700">{selectedCountry.literacyRate?.toFixed(1)}%</div>
                 </div>
                 <div className="bg-green-50 p-2 rounded">
-                <div className="text-gray-600">Digital Infra</div>
+                  <div className="text-gray-600">Digital Infra</div>
                   <div className="font-semibold text-green-700">{selectedCountry.digitalInfrastructure?.toFixed(1)}%</div>
                 </div>
                 <div className="bg-purple-50 p-2 rounded">
-                <div className="text-gray-600">Investment</div>
+                  <div className="text-gray-600">Investment</div>
                   <div className="font-semibold text-purple-700">{selectedCountry.investment?.toFixed(1)}%</div>
                 </div>
                 <div className="bg-orange-50 p-2 rounded">
-                <div className="text-gray-600">Fintech Cos</div>
+                  <div className="text-gray-600">Fintech Cos</div>
                   <div className="font-semibold text-orange-700">{selectedCountry.fintechCompanies ?? 'N/A'}</div>
                 </div>
               </div>
+              
+              {/* Close button for mobile */}
+              {isMobile && (
+                <button
+                  onClick={() => setSelectedCountry(null)}
+                  className="absolute top-2 right-2 w-6 h-6 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center text-gray-600 text-sm"
+                >
+                  ×
+                </button>
+              )}
             </div>
           );
         }

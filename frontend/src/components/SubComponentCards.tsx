@@ -44,52 +44,157 @@ export const SubComponentCards: React.FC<SubComponentCardsProps> = ({ data }) =>
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 gap-y-4 sm:gap-6 lg:gap-8 mb-8 w-full max-w-full min-w-0">
-      {components.map((component) => {
-        const average = calculateAverage(component.key);
-        const topCountry = getTopCountry(component.key);
-        const score = Number(topCountry[component.key]) || 0;
-        
-        return (
-          <div key={component.title} className="group bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg border border-gray-100 p-2 sm:p-4 hover:shadow-2xl hover:scale-105 transition-all duration-300 backdrop-blur-sm relative overflow-hidden w-full max-w-full min-w-0 flex-shrink">
-            {/* Background gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-transparent to-purple-50/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            {/* Animated border */}
-            <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
-            <div className="flex items-center justify-between mb-3 relative z-10 w-full max-w-full min-w-0">
-              <div className={`w-8 h-8 sm:w-10 sm:h-10 ${component.color} rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300 relative overflow-hidden flex-shrink-0`}>
-                <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent"></div>
-                <component.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white relative z-10 group-hover:rotate-12 transition-transform duration-300" />
+    <div className="w-full max-w-full overflow-hidden">
+      {/* Mobile Layout - Compact Stacked Cards */}
+      <div className="space-y-3 sm:hidden px-2">
+        {components.map((component) => {
+          const average = calculateAverage(component.key);
+          const topCountry = getTopCountry(component.key);
+          const score = Number(topCountry[component.key]) || 0;
+          
+          return (
+            <div key={component.title} className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 mx-auto max-w-sm">
+              <div className="flex items-start space-x-3 mb-2">
+                <div className={`w-8 h-8 ${component.color} rounded-lg flex items-center justify-center shadow-sm flex-shrink-0`}>
+                  <component.icon className="w-4 h-4 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm font-bold text-gray-900 mb-1">{component.title}</h3>
+                  <p className="text-base font-semibold text-blue-600 mb-1">{average.toFixed(1)}</p>
+                  <p className="text-xs text-gray-600 leading-relaxed">{component.description}</p>
+                </div>
               </div>
-              <div className="text-right flex-1 min-w-0 ml-2">
-                <p className="text-base sm:text-lg font-black text-gray-900 group-hover:text-blue-600 transition-colors bg-gradient-to-r from-gray-900 to-blue-600 bg-clip-text text-transparent truncate">{average.toFixed(1)}</p>
-                <p className="text-xs sm:text-sm text-gray-500 font-medium truncate">Average Score</p>
+              
+              <div className="space-y-2">
+                <div className="flex justify-between items-center bg-gray-50 rounded p-2">
+                  <span className="text-xs font-medium text-gray-600">Top Performer:</span>
+                  <span className="text-xs font-bold text-gray-900">{topCountry.name}</span>
+                </div>
+                <div className="flex justify-between items-center bg-gray-50 rounded p-2">
+                  <span className="text-xs font-medium text-gray-600">Score:</span>
+                  <span className="text-xs font-bold text-blue-700">
+                    {(topCountry[component.key] as number).toFixed(1)}
+                  </span>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>Progress</span>
+                    <span>{score.toFixed(1)}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                    <div
+                      className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 transition-all duration-500"
+                      style={{ width: `${score}%` }}
+                    ></div>
+                  </div>
+                </div>
               </div>
             </div>
-            <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-1 group-hover:text-blue-700 transition-colors truncate">{component.title}</h3>
-            <p className="text-xs sm:text-sm text-gray-600 mb-2 leading-relaxed break-words">{component.description}</p>
-            <div className="space-y-2 relative z-10">
-              <div className="flex justify-between items-center">
-                <span className="text-xs sm:text-sm text-gray-600 font-medium truncate">Top Performer:</span>
-                <span className="text-xs sm:text-sm font-bold text-gray-900 group-hover:text-blue-600 transition-colors truncate ml-2">{topCountry.name}</span>
+          );
+        })}
+      </div>
+
+      {/* Small Tablet Layout - 2 Columns */}
+      <div className="hidden sm:grid lg:hidden grid-cols-2 gap-3 px-3">
+        {components.map((component) => {
+          const average = calculateAverage(component.key);
+          const topCountry = getTopCountry(component.key);
+          const score = Number(topCountry[component.key]) || 0;
+          
+          return (
+            <div key={component.title} className="bg-white rounded-lg shadow-sm border border-gray-200 p-3">
+              <div className="flex items-center justify-between mb-2">
+                <div className={`w-10 h-10 ${component.color} rounded-lg flex items-center justify-center shadow-sm`}>
+                  <component.icon className="w-5 h-5 text-white" />
+                </div>
+                <div className="text-right">
+                  <p className="text-lg font-bold text-blue-600">{average.toFixed(1)}</p>
+                  <p className="text-xs text-gray-500 font-medium">Average Score</p>
+                </div>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-xs sm:text-sm text-gray-600 font-medium truncate">Score:</span>
-                <span className="text-xs sm:text-sm font-bold text-blue-700 group-hover:text-blue-800 transition-colors truncate">
-                  {(topCountry[component.key] as number).toFixed(1)}
-                </span>
-              </div>
-              {/* Blue Progress bar */}
-              <div className="w-full bg-gray-200 rounded-full h-2 sm:h-3 overflow-hidden">
-                <div
-                  className="h-2 sm:h-3 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 shadow-lg group-hover:shadow-xl transition-all duration-300"
-                  style={{ width: `${score}%` }}
-                ></div>
+              
+              <h3 className="text-sm font-bold text-gray-900 mb-2">{component.title}</h3>
+              <p className="text-xs text-gray-600 mb-2 leading-relaxed">{component.description}</p>
+              
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-gray-600">Top Performer:</span>
+                  <span className="text-xs font-bold text-gray-900">{topCountry.name}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-medium text-gray-600">Score:</span>
+                  <span className="text-xs font-bold text-blue-700">
+                    {(topCountry[component.key] as number).toFixed(1)}
+                  </span>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>Progress</span>
+                    <span>{score.toFixed(1)}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                    <div
+                      className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 transition-all duration-500"
+                      style={{ width: `${score}%` }}
+                    ></div>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
+
+      {/* Desktop Layout - 3 Columns */}
+      <div className="hidden lg:grid grid-cols-3 gap-4 px-4">
+        {components.map((component) => {
+          const average = calculateAverage(component.key);
+          const topCountry = getTopCountry(component.key);
+          const score = Number(topCountry[component.key]) || 0;
+          
+          return (
+            <div key={component.title} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className={`w-12 h-12 ${component.color} rounded-lg flex items-center justify-center shadow-sm`}>
+                  <component.icon className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-right">
+                  <p className="text-xl font-bold text-blue-600">{average.toFixed(1)}</p>
+                  <p className="text-sm text-gray-500 font-medium">Average Score</p>
+                </div>
+              </div>
+              
+              <h3 className="text-base font-bold text-gray-900 mb-3">{component.title}</h3>
+              <p className="text-sm text-gray-600 mb-3 leading-relaxed">{component.description}</p>
+              
+              <div className="space-y-3">
+                <div className="flex justify-between items-center bg-gray-50 rounded-lg p-3">
+                  <span className="text-sm font-medium text-gray-600">Top Performer:</span>
+                  <span className="text-sm font-bold text-gray-900">{topCountry.name}</span>
+                </div>
+                <div className="flex justify-between items-center bg-gray-50 rounded-lg p-3">
+                  <span className="text-sm font-medium text-gray-600">Score:</span>
+                  <span className="text-sm font-bold text-blue-700">
+                    {(topCountry[component.key] as number).toFixed(1)}
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm text-gray-500">
+                    <span>Progress</span>
+                    <span>{score.toFixed(1)}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                    <div
+                      className="h-3 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 transition-all duration-500"
+                      style={{ width: `${score}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };

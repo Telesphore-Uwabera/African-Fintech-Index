@@ -1,10 +1,9 @@
 import React from 'react';
 import { InteractiveChart } from '../components/InteractiveChart';
-import { availableYears } from '../data/mockData';
 import { useEffect, useState } from 'react';
 import { useDataPersistence } from '../hooks/useDataPersistence';
 
-const AnalyticsPage: React.FC<{ selectedYear: number; onYearChange: (year: number) => void }> = ({ selectedYear, onYearChange }) => {
+const AnalyticsPage: React.FC<{ selectedYear: number; onYearChange: (year: number) => void; availableYears: number[] }> = ({ selectedYear, onYearChange, availableYears }) => {
   const [countryData, setCountryData] = useState([]);
   useEffect(() => {
     const apiUrl = import.meta.env.VITE_API_URL;

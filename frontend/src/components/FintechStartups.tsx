@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Building2, Globe, Calendar, User, Search, Filter } from 'lucide-react';
 import type { FintechStartup } from '../types';
+import * as XLSX from 'xlsx';
 
 interface FintechStartupsProps {
   currentUser: any;
@@ -10,6 +11,7 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser })
   const [startups, setStartups] = useState<FintechStartup[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<string | null>(null);
 
   // Fetch startups from backend on mount
   useEffect(() => {
@@ -92,6 +94,39 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser })
     setShowAddForm(false);
   };
 
+  const handleBulkUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      const data = new Uint8Array(evt.target?.result as ArrayBuffer);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const json = XLSX.utils.sheet_to_json(worksheet);
+      // POST to backend
+      try {
+        setUploadStatus('Uploading...');
+        const apiUrl = import.meta.env.VITE_API_URL;
+        const res = await fetch(`${apiUrl}/startups/bulk`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ data: json }),
+        });
+        if (!res.ok) throw new Error('Bulk upload failed');
+        const result = await res.json();
+        setUploadStatus(`Successfully uploaded ${result.insertedCount} startups!`);
+        // Refresh startups list
+        fetch(`${apiUrl}/startups`)
+          .then(res => res.json())
+          .then(data => setStartups(data));
+      } catch (err) {
+        setUploadStatus('Bulk upload failed.');
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
   const filteredStartups = startups.filter(startup => {
     const matchesSearch = startup.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          startup.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -115,15 +150,30 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser })
         </div>
 
         {(currentUser && (currentUser.role === 'admin' || currentUser.role === 'editor' || currentUser.role === 'viewer')) && (
-          <button
-            onClick={() => setShowAddForm(true)}
-            className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Startup</span>
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Startup</span>
+            </button>
+            <label className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
+              Bulk Upload (.xlsx)
+              <input
+                type="file"
+                accept=".xlsx, .xls"
+                style={{ display: 'none' }}
+                onChange={handleBulkUpload}
+              />
+            </label>
+          </div>
         )}
       </div>
+
+      {uploadStatus && (
+        <div className={`mb-4 p-2 rounded ${uploadStatus.startsWith('Successfully') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{uploadStatus}</div>
+      )}
 
       {/* Filters */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6">

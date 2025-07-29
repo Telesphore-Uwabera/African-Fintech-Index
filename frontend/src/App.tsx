@@ -10,7 +10,6 @@ import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import type { User } from './types';
 import { AuthModal } from './components/AuthModal';
-import { mockCountryData, availableYears } from './data/mockData';
 
 export const AuthContext = createContext<any>(null);
 
@@ -26,7 +25,8 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode;
 function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [selectedYear, setSelectedYear] = useState(availableYears[0]);
+  const [availableYears, setAvailableYears] = useState<number[]>([]);
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
   // Use a custom hook to access navigate inside App
   function WithNavigate() {
     const navigate = useNavigate();
@@ -42,6 +42,19 @@ function App() {
   useEffect(() => {
     const stored = localStorage.getItem('fintechUser');
     if (stored) setCurrentUser(JSON.parse(stored));
+  }, []);
+
+  useEffect(() => {
+    const apiUrl = import.meta.env.VITE_API_URL;
+    fetch(`${apiUrl}/country-data/years`)
+      .then(res => res.json())
+      .then(years => {
+        setAvailableYears(years);
+        if (years.length > 0 && selectedYear === null) {
+          setSelectedYear(years[0]); // Default to latest year
+        }
+      })
+      .catch(() => setAvailableYears([]));
   }, []);
 
   const handleSignIn = (user: User) => {
@@ -73,38 +86,45 @@ function App() {
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-blue-300/10 to-purple-300/10 rounded-full blur-3xl"></div>
           </div>
           <Header
-            selectedYear={selectedYear}
+            selectedYear={selectedYear || 2024}
             onYearChange={setSelectedYear}
             availableYears={availableYears}
             currentUser={currentUser}
             onAuthClick={openAuthModal}
             onLogout={handleSignOut}
           />
-          <div className="flex flex-row flex-1 relative z-10 w-full max-w-full min-w-0 overflow-x-hidden">
-            {currentUser && (
-              <Sidebar currentUser={currentUser} onSignIn={openAuthModal} onSignOut={handleSignOut} />
-            )}
-            <main className={`flex-1 min-w-0 w-full max-w-full overflow-x-hidden p-8 text-black ${currentUser ? 'lg:ml-64' : ''}`}>
-              <Routes>
-                <Route path="/" element={<DashboardPage selectedYear={selectedYear} onYearChange={setSelectedYear} />} />
-                <Route path="/analytics" element={<AnalyticsPage selectedYear={selectedYear} onYearChange={setSelectedYear} />} />
-                <Route path="/countries" element={<CountriesPage selectedYear={selectedYear} onYearChange={setSelectedYear} />} />
-                <Route path="/startups" element={<StartupsPage />} />
-                <Route path="/user-management" element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <UserManagementPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/data-management" element={
-                  <ProtectedRoute allowedRoles={['admin', 'editor']}>
-                    <DataManagementPage />
-                  </ProtectedRoute>
-                } />
-              </Routes>
-              <AuthModal isOpen={showAuthModal} onClose={closeAuthModal} onAuthSuccess={handleAuthSuccess} currentUser={currentUser} />
+          
+          {/* Sidebar - Only render when user is signed in */}
+          {currentUser && (
+            <Sidebar currentUser={currentUser} onSignIn={openAuthModal} onSignOut={handleSignOut} />
+          )}
+          
+          <div className="flex flex-row flex-1 relative z-10 w-full max-w-full min-w-0 overflow-hidden pt-16 lg:pt-20">
+            <main className={`flex-1 min-w-0 w-full max-w-full overflow-hidden px-2 sm:px-4 md:px-6 lg:px-8 text-black transition-all duration-300 ${
+              currentUser ? 'lg:ml-64 xl:ml-64' : ''
+            }`}>
+              <div className="w-full max-w-full min-w-0 overflow-hidden mx-auto max-w-7xl">
+                <Routes>
+                  <Route path="/" element={<DashboardPage selectedYear={selectedYear || 2024} onYearChange={setSelectedYear} availableYears={availableYears} />} />
+                  <Route path="/analytics" element={<AnalyticsPage selectedYear={selectedYear || 2024} onYearChange={setSelectedYear} availableYears={availableYears} />} />
+                  <Route path="/countries" element={<CountriesPage selectedYear={selectedYear || 2024} onYearChange={setSelectedYear} availableYears={availableYears} />} />
+                  <Route path="/startups" element={<StartupsPage />} />
+                  <Route path="/user-management" element={
+                    <ProtectedRoute allowedRoles={['admin']}>
+                      <UserManagementPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/data-management" element={
+                    <ProtectedRoute allowedRoles={['admin', 'editor']}>
+                      <DataManagementPage />
+                    </ProtectedRoute>
+                  } />
+                </Routes>
+                <AuthModal isOpen={showAuthModal} onClose={closeAuthModal} onAuthSuccess={handleAuthSuccess} currentUser={currentUser} />
+              </div>
             </main>
-      </div>
-      </div>
+          </div>
+        </div>
       </Router>
     </AuthContext.Provider>
   );
