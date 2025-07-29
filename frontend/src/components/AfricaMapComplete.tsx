@@ -41,6 +41,7 @@ export const AfricaMapComplete: React.FC<AfricaMapProps> = ({
   >(new Map());
   const svgRef = useRef<SVGSVGElement>(null);
   const [selectedCountry, setSelectedCountry] = useState<CountryData | null>(null);
+  const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null);
 
   const loadShapefileData = useCallback(async () => {
     if (!shapefilePath) {
@@ -94,8 +95,22 @@ export const AfricaMapComplete: React.FC<AfricaMapProps> = ({
     [countryMap]
   );
 
-  // Remove hover logic, only use click
-  const handleCountryHover = () => {};
+  // Implement hover functionality
+  const handleCountryHover = useCallback(
+    (isoCode: string, event: React.MouseEvent) => {
+      const countryInfo = countryMap.get(isoCode);
+      if (countryInfo?.data) {
+        setSelectedCountry(countryInfo.data);
+        setMousePosition({ x: event.clientX, y: event.clientY });
+      }
+    },
+    [countryMap]
+  );
+
+  const handleCountryLeave = useCallback(() => {
+    setSelectedCountry(null);
+    setMousePosition(null);
+  }, []);
 
   const renderCountryPath = (feature: ShapefileFeature, isoCode: string) => {
     const countryInfo = countryMap.get(isoCode);
@@ -120,9 +135,8 @@ export const AfricaMapComplete: React.FC<AfricaMapProps> = ({
         stroke="#ffffff"
         strokeWidth="0.5"
         className="cursor-pointer transition-all duration-200 hover:opacity-80"
-        onClick={() => handleCountryClick(isoCode)}
-        onMouseEnter={handleCountryHover}
-        onMouseLeave={handleCountryHover}
+        onMouseEnter={(event) => handleCountryHover(isoCode, event)}
+        onMouseLeave={handleCountryLeave}
       />
     );
   };
@@ -250,38 +264,22 @@ export const AfricaMapComplete: React.FC<AfricaMapProps> = ({
       
       {/* Responsive Floating details card for selected country */}
       {(() => {
-        const centroid = getSelectedCountryCentroid();
-        if (selectedCountry && centroid) {
-          // Project SVG coordinates to screen coordinates
-          const svg = svgRef.current;
-          let left = 0, top = 0;
-          if (svg) {
-            const pt = svg.createSVGPoint();
-            pt.x = centroid.centerX;
-            pt.y = centroid.centerY;
-            const screenCTM = svg.getScreenCTM();
-            if (screenCTM) {
-              const transformed = pt.matrixTransform(screenCTM);
-              left = transformed.x;
-              top = transformed.y;
-            }
-          }
-          
+        if (selectedCountry && mousePosition) {
           // Responsive positioning and sizing
           const isMobile = window.innerWidth < 640;
           const isTablet = window.innerWidth >= 640 && window.innerWidth < 1024;
           
           let cardWidth = 'w-80';
           let cardPadding = 'p-4 sm:p-5';
-          let cardPosition = { left: left + 24, top: top + 24 };
+          let cardPosition = { left: mousePosition.x + 16, top: mousePosition.y - 16 };
           
           if (isMobile) {
             cardWidth = 'w-[calc(100vw-2rem)] max-w-sm';
             cardPadding = 'p-3';
             // Center the card on mobile
             cardPosition = { 
-              left: Math.max(8, Math.min(left, window.innerWidth - 320)), 
-              top: Math.max(8, Math.min(top, window.innerHeight - 200)) 
+              left: Math.max(8, Math.min(mousePosition.x, window.innerWidth - 320)), 
+              top: Math.max(8, Math.min(mousePosition.y - 16, window.innerHeight - 200)) 
             };
           } else if (isTablet) {
             cardWidth = 'w-72';
@@ -315,16 +313,6 @@ export const AfricaMapComplete: React.FC<AfricaMapProps> = ({
                   <div className="font-semibold text-orange-700">{selectedCountry.fintechCompanies ?? 'N/A'}</div>
                 </div>
               </div>
-              
-              {/* Close button for mobile */}
-              {isMobile && (
-                <button
-                  onClick={() => setSelectedCountry(null)}
-                  className="absolute top-2 right-2 w-6 h-6 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center text-gray-600 text-sm"
-                >
-                  ×
-                </button>
-              )}
             </div>
           );
         }
