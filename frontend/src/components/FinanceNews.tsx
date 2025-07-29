@@ -284,44 +284,44 @@ export const FinanceNews: React.FC = () => {
 
       {/* News Content */}
       <div className="flex-1 px-2 sm:px-3 md:px-4 lg:px-6 overflow-y-auto min-h-0">
-        <div className="space-y-2 sm:space-y-3 md:space-y-4 pb-2 sm:pb-3 md:pb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 pb-2 sm:pb-3 md:pb-4">
           {news.slice(0, 6).map((article, index) => (
-            <div key={index} className="border-b border-gray-100 pb-2 sm:pb-3 md:pb-4 last:border-b-0 last:pb-0">
-              <div className="flex space-x-2 sm:space-x-3 md:space-x-4">
-                {article.urlToImage && (
+            <div key={index} className="bg-gray-50 rounded-lg border border-gray-200 p-3 sm:p-4 hover:shadow-md transition-shadow">
+              {article.urlToImage && (
+                <div className="mb-3">
                   <img
                     src={article.urlToImage}
                     alt={article.title}
-                    className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg flex-shrink-0"
+                    className="w-full h-32 sm:h-40 object-cover rounded-lg"
                     onError={(e) => {
                       e.currentTarget.src = 'https://images.pexels.com/photos/3483098/pexels-photo-3483098.jpeg';
                     }}
                   />
-                )}
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-xs sm:text-sm font-semibold text-gray-900 line-clamp-2 mb-1 leading-tight break-words">
-                    {article.title}
-                  </h3>
-                  <p className="text-xs text-gray-600 line-clamp-2 mb-2 leading-relaxed break-words">
-                    {article.description}
-                  </p>
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">
-                    <div className="flex items-center space-x-1 sm:space-x-2 text-xs text-gray-500 min-w-0">
-                      <Calendar className="w-3 h-3 flex-shrink-0" />
-                      <span className="truncate">{formatDate(article.publishedAt)}</span>
-                      <span className="hidden sm:inline">•</span>
-                      <span className="truncate max-w-16 sm:max-w-20">{article.source.name}</span>
-                    </div>
-                    <a
-                      href={article.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-700 text-xs flex items-center space-x-1 transition-colors flex-shrink-0 self-start sm:self-auto"
-                    >
-                      <span>Read</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
+                </div>
+              )}
+              <div className="space-y-2 sm:space-y-3">
+                <h3 className="text-sm sm:text-base font-semibold text-gray-900 line-clamp-2 leading-tight break-words">
+                  {article.title}
+                </h3>
+                <p className="text-xs sm:text-sm text-gray-600 line-clamp-3 leading-relaxed break-words">
+                  {article.description}
+                </p>
+                <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+                  <div className="flex items-center space-x-2 text-xs text-gray-500 min-w-0">
+                    <Calendar className="w-3 h-3 flex-shrink-0" />
+                    <span className="truncate">{formatDate(article.publishedAt)}</span>
+                    <span className="hidden sm:inline">•</span>
+                    <span className="truncate max-w-16 sm:max-w-20">{article.source.name}</span>
                   </div>
+                  <a
+                    href={article.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-700 text-xs flex items-center space-x-1 transition-colors flex-shrink-0 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded"
+                  >
+                    <span>Read</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
                 </div>
               </div>
             </div>

@@ -265,12 +265,12 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange, avail
             </div>
           </div>
           
-          {/* Main Content Grid - Map and News */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 xl:gap-8 w-full max-w-full min-w-0 overflow-hidden">
-            <div className="lg:col-span-1 xl:col-span-2 flex items-center justify-center w-full max-w-full min-w-0 overflow-hidden">
+          {/* Main Content - Map (Full Width) */}
+          <div className="w-full max-w-full min-w-0 overflow-hidden">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-2 sm:p-3 md:p-4 lg:p-6 w-full max-w-full min-w-0 overflow-hidden">
               {useNewMap ? (
-                <div className="w-full min-w-0 h-64 sm:h-80 md:h-96 lg:h-[500px] xl:h-[600px] overflow-hidden flex items-center justify-center">
-                  <div className="w-full h-full max-w-4xl mx-auto">
+                <div className="w-full min-w-0 h-80 sm:h-96 md:h-[600px] lg:h-[700px] xl:h-[800px] overflow-hidden flex items-center justify-center">
+                  <div className="w-full h-full max-w-6xl mx-auto">
                     <AfricaMapComplete 
                       data={currentData}
                       shapefilePath={getLocalShapefilePath()}
@@ -280,8 +280,8 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange, avail
                   </div>
                 </div>
               ) : (
-                <div className="w-full min-w-0 h-64 sm:h-80 md:h-96 lg:h-[500px] xl:h-[600px] overflow-hidden flex items-center justify-center">
-                  <div className="w-full h-full max-w-4xl mx-auto">
+                <div className="w-full min-w-0 h-80 sm:h-96 md:h-[600px] lg:h-[700px] xl:h-[800px] overflow-hidden flex items-center justify-center">
+                  <div className="w-full h-full max-w-6xl mx-auto">
                     <AfricaMap 
                       data={currentData}
                       onCountryHover={setHoveredCountry}
@@ -291,7 +291,11 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange, avail
                 </div>
               )}
             </div>
-            <div className="lg:col-span-1 xl:col-span-1 h-64 sm:h-80 md:h-96 lg:h-[500px] xl:h-[600px] bg-white rounded-xl shadow-sm border border-gray-200 p-2 sm:p-3 md:p-4 w-full max-w-full min-w-0 overflow-hidden">
+          </div>
+          
+          {/* Finance News (Beneath Map) */}
+          <div className="w-full max-w-full min-w-0 overflow-hidden">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-2 sm:p-3 md:p-4 lg:p-6 w-full max-w-full min-w-0 overflow-hidden">
               <FinanceNews />
             </div>
           </div>
