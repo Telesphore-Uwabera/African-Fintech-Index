@@ -7,15 +7,25 @@ import usersRoutes from './routes/users';
 import startupsRoutes from './routes/startups';
 import countryDataRoutes from './routes/countryData';
 
+// Load environment variables first
 dotenv.config();
-
-const app = express();
-const PORT = process.env.PORT || 5000;
 
 // Add startup log to verify deployment
 console.log('🚀 African Fintech Backend Starting...');
 console.log('📅 Deployment Time:', new Date().toISOString());
 console.log('🌍 Environment:', process.env.NODE_ENV || 'development');
+console.log('🔧 Node Version:', process.version);
+console.log('📁 Current Directory:', process.cwd());
+
+// Validate environment variables
+console.log('🔍 Checking environment variables...');
+console.log('📊 NODE_ENV:', process.env.NODE_ENV);
+console.log('🔌 PORT:', process.env.PORT);
+console.log('🗄️ MONGO_URI exists:', !!process.env.MONGO_URI);
+console.log('🔐 JWT_SECRET exists:', !!process.env.JWT_SECRET);
+
+const app = express();
+const PORT = process.env.PORT || 5000;
 
 app.use(cors({
   origin: [
@@ -57,10 +67,14 @@ app.use('/api/users', usersRoutes);
 app.use('/api/startups', startupsRoutes);
 app.use('/api/country-data', countryDataRoutes);
 
+console.log('🔗 Attempting to connect to MongoDB...');
+
 mongoose.connect(process.env.MONGO_URI || '', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 } as any).then(() => {
+  console.log('✅ MongoDB connected successfully!');
+  
   const server = app.listen(PORT, () => {
     console.log(`✅ Server running on port ${PORT}`);
     console.log(`🏥 Health check available at: http://localhost:${PORT}/health`);
@@ -97,5 +111,17 @@ mongoose.connect(process.env.MONGO_URI || '', {
 }).catch((err) => {
   console.error('❌ MongoDB connection error:', err);
   console.error('🔧 Please check your MONGO_URI environment variable');
+  console.error('🔧 Error details:', err.message);
+  process.exit(1);
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('💥 Uncaught Exception:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('💥 Unhandled Rejection at:', promise, 'reason:', reason);
   process.exit(1);
 }); 

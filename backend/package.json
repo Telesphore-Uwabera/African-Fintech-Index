@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
+    "prestart": "echo 'Starting African Fintech Backend...' && node -v && npm -v && ls -la && echo 'Checking dist folder:' && ls -la dist/ || echo 'dist folder not found'",
     "start": "node dist/index.js",
     "dev": "nodemon --watch src --ext ts --exec ts-node src/index.ts",
     "build": "tsc -b",
