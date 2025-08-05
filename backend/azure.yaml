@@ -1,0 +1,30 @@
+# Azure App Service Configuration
+# This file contains recommended settings for the African Fintech Backend
+
+# Health Check Configuration
+healthCheckPath: /health
+healthCheckEvictionTime: 10m
+
+# Scaling Configuration
+minInstances: 1
+maxInstances: 3
+
+# Environment Variables (set these in Azure Portal)
+environmentVariables:
+  - name: NODE_ENV
+    value: production
+  - name: PORT
+    value: 8080
+  - name: MONGO_URI
+    value: "your_mongodb_connection_string_here"
+  - name: JWT_SECRET
+    value: "your_secure_jwt_secret_here"
+
+# Startup Command
+startupCommand: "npm start"
+
+# Build Configuration
+buildConfiguration:
+  - command: "npm install"
+  - command: "npm run build"
+  - command: "npm start" 
