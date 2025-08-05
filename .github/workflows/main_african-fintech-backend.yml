@@ -29,11 +29,19 @@ jobs:
           npm install
           npm run build
 
+      - name: Prepare deployment package
+        run: |
+          # Create a deployment directory with backend contents
+          mkdir deployment
+          cp -r backend/* deployment/
+          # Copy backend package.json to root of deployment
+          cp backend/package.json deployment/
+
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: backend
+          path: deployment
 
   deploy:
     runs-on: ubuntu-latest
