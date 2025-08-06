@@ -368,67 +368,69 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
       ) : error ? (
         <div className="text-red-600 text-sm p-4 text-center">{error}</div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 md:gap-6 w-full max-w-full min-w-0 overflow-hidden">
-        {displayedStartups.map((startup) => (
-            <div key={startup.id} className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow w-full max-w-full min-w-0 overflow-hidden bg-white">
-              <div className="flex items-start justify-between mb-2 sm:mb-3 w-full max-w-full min-w-0">
-                <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 flex-1 min-w-0 mr-2 break-words leading-tight">{startup.name}</h3>
-                <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full flex-shrink-0 truncate ml-2">
-                {startup.sector}
-              </span>
-            </div>
-              <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 line-clamp-3 break-words leading-relaxed">{startup.description}</p>
-              <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-500">
-              <div className="flex items-center space-x-1.5 sm:space-x-2">
-                  <Globe className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 text-gray-400" />
-                  <span className="truncate font-medium">{startup.country}</span>
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 md:gap-6 w-full max-w-full min-w-0 overflow-hidden">
+          {displayedStartups.map((startup) => (
+              <div key={startup.id} className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow w-full max-w-full min-w-0 overflow-hidden bg-white">
+                <div className="flex items-start justify-between mb-2 sm:mb-3 w-full max-w-full min-w-0">
+                  <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 flex-1 min-w-0 mr-2 break-words leading-tight">{startup.name}</h3>
+                  <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full flex-shrink-0 truncate ml-2">
+                  {startup.sector}
+                </span>
               </div>
-              <div className="flex items-center space-x-1.5 sm:space-x-2">
-                  <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 text-gray-400" />
-                <span>Founded {startup.foundedYear}</span>
-              </div>
-              <div className="flex items-center space-x-1.5 sm:space-x-2">
-                  <User className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 text-gray-400" />
-                  <span className="truncate text-xs">Added by {startup.addedBy || 'Unknown'}</span>
+                <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 line-clamp-3 break-words leading-relaxed">{startup.description}</p>
+                <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-500">
+                <div className="flex items-center space-x-1.5 sm:space-x-2">
+                    <Globe className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 text-gray-400" />
+                    <span className="truncate font-medium">{startup.country}</span>
                 </div>
-              </div>
-            {startup.website && (
-              <a
-                href={startup.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                  className="inline-block mt-3 sm:mt-4 text-green-600 hover:text-green-700 text-xs sm:text-sm font-medium truncate border-t border-gray-100 pt-2 sm:pt-3"
-              >
-                Visit Website →
-              </a>
-            )}
+                <div className="flex items-center space-x-1.5 sm:space-x-2">
+                    <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 text-gray-400" />
+                  <span>Founded {startup.foundedYear}</span>
+                </div>
+                <div className="flex items-center space-x-1.5 sm:space-x-2">
+                    <User className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 text-gray-400" />
+                    <span className="truncate text-xs">Added by {startup.addedBy || 'Unknown'}</span>
+                  </div>
+                </div>
+              {startup.website && (
+                <a
+                  href={startup.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                    className="inline-block mt-3 sm:mt-4 text-green-600 hover:text-green-700 text-xs sm:text-sm font-medium truncate border-t border-gray-100 pt-2 sm:pt-3"
+                >
+                  Visit Website →
+                </a>
+              )}
+            </div>
+          ))}
+        </div>
+        
+        {/* View More Button */}
+        {hasMoreStartups && !showAllStartups && (
+          <div className="flex justify-center mt-6 sm:mt-8">
+            <button
+              onClick={() => setShowAllStartups(true)}
+              className="px-4 sm:px-6 py-2 sm:py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm sm:text-base font-medium"
+            >
+              View All {filteredStartups.length} Startups
+            </button>
           </div>
-        ))}
-      </div>
-      
-      {/* View More Button */}
-      {hasMoreStartups && !showAllStartups && (
-        <div className="flex justify-center mt-6 sm:mt-8">
-          <button
-            onClick={() => setShowAllStartups(true)}
-            className="px-4 sm:px-6 py-2 sm:py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm sm:text-base font-medium"
-          >
-            View All {filteredStartups.length} Startups
-          </button>
-        </div>
-      )}
-      
-      {/* Show Less Button */}
-      {showAllStartups && hasMoreStartups && (
-        <div className="flex justify-center mt-6 sm:mt-8">
-          <button
-            onClick={() => setShowAllStartups(false)}
-            className="px-4 sm:px-6 py-2 sm:py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm sm:text-base font-medium"
-          >
-            Show Less
-          </button>
-        </div>
-      )}
+        )}
+        
+        {/* Show Less Button */}
+        {showAllStartups && hasMoreStartups && (
+          <div className="flex justify-center mt-6 sm:mt-8">
+            <button
+              onClick={() => setShowAllStartups(false)}
+              className="px-4 sm:px-6 py-2 sm:py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm sm:text-base font-medium"
+            >
+              Show Less
+            </button>
+          </div>
+        )}
+        </>
       )}
 
       {displayedStartups.length === 0 && !loading && (
