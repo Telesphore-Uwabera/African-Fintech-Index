@@ -1,6 +1,6 @@
 [build]
   base = "."
-  command = "cd frontend && rm -rf node_modules package-lock.json yarn.lock && npm install --legacy-peer-deps --no-optional --force && npm install @rollup/rollup-linux-x64-gnu@4.2.1 --save-dev --force && npm run build"
+  command = "cd frontend && rm -rf node_modules package-lock.json && npm install --legacy-peer-deps --no-optional && npm run build"
   publish = "frontend/dist"
 
 [build.environment]
