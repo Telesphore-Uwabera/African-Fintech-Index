@@ -8,7 +8,7 @@ const CountriesPage: React.FC<{ selectedYear: number; onYearChange: (year: numbe
   const [hoveredCountry, setHoveredCountry] = useState<CountryData | null>(null);
   const [countryData, setCountryData] = useState<CountryData[]>([]);
   useEffect(() => {
-    const apiUrl = import.meta.env.VITE_API_URL;
+    const apiUrl = import.meta.env.VITE_API_URL || '/api';
     fetch(`${apiUrl}/country-data?year=${selectedYear}`)
       .then(res => res.json())
       .then(data => {

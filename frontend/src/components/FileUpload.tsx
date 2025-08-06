@@ -152,7 +152,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onDataUpdate, currentYea
 
   const handleParsedData = async (data: any[]) => {
     const validation = validateData(data);
-    const apiUrl = import.meta.env.VITE_API_URL;
+    const apiUrl = import.meta.env.VITE_API_URL || '/api';
 
     if (validation.isValid) {
       try {

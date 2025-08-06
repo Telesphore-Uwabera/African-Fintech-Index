@@ -6,7 +6,7 @@ import { useDataPersistence } from '../hooks/useDataPersistence';
 const AnalyticsPage: React.FC<{ selectedYear: number; onYearChange: (year: number) => void; availableYears: number[] }> = ({ selectedYear, onYearChange, availableYears }) => {
   const [countryData, setCountryData] = useState([]);
   useEffect(() => {
-    const apiUrl = import.meta.env.VITE_API_URL;
+    const apiUrl = import.meta.env.VITE_API_URL || '/api';
     fetch(`${apiUrl}/country-data`)
       .then(res => res.json())
       .then(data => setCountryData(data))

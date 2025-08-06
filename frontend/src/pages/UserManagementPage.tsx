@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import type { User } from '../types';
 
 const UserManagementPage: React.FC = () => {
-  const apiUrl = import.meta.env.VITE_API_URL;
+  const apiUrl = import.meta.env.VITE_API_URL || '/api';
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [unverifiedUsers, setUnverifiedUsers] = useState<any[]>([]);
   const [loadingUnverified, setLoadingUnverified] = useState(false);

@@ -16,7 +16,7 @@ const DataManagementPage: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const apiUrl = import.meta.env.VITE_API_URL;
+        const apiUrl = import.meta.env.VITE_API_URL || '/api';
         const response = await fetch(`${apiUrl}/country-data`);
         if (response.ok) {
           const data = await response.json();
@@ -60,7 +60,7 @@ const DataManagementPage: React.FC = () => {
   const clearData = async () => {
     if (window.confirm('Are you sure you want to clear all data from the database? This action cannot be undone.')) {
       try {
-        const apiUrl = import.meta.env.VITE_API_URL;
+        const apiUrl = import.meta.env.VITE_API_URL || '/api';
         const response = await fetch(`${apiUrl}/country-data`, {
           method: 'DELETE',
           headers: {

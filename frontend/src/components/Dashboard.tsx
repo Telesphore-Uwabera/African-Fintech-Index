@@ -21,7 +21,7 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange, availableYears }) => {
-  const apiUrl = import.meta.env.VITE_API_URL;
+  const apiUrl = import.meta.env.VITE_API_URL || '/api';
   const [hoveredCountry, setHoveredCountry] = useState<CountryData | null>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -152,7 +152,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange, avail
   const [countryData, setCountryData] = useState<CountryData[]>([]);
 
   useEffect(() => {
-    const apiUrl = import.meta.env.VITE_API_URL;
+    const apiUrl = import.meta.env.VITE_API_URL || '/api';
     fetch(`${apiUrl}/country-data`)
       .then(res => res.json())
       .then(data => {

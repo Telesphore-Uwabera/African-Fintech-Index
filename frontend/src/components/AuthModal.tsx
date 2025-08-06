@@ -62,7 +62,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
     e.preventDefault();
     setLoading(true);
     setMessage({ type: '', text: '' });
-    const apiUrl = import.meta.env.VITE_API_URL;
+    const apiUrl = import.meta.env.VITE_API_URL || '/api';
 
     try {
       if (mode === 'register') {

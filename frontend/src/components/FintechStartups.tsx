@@ -17,7 +17,7 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
   // Fetch startups from backend on mount
   useEffect(() => {
     setLoading(true);
-    const apiUrl = import.meta.env.VITE_API_URL;
+    const apiUrl = import.meta.env.VITE_API_URL || '/api';
     fetch(`${apiUrl}/startups`)
       .then(res => res.json())
       .then(data => {
@@ -72,7 +72,7 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
     };
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL;
+      const apiUrl = import.meta.env.VITE_API_URL || '/api';
       const res = await fetch(`${apiUrl}/startups`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
