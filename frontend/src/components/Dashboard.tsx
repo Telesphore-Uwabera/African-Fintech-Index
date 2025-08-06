@@ -243,7 +243,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange, avail
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-blue-300/10 to-purple-300/10 rounded-full blur-3xl"></div>
       </div>
       
-              <main className="flex-1 px-1 pb-6 sm:pb-8 space-y-6 sm:space-y-8 lg:space-y-10 relative z-10 w-full max-w-full min-w-0 overflow-hidden">
+              <main className="flex-1 px-2 sm:px-1 pb-6 sm:pb-8 space-y-4 sm:space-y-6 lg:space-y-8 xl:space-y-10 relative z-10 w-full max-w-full min-w-0 overflow-hidden">
           {/* Stats Overview */}
           <div className="w-full max-w-full min-w-0 overflow-hidden">
             <StatsCards stats={currentStats} />
@@ -284,7 +284,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange, avail
           <div className="w-full max-w-full min-w-0 overflow-hidden">
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-2 sm:p-3 md:p-4 lg:p-6 w-full max-w-full min-w-0 overflow-hidden">
               {useNewMap ? (
-                <div className="w-full min-w-0 h-80 sm:h-96 md:h-[600px] lg:h-[700px] xl:h-[800px] overflow-hidden flex items-center justify-center">
+                <div className="w-full min-w-0 h-64 sm:h-80 md:h-96 lg:h-[600px] xl:h-[700px] 2xl:h-[800px] overflow-hidden flex items-center justify-center">
                   <div className="w-full h-full max-w-6xl mx-auto">
                     <AfricaMapComplete 
                       data={currentData}
@@ -296,7 +296,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange, avail
                   </div>
                 </div>
               ) : (
-                <div className="w-full min-w-0 h-80 sm:h-96 md:h-[600px] lg:h-[700px] xl:h-[800px] overflow-hidden flex items-center justify-center">
+                <div className="w-full min-w-0 h-64 sm:h-80 md:h-96 lg:h-[600px] xl:h-[700px] 2xl:h-[800px] overflow-hidden flex items-center justify-center">
                   <div className="w-full h-full max-w-6xl mx-auto">
                     <AfricaMap 
                       data={currentData}

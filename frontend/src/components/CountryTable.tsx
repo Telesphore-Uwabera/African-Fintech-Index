@@ -96,58 +96,63 @@ export const CountryTable: React.FC<CountryTableProps> = ({ data, selectedYear }
         </button>
       </div>
       
-      <div className="overflow-x-auto">
-        <table className="w-full">
+      <div className="overflow-x-auto -mx-2 sm:mx-0">
+        <table className="w-full min-w-[800px] sm:min-w-0">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Rank
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Country
               </th>
               <th 
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('finalScore')}
               >
                 <div className="flex items-center gap-1">
-                  Final Score
+                  <span className="hidden sm:inline">Final Score</span>
+                  <span className="sm:hidden">Score</span>
                   <SortIcon field="finalScore" />
                 </div>
               </th>
               <th 
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('literacyRate')}
               >
                 <div className="flex items-center gap-1">
-                  Literacy Rate
+                  <span className="hidden sm:inline">Literacy Rate</span>
+                  <span className="sm:hidden">Literacy</span>
                   <SortIcon field="literacyRate" />
                 </div>
               </th>
               <th 
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('digitalInfrastructure')}
               >
                 <div className="flex items-center gap-1">
-                  Digital Infra
+                  <span className="hidden sm:inline">Digital Infra</span>
+                  <span className="sm:hidden">Digital</span>
                   <SortIcon field="digitalInfrastructure" />
                 </div>
               </th>
               <th 
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('investment')}
               >
                 <div className="flex items-center gap-1">
-                  Investment
+                  <span className="hidden sm:inline">Investment</span>
+                  <span className="sm:hidden">Invest</span>
                   <SortIcon field="investment" />
                 </div>
               </th>
               <th 
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('fintechCompanies')}
               >
                 <div className="flex items-center gap-1">
-                  Fintech Companies
+                  <span className="hidden sm:inline">Fintech Companies</span>
+                  <span className="sm:hidden">Companies</span>
                   <SortIcon field="fintechCompanies" />
                 </div>
               </th>
@@ -156,21 +161,21 @@ export const CountryTable: React.FC<CountryTableProps> = ({ data, selectedYear }
           <tbody className="bg-white divide-y divide-gray-200">
             {sortedData.map((country, index) => (
               <tr key={`${country.id}-${country.year}`} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   #{index + 1}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-gray-900">{country.name}</div>
-                  <div className="text-sm text-gray-500">
+                  <div className="text-xs sm:text-sm text-gray-500">
                     {country.population ? `${(country.population / 1000000).toFixed(1)}M people` : 'Population N/A'}
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="text-sm font-medium text-gray-900">
                       {country.finalScore.toFixed(1)}
                     </div>
-                    <div className="ml-2 w-16 bg-gray-200 rounded-full h-2">
+                    <div className="ml-2 w-12 sm:w-16 bg-gray-200 rounded-full h-2">
                       <div
                         className="bg-blue-600 h-2 rounded-full"
                         style={{ width: `${country.finalScore}%` }}
@@ -178,18 +183,18 @@ export const CountryTable: React.FC<CountryTableProps> = ({ data, selectedYear }
                     </div>
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm text-gray-900">
                   {country.literacyRate.toFixed(1)}%
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm text-gray-900">
                   {country.digitalInfrastructure.toFixed(1)}%
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm text-gray-900">
                   {country.investment.toFixed(1)}%
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                   <div className="flex items-center text-sm text-gray-900">
-                    <Building2 className="w-4 h-4 text-gray-400 mr-2" />
+                    <Building2 className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 mr-1 sm:mr-2" />
                     {startupCounts.get(country.name) || 0}
                   </div>
                 </td>
