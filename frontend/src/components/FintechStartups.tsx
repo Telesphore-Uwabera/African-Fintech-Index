@@ -34,6 +34,7 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('');
   const [selectedSector, setSelectedSector] = useState('');
+  const [showAllStartups, setShowAllStartups] = useState(false);
   
   const [newStartup, setNewStartup] = useState({
     name: '',
@@ -165,6 +166,10 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
     
     return matchesSearch && matchesCountry && matchesSector && matchesYear;
   });
+
+  // Limit to 6 startups initially, show all if showAllStartups is true
+  const displayedStartups = showAllStartups ? filteredStartups : filteredStartups.slice(0, 6);
+  const hasMoreStartups = filteredStartups.length > 6;
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-2 sm:p-3 md:p-4 lg:p-6 w-full max-w-full min-w-0 overflow-hidden">
@@ -364,7 +369,7 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
         <div className="text-red-600 text-sm p-4 text-center">{error}</div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 md:gap-6 w-full max-w-full min-w-0 overflow-hidden">
-        {filteredStartups.map((startup) => (
+        {displayedStartups.map((startup) => (
             <div key={startup.id} className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow w-full max-w-full min-w-0 overflow-hidden bg-white">
               <div className="flex items-start justify-between mb-2 sm:mb-3 w-full max-w-full min-w-0">
                 <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 flex-1 min-w-0 mr-2 break-words leading-tight">{startup.name}</h3>
@@ -400,9 +405,33 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
           </div>
         ))}
       </div>
+      
+      {/* View More Button */}
+      {hasMoreStartups && !showAllStartups && (
+        <div className="flex justify-center mt-6 sm:mt-8">
+          <button
+            onClick={() => setShowAllStartups(true)}
+            className="px-4 sm:px-6 py-2 sm:py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm sm:text-base font-medium"
+          >
+            View All {filteredStartups.length} Startups
+          </button>
+        </div>
+      )}
+      
+      {/* Show Less Button */}
+      {showAllStartups && hasMoreStartups && (
+        <div className="flex justify-center mt-6 sm:mt-8">
+          <button
+            onClick={() => setShowAllStartups(false)}
+            className="px-4 sm:px-6 py-2 sm:py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm sm:text-base font-medium"
+          >
+            Show Less
+          </button>
+        </div>
+      )}
       )}
 
-      {filteredStartups.length === 0 && !loading && (
+      {displayedStartups.length === 0 && !loading && (
         <div className="text-center py-8 sm:py-12">
           <Building2 className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-3 sm:mb-4" />
           <p className="text-sm sm:text-base text-gray-600 mb-2">No startups found matching your criteria</p>
