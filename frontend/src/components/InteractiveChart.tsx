@@ -21,6 +21,7 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
   const [yearRange, setYearRange] = useState<'custom' | number>('custom');
   const [customStartYear, setCustomStartYear] = useState<number>(2020);
   const [customEndYear, setCustomEndYear] = useState<number>(selectedYear);
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
 
   // Get all available years from the data
   const availableYears = React.useMemo(() => {
@@ -156,6 +157,19 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
     setCustomEndYear(maxYear);
   };
 
+  // Handle country line click
+  const handleCountryClick = (countryId: string) => {
+    if (selectedCountry === countryId) {
+      // If clicking the same country, show all countries
+      setSelectedCountry(null);
+      setVisibleCountries(new Set(allCountries.map(c => c.id)));
+    } else {
+      // Show only the clicked country
+      setSelectedCountry(countryId);
+      setVisibleCountries(new Set([countryId]));
+    }
+  };
+
   // Custom dot component to add country labels at line ends
   const CustomDot = (props: any) => {
     const { cx, cy, payload, dataKey } = props;
@@ -168,6 +182,11 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
     
     if (!isLastPoint) return null;
     
+    // Show full country name if only one country is selected, otherwise show abbreviated name
+    const displayText = selectedCountry === country.id 
+      ? `${country.name} (${payload[dataKey]?.toFixed(0)})`
+      : `${country.name.substring(0, 2).toUpperCase()} (${payload[dataKey]?.toFixed(0)})`;
+    
     return (
       <g>
         <circle cx={cx} cy={cy} r={3} fill={country.color} stroke="white" strokeWidth={1} />
@@ -175,12 +194,12 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
           x={cx + 5}
           y={cy}
           fill={country.color}
-          fontSize="10"
+          fontSize={selectedCountry === country.id ? "12" : "10"}
           fontWeight="600"
           textAnchor="start"
           dominantBaseline="middle"
         >
-          {country.name.substring(0, 2).toUpperCase()} ({payload[dataKey]?.toFixed(0)})
+          {displayText}
         </text>
       </g>
     );
@@ -272,6 +291,26 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
                 <span>Countries</span>
                 <ChevronDown className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform ${showCountrySelector ? 'rotate-180' : ''}`} />
               </button>
+
+              {/* Selected Country Indicator */}
+              {selectedCountry && (
+                <div className="flex items-center space-x-1 sm:space-x-2 px-1.5 sm:px-2 md:px-3 py-1 sm:py-1.5 md:py-2 bg-purple-50 text-purple-700 rounded-lg border border-purple-200">
+                  <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full" style={{ backgroundColor: allCountries.find(c => c.id === selectedCountry)?.color }}></div>
+                  <span className="text-xs sm:text-sm font-medium">
+                    {allCountries.find(c => c.id === selectedCountry)?.name}
+                  </span>
+                  <button
+                    onClick={() => {
+                      setSelectedCountry(null);
+                      setVisibleCountries(new Set(allCountries.map(c => c.id)));
+                    }}
+                    className="ml-1 sm:ml-2 text-purple-500 hover:text-purple-700"
+                    title="Show all countries"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
             </>
           )}
           
@@ -420,11 +459,13 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
                     type="linear"
                     dataKey={country.id}
                     stroke={country.color}
-                    strokeWidth={1.5}
+                    strokeWidth={selectedCountry === country.id ? 3 : 1.5}
                     name={country.name}
                     dot={<CustomDot />}
                     activeDot={{ r: 3, stroke: country.color, strokeWidth: 1, fill: 'white' }}
                     connectNulls={false}
+                    onClick={() => handleCountryClick(country.id)}
+                    style={{ cursor: 'pointer' }}
                   />
                 )
               ))}
@@ -510,6 +551,7 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
           <div className="break-words leading-relaxed">
             <p className="mb-1">Showing fintech index trends from {startYear} to {endYear}</p>
             <p className="mb-1">Country names and latest scores displayed at line endpoints</p>
+            <p className="mb-1">💡 <strong>Click any country line to focus on that country only</strong></p>
             <p>Use controls above to adjust time period or view all {availableYears.length} available years ({minYear}-{maxYear})</p>
           </div>
         </div>
