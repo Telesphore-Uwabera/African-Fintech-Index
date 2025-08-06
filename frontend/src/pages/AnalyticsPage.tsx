@@ -1,10 +1,13 @@
 import React from 'react';
 import { InteractiveChart } from '../components/InteractiveChart';
+import { CountryList } from '../components/CountryList';
 import { useEffect, useState } from 'react';
 import { useDataPersistence } from '../hooks/useDataPersistence';
 
 const AnalyticsPage: React.FC<{ selectedYear: number; onYearChange: (year: number) => void; availableYears: number[] }> = ({ selectedYear, onYearChange, availableYears }) => {
   const [countryData, setCountryData] = useState([]);
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  
   useEffect(() => {
     const apiUrl = import.meta.env.VITE_API_URL || '/api';
     fetch(`${apiUrl}/country-data`)
@@ -12,6 +15,7 @@ const AnalyticsPage: React.FC<{ selectedYear: number; onYearChange: (year: numbe
       .then(data => setCountryData(data))
       .catch(() => setCountryData([]));
   }, []);
+  
   const currentData = countryData.filter((country: any) => country.year === selectedYear);
 
   return (
@@ -30,12 +34,27 @@ const AnalyticsPage: React.FC<{ selectedYear: number; onYearChange: (year: numbe
             ))}
           </select>
         </div>
-        <div className="w-full max-w-full min-w-0 overflow-hidden">
-          <InteractiveChart
-            data={currentData}
-            allYearsData={countryData}
-            selectedYear={selectedYear}
-          />
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 w-full max-w-full min-w-0 overflow-hidden">
+          {/* Chart - Takes up 3/4 of the space */}
+          <div className="lg:col-span-3">
+            <InteractiveChart
+              data={currentData}
+              allYearsData={countryData}
+              selectedYear={selectedYear}
+              selectedCountry={selectedCountry}
+              onCountrySelect={setSelectedCountry}
+            />
+          </div>
+          
+          {/* Country List - Takes up 1/4 of the space */}
+          <div className="lg:col-span-1">
+            <CountryList
+              data={currentData}
+              selectedYear={selectedYear}
+              selectedCountry={selectedCountry}
+              onCountrySelect={setSelectedCountry}
+            />
+          </div>
         </div>
       </main>
     </div>

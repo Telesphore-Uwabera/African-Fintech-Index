@@ -7,6 +7,8 @@ interface InteractiveChartProps {
   data: CountryData[];
   allYearsData: CountryData[];
   selectedYear: number;
+  onCountrySelect?: (countryId: string | null) => void;
+  selectedCountry?: string | null;
 }
 
 const COUNTRY_COLORS = [
@@ -14,14 +16,14 @@ const COUNTRY_COLORS = [
   '#84cc16', '#f97316', '#6366f1', '#14b8a6', '#f43f5e', '#a855f7', '#059669', '#d97706'
 ];
 
-export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYearsData, selectedYear }) => {
+export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYearsData, selectedYear, onCountrySelect, selectedCountry: externalSelectedCountry }) => {
   const [chartType, setChartType] = useState<'trend' | 'comparison' | 'distribution'>('trend');
   const [visibleCountries, setVisibleCountries] = useState<Set<string>>(new Set());
   const [showCountrySelector, setShowCountrySelector] = useState(false);
   const [yearRange, setYearRange] = useState<'custom' | number>('custom');
   const [customStartYear, setCustomStartYear] = useState<number>(2020);
   const [customEndYear, setCustomEndYear] = useState<number>(selectedYear);
-  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(externalSelectedCountry || null);
 
   // Get all available years from the data
   const availableYears = React.useMemo(() => {
@@ -161,12 +163,15 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
   const handleCountryClick = (countryId: string) => {
     if (selectedCountry === countryId) {
       // If clicking the same country, show all countries
-      setSelectedCountry(null);
+      const newSelectedCountry = null;
+      setSelectedCountry(newSelectedCountry);
       setVisibleCountries(new Set(allCountries.map(c => c.id)));
+      onCountrySelect?.(newSelectedCountry);
     } else {
       // Show only the clicked country
       setSelectedCountry(countryId);
       setVisibleCountries(new Set([countryId]));
+      onCountrySelect?.(countryId);
     }
   };
 
