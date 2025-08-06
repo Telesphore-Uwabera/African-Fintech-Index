@@ -34,6 +34,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange, avail
   const [editForm, setEditForm] = useState({ name: '', role: 'viewer', isVerified: false });
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [userSearch, setUserSearch] = useState('');
+  const [startups, setStartups] = useState<any[]>([]);
 
   useEffect(() => {
     // Load user from localStorage on mount
@@ -74,6 +75,18 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange, avail
         .catch(() => setLoadingUsers(false));
     }
   }, [currentUser]);
+
+  // Fetch startups data for fintech companies calculation
+  useEffect(() => {
+    fetch(`${apiUrl}/startups`)
+      .then(res => res.json())
+      .then(data => {
+        setStartups(data);
+      })
+      .catch(() => {
+        console.error('Failed to fetch startups for stats calculation');
+      });
+  }, [apiUrl]);
 
   const handleVerifyUser = async (userId: string) => {
     if (!currentUser?.token) return;
@@ -183,7 +196,9 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange, avail
   const yearOverYearChange = prevAvgScore !== 0 ? parseFloat((((avgScore - prevAvgScore) / prevAvgScore) * 100).toFixed(1)) : 0;
   const topPerformerObj = currentData.length > 0 ? currentData.reduce((top, c) => c.finalScore > top.finalScore ? c : top, currentData[0]) : null;
   const topPerformer = topPerformerObj ? `${topPerformerObj.name} (${topPerformerObj.finalScore.toFixed(1)})` : 'N/A';
-  const totalFintechCompanies = currentData.reduce((sum, c) => sum + (c.fintechCompanies || 0), 0);
+  
+  // Calculate fintech companies from actual startups data
+  const totalFintechCompanies = startups.length;
   const averageFintechCompanies = currentData.length > 0 ? totalFintechCompanies / currentData.length : 0;
 
   const currentStats = {
