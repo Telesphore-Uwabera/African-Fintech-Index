@@ -318,7 +318,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange, avail
           {/* Fintech Startups */}
           <div className="w-full max-w-full min-w-0 overflow-hidden">
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-2 sm:p-3 md:p-4 lg:p-6 w-full max-w-full min-w-0 overflow-hidden">
-              <FintechStartups currentUser={currentUser} />
+              <FintechStartups currentUser={currentUser} selectedYear={selectedYear} />
             </div>
           </div>
           
