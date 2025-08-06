@@ -30,11 +30,16 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
       });
   }, []);
 
+  // Reset display count when filters change
+  useEffect(() => {
+    setDisplayCount(6);
+  }, [searchTerm, selectedCountry, selectedSector]);
+
   const [showAddForm, setShowAddForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('');
   const [selectedSector, setSelectedSector] = useState('');
-  const [showAllStartups, setShowAllStartups] = useState(false);
+  const [displayCount, setDisplayCount] = useState(6);
   
   const [newStartup, setNewStartup] = useState({
     name: '',
@@ -167,9 +172,9 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
     return matchesSearch && matchesCountry && matchesSector;
   });
 
-  // Limit to 6 startups initially, show all if showAllStartups is true
-  const displayedStartups = showAllStartups ? filteredStartups : filteredStartups.slice(0, 6);
-  const hasMoreStartups = filteredStartups.length > 6;
+  // Show startups in batches of 6
+  const displayedStartups = filteredStartups.slice(0, displayCount);
+  const hasMoreStartups = filteredStartups.length > displayCount;
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-2 sm:p-3 md:p-4 lg:p-6 w-full max-w-full min-w-0 overflow-hidden">
@@ -410,22 +415,22 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
         </div>
         
         {/* View More Button */}
-        {hasMoreStartups && !showAllStartups && (
+        {hasMoreStartups && (
           <div className="flex justify-center mt-6 sm:mt-8">
             <button
-              onClick={() => setShowAllStartups(true)}
+              onClick={() => setDisplayCount(prev => prev + 6)}
               className="px-4 sm:px-6 py-2 sm:py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm sm:text-base font-medium"
             >
-              View All {filteredStartups.length} Startups
+              View More ({Math.min(6, filteredStartups.length - displayCount)} more)
             </button>
           </div>
         )}
         
         {/* Show Less Button */}
-        {showAllStartups && hasMoreStartups && (
+        {displayCount > 6 && (
           <div className="flex justify-center mt-6 sm:mt-8">
             <button
-              onClick={() => setShowAllStartups(false)}
+              onClick={() => setDisplayCount(6)}
               className="px-4 sm:px-6 py-2 sm:py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm sm:text-base font-medium"
             >
               Show Less
