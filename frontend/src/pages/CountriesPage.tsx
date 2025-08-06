@@ -33,7 +33,7 @@ const CountriesPage: React.FC<{ selectedYear: number; onYearChange: (year: numbe
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex flex-col">
-      <main className="flex-1 py-6 sm:py-10 space-y-6 sm:space-y-10 w-full mt-20">
+              <main className="flex-1 py-6 sm:py-10 space-y-6 sm:space-y-10 w-full">
         <div className="px-1">
           <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Countries</h1>
           <div className="flex flex-col sm:flex-row items-start sm:items-center mb-4 sm:mb-6 gap-2 sm:gap-4">

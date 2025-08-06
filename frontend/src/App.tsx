@@ -100,8 +100,8 @@ function App() {
             <Sidebar currentUser={currentUser} onSignIn={openAuthModal} onSignOut={handleSignOut} />
           )}
           
-          <div className="flex flex-row flex-1 relative z-10 w-full max-w-full min-w-0 overflow-hidden pt-16 lg:pt-20">
-            <main className={`flex-1 min-w-0 w-full max-w-full overflow-hidden px-2 sm:px-4 md:px-6 lg:px-8 text-black transition-all duration-300 ${
+          <div className="flex flex-row flex-1 relative z-10 w-full max-w-full min-w-0 overflow-hidden pt-20 lg:pt-24">
+            <main className={`flex-1 min-w-0 w-full max-w-full overflow-hidden px-2 sm:px-4 md:px-6 lg:px-8 pt-4 pb-6 text-black transition-all duration-300 ${
               currentUser ? 'lg:ml-64 xl:ml-64' : ''
             }`}>
               <div className="w-full max-w-full min-w-0 overflow-hidden">

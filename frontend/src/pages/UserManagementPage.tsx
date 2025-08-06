@@ -145,7 +145,7 @@ const UserManagementPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex flex-col">
-      <main className="flex-1 px-1 py-6 sm:py-10 space-y-6 sm:space-y-10 w-full mt-20">
+              <main className="flex-1 px-1 py-6 sm:py-10 space-y-6 sm:space-y-10 w-full">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">User Management</h1>
