@@ -180,7 +180,9 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
           </div>
           <div className="min-w-0 flex-1">
             <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 truncate">Fintech Startups</h2>
-            <p className="text-xs sm:text-sm text-gray-600 truncate">Discover and add fintech companies across Africa</p>
+            <p className="text-xs sm:text-sm text-gray-600 truncate">
+              {selectedYear ? `${filteredStartups.length} startups from ${selectedYear}` : `${filteredStartups.length} startups across Africa`}
+            </p>
           </div>
         </div>
 
