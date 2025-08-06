@@ -90,19 +90,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onSignIn, onSignO
         </div>
         {/* Close button for mobile */}
         <button
-          className="lg:hidden text-white hover:text-gray-200 transition-colors"
+          className="lg:hidden bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg p-2 transition-all duration-200 hover:scale-105 shadow-sm border border-white/30"
           onClick={() => setIsOpen(false)}
           aria-label="Close sidebar"
         >
-          <FaTimes className="w-5 h-5" />
+          <FaTimes className="w-5 h-5 text-white" />
         </button>
         {/* Collapse button for desktop */}
         <button
-          className="hidden lg:block text-white hover:text-gray-200 transition-colors"
+          className="hidden lg:block bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg p-1.5 transition-all duration-200 hover:scale-105 shadow-sm border border-white/30"
           onClick={() => setIsCollapsed(!isCollapsed)}
           aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
-          <FaBars className="w-4 h-4" />
+          <FaBars className="w-4 h-4 text-white" />
         </button>
       </div>
 
