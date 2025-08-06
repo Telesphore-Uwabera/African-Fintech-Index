@@ -14,6 +14,12 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
   const [error, setError] = useState<string | null>(null);
   const [uploadStatus, setUploadStatus] = useState<string | null>(null);
 
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCountry, setSelectedCountry] = useState('');
+  const [selectedSector, setSelectedSector] = useState('');
+  const [displayCount, setDisplayCount] = useState(6);
+
   // Fetch startups from backend on mount
   useEffect(() => {
     setLoading(true);
@@ -34,12 +40,6 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
   useEffect(() => {
     setDisplayCount(6);
   }, [searchTerm, selectedCountry, selectedSector]);
-
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCountry, setSelectedCountry] = useState('');
-  const [selectedSector, setSelectedSector] = useState('');
-  const [displayCount, setDisplayCount] = useState(6);
   
   const [newStartup, setNewStartup] = useState({
     name: '',
