@@ -147,7 +147,7 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
       literacyRate: country.literacyRate,
       digitalInfra: country.digitalInfrastructure,
       investment: country.investment,
-      fintechCompanies: country.fintechCompanies || 0
+      fintechCompanies: startupCounts.get(country.name) || country.fintechCompanies || 0
     })).sort((a, b) => b.finalScore - a.finalScore).slice(0, 10);
 
   // Prepare distribution data for selected year, filtering out zero scores
