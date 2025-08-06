@@ -92,6 +92,7 @@ function App() {
             currentUser={currentUser}
             onAuthClick={openAuthModal}
             onLogout={handleSignOut}
+            apiUrl={import.meta.env.VITE_API_URL || '/api'}
           />
           
           {/* Sidebar - Only render when user is signed in */}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart3, Globe, User, LogOut, ChevronDown, Menu, X } from 'lucide-react';
+import { AdminNotifications } from './AdminNotifications';
 
 interface HeaderProps {
   selectedYear: number;
@@ -8,6 +9,7 @@ interface HeaderProps {
   currentUser?: any;
   onAuthClick: () => void;
   onLogout: () => void;
+  apiUrl?: string;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
@@ -16,7 +18,8 @@ export const Header: React.FC<HeaderProps> = ({
   availableYears, 
   currentUser,
   onAuthClick,
-  onLogout
+  onLogout,
+  apiUrl = import.meta.env.VITE_API_URL || '/api'
 }) => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -113,6 +116,11 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
               </div>
               
+              {/* Admin Notifications */}
+              {currentUser?.role === 'admin' && (
+                <AdminNotifications currentUser={currentUser} apiUrl={apiUrl} />
+              )}
+              
               {/* User Menu */}
               {currentUser ? (
                 <div className="relative user-menu-container">
@@ -180,6 +188,11 @@ export const Header: React.FC<HeaderProps> = ({
                   <ChevronDown className="absolute right-1 top-1/2 transform -translate-y-1/2 w-3 h-3 text-white pointer-events-none" />
                 </div>
               </div>
+              
+              {/* Mobile Admin Notifications */}
+              {currentUser?.role === 'admin' && (
+                <AdminNotifications currentUser={currentUser} apiUrl={apiUrl} />
+              )}
               
               {/* Mobile Auth Controls */}
               {currentUser ? (

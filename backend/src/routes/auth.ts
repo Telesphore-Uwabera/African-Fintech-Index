@@ -2,9 +2,33 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { User, IUser } from '../models/User';
+import nodemailer from 'nodemailer';
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'changeme';
+
+// Email utility function
+async function sendEmail(to: string, subject: string, text: string) {
+  try {
+    const transporter = nodemailer.createTransporter({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT) || 587,
+      secure: false,
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      to,
+      subject,
+      text,
+    });
+  } catch (error) {
+    console.error('Failed to send email:', error);
+  }
+}
 
 // Register
 router.post('/register', async (req, res) => {
@@ -32,6 +56,37 @@ router.post('/register', async (req, res) => {
       isVerified: false,
     });
     await user.save();
+    
+    // Send admin notification email
+    try {
+      const adminUsers = await User.find({ role: 'admin', isVerified: true });
+      const adminEmails = adminUsers.map(admin => admin.email);
+      
+      if (adminEmails.length > 0) {
+        const notificationSubject = 'New User Registration - Requires Verification';
+        const notificationText = `
+New user registration requires admin verification:
+
+User Details:
+- Name: ${name}
+- Email: ${email}
+- Role: ${role}
+- Registration Date: ${new Date().toLocaleString()}
+
+Please log in to the admin panel to verify this user.
+
+African Fintech Index Admin Panel
+        `.trim();
+        
+        // Send to all admin users
+        for (const adminEmail of adminEmails) {
+          await sendEmail(adminEmail, notificationSubject, notificationText);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to send admin notification:', error);
+    }
+    
     res.status(201).json({ message: 'User registered. Awaiting admin verification.' });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
