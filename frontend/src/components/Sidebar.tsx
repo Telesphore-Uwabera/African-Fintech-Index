@@ -79,12 +79,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onSignIn, onSignO
   const SidebarContent = (
     <div className="flex flex-col h-full bg-white shadow-xl border-r border-gray-200">
       {/* Header */}
-      <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-purple-600">
+      <div className="flex items-center justify-between h-12 px-4 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-purple-600">
         <div className="flex items-center space-x-3">
-          <FaGlobeAfrica className="text-2xl text-white" />
+          <FaGlobeAfrica className="text-xl text-white" />
           {!isCollapsed && (
-            <span className="text-lg font-bold text-white whitespace-nowrap">
-              African Fintech Index
+            <span className="text-sm font-semibold text-white whitespace-nowrap">
+              Navigation
             </span>
           )}
         </div>
@@ -175,7 +175,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onSignIn, onSignO
     <>
       {/* Desktop Sidebar */}
       <aside 
-        className={`hidden lg:block fixed top-0 left-0 h-full z-40 transition-all duration-300 ease-in-out ${
+        className={`hidden lg:block fixed top-16 lg:top-20 left-0 h-[calc(100vh-4rem)] lg:h-[calc(100vh-5rem)] z-40 transition-all duration-300 ease-in-out ${
           isCollapsed ? 'w-16' : 'w-64'
         }`}
       >
@@ -192,7 +192,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onSignIn, onSignO
 
       {/* Mobile Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full w-64 z-50 lg:hidden transform transition-transform duration-300 ease-in-out ${
+        className={`fixed top-16 left-0 h-[calc(100vh-4rem)] w-64 z-50 lg:hidden transform transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
