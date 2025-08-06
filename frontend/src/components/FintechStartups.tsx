@@ -162,9 +162,9 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
                          startup.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCountry = !selectedCountry || startup.country === selectedCountry;
     const matchesSector = !selectedSector || startup.sector === selectedSector;
-    const matchesYear = !selectedYear || startup.foundedYear === selectedYear;
+    // Remove year filtering - show all startups independent of year selection
     
-    return matchesSearch && matchesCountry && matchesSector && matchesYear;
+    return matchesSearch && matchesCountry && matchesSector;
   });
 
   // Limit to 6 startups initially, show all if showAllStartups is true
@@ -181,7 +181,7 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
           <div className="min-w-0 flex-1">
             <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 truncate">Fintech Startups</h2>
             <p className="text-xs sm:text-sm text-gray-600 truncate">
-              {selectedYear ? `${filteredStartups.length} startups from ${selectedYear}` : `${filteredStartups.length} startups across Africa`}
+              {filteredStartups.length} startups across Africa
             </p>
           </div>
         </div>
