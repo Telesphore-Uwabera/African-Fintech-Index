@@ -34,7 +34,7 @@ const CountriesPage: React.FC<{ selectedYear: number; onYearChange: (year: numbe
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex flex-col">
       <main className="flex-1 py-6 sm:py-10 space-y-6 sm:space-y-10 w-full mt-20">
-        <div className="px-2 sm:px-4">
+        <div className="px-1">
           <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6">Countries</h1>
           <div className="flex flex-col sm:flex-row items-start sm:items-center mb-4 sm:mb-6 gap-2 sm:gap-4">
             <label className="font-medium text-base sm:text-lg">Year:</label>
@@ -49,24 +49,22 @@ const CountriesPage: React.FC<{ selectedYear: number; onYearChange: (year: numbe
             </select>
           </div>
         </div>
-        {/* Map Card */}
+        {/* Map - Full Width */}
         <div className="w-full max-w-full min-w-0 overflow-hidden">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 w-full max-w-full min-w-0 overflow-hidden">
-            <div className="w-full flex items-center justify-center" style={{ minHeight: 600 }}>
-              <AfricaMapComplete
-                data={currentData}
-                shapefilePath={getLocalShapefilePath()}
-                width={1600}
-                height={900}
-                hoveredCountry={hoveredCountry}
-                onCountryHover={setHoveredCountry}
-                selectedYear={selectedYear}
-              />
-            </div>
+          <div className="w-full flex items-center justify-center" style={{ minHeight: 600 }}>
+            <AfricaMapComplete
+              data={currentData}
+              shapefilePath={getLocalShapefilePath()}
+              width={1600}
+              height={900}
+              hoveredCountry={hoveredCountry}
+              onCountryHover={setHoveredCountry}
+              selectedYear={selectedYear}
+            />
           </div>
         </div>
         {/* Table Card */}
-        <div className="px-2 sm:px-4 w-full max-w-full min-w-0 overflow-hidden">
+        <div className="px-1 w-full max-w-full min-w-0 overflow-hidden">
           <CountryTable data={currentData} selectedYear={selectedYear} />
         </div>
       </main>

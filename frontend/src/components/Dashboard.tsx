@@ -243,7 +243,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange, avail
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-blue-300/10 to-purple-300/10 rounded-full blur-3xl"></div>
       </div>
       
-      <main className="flex-1 px-2 sm:px-6 lg:px-12 pt-4 pb-6 sm:pb-8 space-y-6 sm:space-y-8 lg:space-y-10 relative z-10 w-full max-w-full min-w-0 overflow-hidden">
+      <main className="flex-1 px-1 pt-4 pb-6 sm:pb-8 space-y-6 sm:space-y-8 lg:space-y-10 relative z-10 w-full max-w-full min-w-0 overflow-hidden">
           {/* Stats Overview */}
           <div className="w-full max-w-full min-w-0 overflow-hidden">
             <StatsCards stats={currentStats} />

@@ -145,39 +145,80 @@ const UserManagementPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex flex-col">
-      <main className="flex-1 px-2 sm:px-4 py-6 sm:py-10 space-y-6 sm:space-y-10 w-full mt-20">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 text-black">User Management</h1>
+      <main className="flex-1 px-1 py-6 sm:py-10 space-y-6 sm:space-y-10 w-full mt-20">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">User Management</h1>
+            <p className="text-gray-600 text-lg">Manage user accounts and permissions</p>
+          </div>
+        </div>
         {/* Unverified Users */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6 w-full">
-          <h3 className="text-lg font-semibold mb-4 text-black">Unverified Users</h3>
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-8 w-full">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-xl font-bold text-gray-900 mb-1">Unverified Users</h3>
+              <p className="text-gray-600 text-sm">Users pending verification</p>
+            </div>
+            <div className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">
+              {unverifiedUsers.length} pending
+            </div>
+          </div>
           {loadingUnverified ? (
-            <p>Loading...</p>
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <span className="ml-3 text-gray-600">Loading unverified users...</span>
+            </div>
           ) : unverifiedUsers.length === 0 ? (
-            <p>No unverified users.</p>
+            <div className="text-center py-8">
+              <div className="text-gray-400 text-6xl mb-4">✓</div>
+              <p className="text-gray-600 text-lg">All users are verified!</p>
+            </div>
           ) : (
-            <ul className="space-y-2">
+            <div className="space-y-3">
               {unverifiedUsers.map(user => (
-                <li key={user._id} className="flex items-center justify-between border-b pb-2">
-                  <span className="text-black">
-                    {user.email} ({user.role})
-                  </span>
+                <div key={user._id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                      <span className="text-blue-600 font-semibold text-sm">
+                        {user.email.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">{user.email}</p>
+                      <p className="text-sm text-gray-600 capitalize">{user.role}</p>
+                    </div>
+                  </div>
                   <button
-                    className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-sm"
                     onClick={() => handleVerifyUser(user._id)}
                   >
-                    Verify
+                    Verify User
                   </button>
-                </li>
+                </div>
               ))}
-            </ul>
+            </div>
           )}
         </div>
         {/* All Users */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6 w-full">
-          <h3 className="text-lg font-semibold mb-4 text-black">All Users</h3>
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-6 w-full">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-xl font-bold text-gray-900 mb-1">All Users</h3>
+              <p className="text-gray-600 text-sm">Manage existing users and register new ones</p>
+            </div>
+            <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+              {allUsers.length} total users
+            </div>
+          </div>
+          
           {/* Register New User Form */}
-          <div className="mb-6">
-            <h4 className="text-md font-semibold mb-2">Register New User</h4>
+          <div className="mb-8">
+            <div className="flex items-center mb-4">
+              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                <span className="text-blue-600 font-bold text-sm">+</span>
+              </div>
+              <h4 className="text-lg font-semibold text-gray-900">Register New User</h4>
+            </div>
             <form
               className="space-y-4"
               onSubmit={async (e) => {
@@ -243,231 +284,314 @@ const UserManagementPage: React.FC = () => {
               }}
             >
               {/* Name fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
                     First Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={registerForm.firstName}
                     onChange={(e) => setRegisterForm({ ...registerForm, firstName: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="First name"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    placeholder="Enter first name"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Last Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={registerForm.lastName}
                     onChange={(e) => setRegisterForm({ ...registerForm, lastName: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Last name"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    placeholder="Enter last name"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Email Address <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    value={registerForm.email}
+                    onChange={(e) => setRegisterForm({ ...registerForm, email: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    placeholder="Enter email address"
                     required
                   />
                 </div>
               </div>
 
-              {/* Email */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email Address <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="email"
-                  value={registerForm.email}
-                  onChange={(e) => setRegisterForm({ ...registerForm, email: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter email address"
-                  required
-                />
-              </div>
 
-              {/* Country */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Country <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
+
+              {/* Country and Organization */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Country <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={countrySearch}
+                      onChange={e => {
+                        setCountrySearch(e.target.value);
+                        setRegisterForm({ ...registerForm, country: '' });
+                        setCountryDropdownOpen(true);
+                      }}
+                      onFocus={() => setCountryDropdownOpen(true)}
+                      onBlur={() => setTimeout(() => setCountryDropdownOpen(false), 100)}
+                      placeholder="Search for a country..."
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                      autoComplete="off"
+                      required
+                    />
+                    {countryDropdownOpen && filteredCountries.length > 0 && (
+                      <ul className="absolute left-0 right-0 mt-1 max-h-48 overflow-auto bg-white border border-gray-300 rounded-lg shadow-lg z-20">
+                        {filteredCountries.map(country => (
+                          <li
+                            key={country}
+                            className="px-4 py-3 cursor-pointer hover:bg-blue-50 transition-colors"
+                            onMouseDown={() => {
+                              setCountrySearch(country);
+                              setRegisterForm({ ...registerForm, country });
+                              setCountryDropdownOpen(false);
+                            }}
+                          >
+                            {country}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Organization
+                  </label>
                   <input
                     type="text"
-                    value={countrySearch}
-                    onChange={e => {
-                      setCountrySearch(e.target.value);
-                      setRegisterForm({ ...registerForm, country: '' });
-                      setCountryDropdownOpen(true);
-                    }}
-                    onFocus={() => setCountryDropdownOpen(true)}
-                    onBlur={() => setTimeout(() => setCountryDropdownOpen(false), 100)}
-                    placeholder="Search country..."
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    autoComplete="off"
-                    required
+                    value={registerForm.organization}
+                    onChange={(e) => setRegisterForm({ ...registerForm, organization: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    placeholder="Company or organization"
                   />
-                  {countryDropdownOpen && filteredCountries.length > 0 && (
-                    <ul className="absolute left-0 right-0 mt-1 max-h-48 overflow-auto bg-white border border-gray-300 rounded-lg shadow-lg z-20">
-                      {filteredCountries.map(country => (
-                        <li
-                          key={country}
-                          className="px-4 py-2 cursor-pointer hover:bg-blue-100"
-                          onMouseDown={() => {
-                            setCountrySearch(country);
-                            setRegisterForm({ ...registerForm, country });
-                            setCountryDropdownOpen(false);
-                          }}
-                        >
-                          {country}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
                 </div>
-              </div>
-
-              {/* Organization */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Organization
-                </label>
-                <input
-                  type="text"
-                  value={registerForm.organization}
-                  onChange={(e) => setRegisterForm({ ...registerForm, organization: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Company or organization"
-                />
               </div>
 
               {/* Job Title and Phone Number */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Job Title
                   </label>
                   <input
                     type="text"
                     value={registerForm.jobTitle}
                     onChange={(e) => setRegisterForm({ ...registerForm, jobTitle: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                     placeholder="Your role"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Phone Number
                   </label>
                   <input
                     type="tel"
                     value={registerForm.phoneNumber}
                     onChange={(e) => setRegisterForm({ ...registerForm, phoneNumber: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                     placeholder="+1234567890"
                   />
                 </div>
               </div>
 
-              {/* Password fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Password fields and Role */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Password <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="password"
                     value={registerForm.password}
                     onChange={(e) => setRegisterForm({ ...registerForm, password: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                     placeholder="Enter password"
                     required
                     minLength={6}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Confirm Password <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="password"
                     value={registerForm.confirmPassword}
                     onChange={(e) => setRegisterForm({ ...registerForm, confirmPassword: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                     placeholder="Confirm password"
                     required
                     minLength={6}
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Role <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={registerForm.role}
+                    onChange={(e) => setRegisterForm({ ...registerForm, role: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    required
+                  >
+                    <option value="viewer">Viewer</option>
+                    <option value="editor">Editor</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
               </div>
 
-              {/* Role */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Role <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={registerForm.role}
-                  onChange={(e) => setRegisterForm({ ...registerForm, role: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                >
-                  <option value="viewer">Viewer</option>
-                  <option value="editor">Editor</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </div>
-
-              <button type="submit" className="w-full bg-blue-600 text-white rounded px-4 py-2 hover:bg-blue-700 transition">
+              <button type="submit" className="bg-blue-600 text-white rounded-lg px-8 py-3 hover:bg-blue-700 transition-colors font-semibold text-base shadow-sm">
                 Register User
               </button>
             </form>
           </div>
           {loadingUsers ? (
-            <p>Loading...</p>
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <span className="ml-3 text-gray-600">Loading users...</span>
+            </div>
           ) : allUsers.length === 0 ? (
-            <p>No users found.</p>
+            <div className="text-center py-8">
+              <div className="text-gray-400 text-6xl mb-4">👥</div>
+              <p className="text-gray-600 text-lg">No users found</p>
+            </div>
           ) : (
-            <ul className="space-y-2">
+            <div className="space-y-4">
               {notification && (
-                <div className={`mb-4 p-3 rounded ${notification.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{notification.message}</div>
+                <div className={`p-4 rounded-lg border ${
+                  notification.type === 'success' 
+                    ? 'bg-green-50 text-green-800 border-green-200' 
+                    : 'bg-red-50 text-red-800 border-red-200'
+                }`}>
+                  <div className="flex items-center">
+                    <span className="text-lg mr-2">
+                      {notification.type === 'success' ? '✓' : '✕'}
+                    </span>
+                    {notification.message}
+                  </div>
+                </div>
               )}
-              <div className="mb-4">
+              
+              <div className="relative">
                 <input
-                  className="w-full border border-gray-300 rounded px-3 py-2"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Search users by email or name..."
                   value={userSearch}
                   onChange={e => setUserSearch(e.target.value)}
                 />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span className="text-gray-400">🔍</span>
+                </div>
               </div>
-              {allUsers.filter(user =>
-                user.email.toLowerCase().includes(userSearch.toLowerCase()) ||
-                (user.name && user.name.toLowerCase().includes(userSearch.toLowerCase()))
-              ).map(user => (
-                <li key={user._id} className="flex items-center justify-between border-b pb-2">
-                  <span className={user.isVerified ? 'text-black' : 'text-gray-500'}>
-                    {user.email} ({user.role}) {user.isVerified ? <span className="text-green-600">✔️</span> : <span className="text-red-600">❌</span>}
-                  </span>
-                  <div className="flex gap-2">
-                    <button
-                      className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
-                      onClick={() => handleEditUser(user)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
-                      onClick={() => handleDeleteUser(user._id)}
-                    >
-                      Delete
-                    </button>
+              
+              <div className="space-y-3">
+                {allUsers.filter(user =>
+                  user.email.toLowerCase().includes(userSearch.toLowerCase()) ||
+                  (user.name && user.name.toLowerCase().includes(userSearch.toLowerCase()))
+                ).map(user => (
+                  <div key={user._id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                        user.isVerified ? 'bg-green-100' : 'bg-red-100'
+                      }`}>
+                        <span className={`font-semibold text-sm ${
+                          user.isVerified ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          {user.email.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">{user.email}</p>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm text-gray-600 capitalize">{user.role}</span>
+                          {user.isVerified ? (
+                            <span className="text-green-600 text-sm">✓ Verified</span>
+                          ) : (
+                            <span className="text-red-600 text-sm">✕ Unverified</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+                        onClick={() => handleEditUser(user)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium text-sm"
+                        onClick={() => handleDeleteUser(user._id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
-                </li>
-              ))}
-            </ul>
+                ))}
+              </div>
+            </div>
           )}
-          {/* Edit Modal ... unchanged ... */}
+          
+          {/* Edit Modal */}
+          {editingUser && (
+            <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg p-6 w-96">
+                <h4 className="text-lg font-semibold mb-4">Edit User</h4>
+                <label className="block mb-2">Name
+                  <input
+                    className="w-full border border-gray-300 rounded px-2 py-1"
+                    name="name"
+                    value={editForm.name}
+                    onChange={handleEditFormChange}
+                  />
+                </label>
+                <label className="block mb-2">Role
+                  <select
+                    className="w-full border border-gray-300 rounded px-2 py-1"
+                    name="role"
+                    value={editForm.role}
+                    onChange={handleEditFormChange}
+                  >
+                    <option value="viewer">Viewer</option>
+                    <option value="editor">Editor</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </label>
+                <label className="block mb-4">Verified
+                  <input
+                    type="checkbox"
+                    name="isVerified"
+                    checked={!!editForm.isVerified}
+                    onChange={handleEditFormCheckbox}
+                    className="ml-2"
+                  />
+                </label>
+                <div className="flex gap-2 justify-end">
+                  <button className="px-3 py-1 bg-gray-300 rounded" onClick={() => setEditingUser(null)}>Cancel</button>
+                  <button className="px-3 py-1 bg-green-600 text-white rounded" onClick={handleSaveEdit}>Save</button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </div>

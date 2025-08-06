@@ -223,7 +223,7 @@ export const AfricaMapComplete: React.FC<AfricaMapProps> = ({
   }
 
   return (
-    <div className="w-full h-full relative bg-white rounded-lg overflow-hidden">
+    <div className="w-full h-full relative overflow-hidden">
       {geoData && (
         <div className="w-full h-full relative">
           <svg
