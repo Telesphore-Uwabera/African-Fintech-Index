@@ -356,7 +356,7 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
       {/* Chart and Country List Container */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 w-full min-w-0 overflow-hidden">
         {/* Chart Container */}
-        <div className="lg:col-span-3 h-80 sm:h-96 md:h-[500px] lg:h-[600px] xl:h-[700px] 2xl:h-[800px] w-full min-w-0 overflow-hidden">
+        <div className={`${chartType === 'trend' ? 'lg:col-span-4' : 'lg:col-span-3'} h-80 sm:h-96 md:h-[500px] lg:h-[600px] xl:h-[700px] 2xl:h-[800px] w-full min-w-0 overflow-hidden`}>
         {chartType === 'trend' && (
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={trendData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
@@ -474,15 +474,17 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
         )}
       </div>
       
-      {/* Country List - Takes up 1/4 of the space */}
-      <div className="lg:col-span-1">
-        <CountryList
-          data={data}
-          selectedYear={selectedYear}
-          selectedCountry={externalSelectedCountry}
-          onCountrySelect={onCountrySelect}
-        />
-      </div>
+      {/* Country List - Takes up 1/4 of the space (hidden for trend view) */}
+      {chartType !== 'trend' && (
+        <div className="lg:col-span-1">
+          <CountryList
+            data={data}
+            selectedYear={selectedYear}
+            selectedCountry={externalSelectedCountry}
+            onCountrySelect={onCountrySelect}
+          />
+        </div>
+      )}
     </div>
 
     {/* Custom Floating Tooltip */}
