@@ -1,6 +1,6 @@
 [build]
   base = "frontend"
-  command = "rm -rf node_modules package-lock.json && npm cache clean --force && npm install --legacy-peer-deps --no-optional && npm run build"
+  command = "rm -rf node_modules package-lock.json && npm cache clean --force && npm install --legacy-peer-deps && npm run build"
   publish = "dist"
 
 [build.environment]
