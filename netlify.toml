@@ -1,7 +1,7 @@
 [build]
   base = "frontend"
-  command = "npm install --legacy-peer-deps --workspaces=false && npm run build"
-  publish = "dist"
+  command = "cp -r . /tmp/frontend && cd /tmp/frontend && npm install --legacy-peer-deps && npm run build"
+  publish = "/tmp/frontend/dist"
 
 [build.environment]
   NODE_VERSION = "20"
