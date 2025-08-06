@@ -10,6 +10,7 @@ const UserManagementPage: React.FC = () => {
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [editingUser, setEditingUser] = useState<any | null>(null);
   const [editForm, setEditForm] = useState({ name: '', role: 'viewer', isVerified: false });
+  const [viewingUser, setViewingUser] = useState<any | null>(null);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [userSearch, setUserSearch] = useState('');
   const [registerForm, setRegisterForm] = useState({
@@ -89,6 +90,10 @@ const UserManagementPage: React.FC = () => {
   const handleEditUser = (user: any) => {
     setEditingUser(user);
     setEditForm({ name: user.name, role: user.role, isVerified: user.isVerified });
+  };
+
+  const handleViewProfile = (user: any) => {
+    setViewingUser(user);
   };
 
   const handleEditFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -533,6 +538,13 @@ const UserManagementPage: React.FC = () => {
                     </div>
                     <div className="flex gap-2">
                       <button
+                        className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-sm"
+                        onClick={() => handleViewProfile(user)}
+                        title="View Profile"
+                      >
+                        View
+                      </button>
+                      <button
                         className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
                         onClick={() => handleEditUser(user)}
                       >
@@ -588,6 +600,112 @@ const UserManagementPage: React.FC = () => {
                 <div className="flex gap-2 justify-end">
                   <button className="px-3 py-1 bg-gray-300 rounded" onClick={() => setEditingUser(null)}>Cancel</button>
                   <button className="px-3 py-1 bg-green-600 text-white rounded" onClick={handleSaveEdit}>Save</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* View Profile Modal */}
+          {viewingUser && (
+            <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg p-6 w-96 max-h-[90vh] overflow-y-auto">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-lg font-semibold">User Profile</h4>
+                  <button 
+                    onClick={() => setViewingUser(null)}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    ✕
+                  </button>
+                </div>
+                
+                <div className="space-y-4">
+                  {/* Profile Header */}
+                  <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                    <div className={`w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-bold ${
+                      viewingUser.isVerified ? 'bg-green-500' : 'bg-red-500'
+                    }`}>
+                      {viewingUser.email.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <h5 className="text-lg font-semibold text-gray-900">{viewingUser.name || 'N/A'}</h5>
+                      <p className="text-gray-600">{viewingUser.email}</p>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          viewingUser.role === 'admin' ? 'bg-purple-100 text-purple-800' :
+                          viewingUser.role === 'editor' ? 'bg-blue-100 text-blue-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {viewingUser.role}
+                        </span>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          viewingUser.isVerified ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}>
+                          {viewingUser.isVerified ? 'Verified' : 'Unverified'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* User Details */}
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500 mb-1">Country</label>
+                        <p className="text-sm text-gray-900">{viewingUser.country || 'Not specified'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500 mb-1">Organization</label>
+                        <p className="text-sm text-gray-900">{viewingUser.organization || 'Not specified'}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500 mb-1">Job Title</label>
+                        <p className="text-sm text-gray-900">{viewingUser.jobTitle || 'Not specified'}</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500 mb-1">Phone Number</label>
+                        <p className="text-sm text-gray-900">{viewingUser.phoneNumber || 'Not specified'}</p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-500 mb-1">Registration Date</label>
+                      <p className="text-sm text-gray-900">
+                        {viewingUser.createdAt ? new Date(viewingUser.createdAt).toLocaleDateString() : 'Unknown'}
+                      </p>
+                    </div>
+
+                    {viewingUser.lastLogin && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-500 mb-1">Last Login</label>
+                        <p className="text-sm text-gray-900">
+                          {new Date(viewingUser.lastLogin).toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-2 pt-4 border-t border-gray-200">
+                    <button
+                      className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+                      onClick={() => {
+                        setViewingUser(null);
+                        handleEditUser(viewingUser);
+                      }}
+                    >
+                      Edit User
+                    </button>
+                    <button
+                      className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors font-medium text-sm"
+                      onClick={() => setViewingUser(null)}
+                    >
+                      Close
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
