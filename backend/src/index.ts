@@ -77,6 +77,8 @@ app.use('/api/startups', startupsRoutes);
 app.use('/api/country-data', countryDataRoutes);
 
 console.log('🔗 Attempting to connect to MongoDB...');
+console.log('🔍 MongoDB URI length:', process.env.MONGO_URI?.length || 0);
+console.log('🔍 MongoDB URI starts with:', process.env.MONGO_URI?.substring(0, 20) || 'NOT_SET');
 
 mongoose.connect(process.env.MONGO_URI || '', {
   useNewUrlParser: true,
