@@ -363,21 +363,35 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
       {chartType === 'trend' && showCountrySelector && (
         <div className="mb-3 sm:mb-4 md:mb-6 p-2 sm:p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200">
           <div className="flex flex-col space-y-1 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between mb-2 sm:mb-3">
-            <h4 className="text-xs sm:text-sm font-medium text-gray-900">Select Countries to Display</h4>
+            <h4 className="text-xs sm:text-sm font-medium text-gray-900">
+              {selectedCountry ? `Selected: ${allCountries.find(c => c.id === selectedCountry)?.name}` : 'Select Countries to Display'}
+            </h4>
             <div className="flex items-center space-x-1 sm:space-x-2">
               <span className="text-xs text-gray-500">
                 Showing {startYear}-{endYear}
               </span>
-              <button
-                onClick={toggleAllCountries}
-                className="px-1.5 sm:px-2 md:px-3 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
-              >
-                {visibleCountries.size === allCountries.length ? 'Hide All' : 'Show All'}
-              </button>
+              {selectedCountry ? (
+                <button
+                  onClick={() => {
+                    setSelectedCountry(null);
+                    setVisibleCountries(new Set(allCountries.map(c => c.id)));
+                  }}
+                  className="px-1.5 sm:px-2 md:px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                >
+                  Show All Countries
+                </button>
+              ) : (
+                <button
+                  onClick={toggleAllCountries}
+                  className="px-1.5 sm:px-2 md:px-3 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+                >
+                  {visibleCountries.size === allCountries.length ? 'Hide All' : 'Show All'}
+                </button>
+              )}
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1 sm:gap-2">
-            {allCountries.map((country) => (
+            {(selectedCountry ? allCountries.filter(c => c.id === selectedCountry) : allCountries).map((country) => (
               <label
                 key={country.id}
                 className="flex items-center space-x-1 sm:space-x-2 p-1 sm:p-1.5 md:p-2 rounded-lg cursor-pointer hover:bg-white transition-colors"
@@ -407,7 +421,15 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
             ))}
           </div>
           <p className="text-xs text-gray-500 mt-2 sm:mt-3">
-            Showing {visibleCountries.size} of {allCountries.length} countries • 
+            {selectedCountry ? (
+              <>
+                <span className="font-medium text-green-700">Focusing on {allCountries.find(c => c.id === selectedCountry)?.name}</span> • 
+              </>
+            ) : (
+              <>
+                Showing {visibleCountries.size} of {allCountries.length} countries • 
+              </>
+            )}
             Trend shows {totalYearsShown} year{totalYearsShown > 1 ? 's' : ''} from {startYear} to {endYear} • 
             Country names and scores displayed at line endpoints
           </p>
