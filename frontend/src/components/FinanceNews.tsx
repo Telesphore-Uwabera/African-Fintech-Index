@@ -22,162 +22,25 @@ export const FinanceNews: React.FC = () => {
       setLoading(true);
       setError('');
       
-      // Try multiple news sources for better coverage
-      const sources = [
-        // Primary API with your key
-        `https://newsapi.org/v2/everything?q=fintech+africa+OR+financial+technology+africa&sortBy=publishedAt&pageSize=6&apiKey=07aa92b29bb24f65a26a7b4616056889`,
-        // Backup sources
-        `https://newsapi.org/v2/everything?q=mobile+money+africa+OR+digital+banking+africa&sortBy=publishedAt&pageSize=6&apiKey=07aa92b29bb24f65a26a7b4616056889`,
-        `https://newsapi.org/v2/everything?q=cryptocurrency+africa+OR+blockchain+africa&sortBy=publishedAt&pageSize=6&apiKey=07aa92b29bb24f65a26a7b4616056889`
-      ];
-
-      let articles: NewsArticle[] = [];
+      // Use backend API to avoid CORS issues
+      const apiUrl = import.meta.env.VITE_API_URL || '/api';
+      const response = await fetch(`${apiUrl}/news`);
       
-      for (const source of sources) {
-        try {
-          const response = await fetch(source);
-          if (response.ok) {
-            const data = await response.json();
-            if (data.articles && data.articles.length > 0) {
-              articles = [...articles, ...data.articles];
-              break; // Use first successful source
-            }
-          }
-        } catch (sourceError) {
-          console.warn('Failed to fetch from source:', sourceError);
-          continue;
+      if (response.ok) {
+        const data = await response.json();
+        if (data.articles && data.articles.length > 0) {
+          setNews(data.articles);
+          setLastUpdated(new Date());
+          setError('');
+        } else {
+          throw new Error('No articles found');
         }
+      } else {
+        throw new Error('Failed to fetch news');
       }
-
-      // If no articles found from API, use fallback data instead of throwing error
-      if (articles.length === 0) {
-        console.warn('No articles found from API sources, using fallback data');
-        setError('Using cached news data');
-        
-        // Use enhanced mock data with more realistic content
-        setNews([
-          {
-            title: "Nigeria's Fintech Sector Attracts $800M in Q4 2024 Investment",
-            description: "Nigerian fintech companies secured record funding as international investors show increased confidence in Africa's largest economy's digital financial services sector.",
-            url: "#",
-            urlToImage: "https://images.pexels.com/photos/3483098/pexels-photo-3483098.jpeg",
-            publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-            source: { name: "African Business" }
-          },
-          {
-            title: "Kenya's M-Pesa Expands Cross-Border Payments to 15 African Countries",
-            description: "Safaricom's mobile money service M-Pesa announces major expansion of cross-border payment services, enabling seamless money transfers across East and West Africa.",
-            url: "#",
-            urlToImage: "https://images.pexels.com/photos/4386321/pexels-photo-4386321.jpeg",
-            publishedAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
-            source: { name: "TechCrunch Africa" }
-          },
-          {
-            title: "South African Digital Banks Report 300% Growth in User Base",
-            description: "Digital-only banks in South Africa experience unprecedented growth as consumers increasingly adopt mobile-first banking solutions amid economic digitization.",
-            url: "#",
-            urlToImage: "https://images.pexels.com/photos/3483098/pexels-photo-3483098.jpeg",
-            publishedAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6 hours ago
-            source: { name: "Banking Review Africa" }
-          },
-          {
-            title: "Egyptian Fintech Startup Raises $50M Series B for MENA Expansion",
-            description: "Cairo-based payment processor secures significant funding round to accelerate expansion across Middle East and North Africa region, targeting underbanked populations.",
-            url: "#",
-            urlToImage: "https://images.pexels.com/photos/4386321/pexels-photo-4386321.jpeg",
-            publishedAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(), // 8 hours ago
-            source: { name: "Startup Scene ME" }
-          },
-          {
-            title: "Ghana Central Bank Launches Digital Currency Pilot Program",
-            description: "Bank of Ghana initiates comprehensive pilot testing of digital cedi (e-Cedi) with select financial institutions and merchants across major cities.",
-            url: "#",
-            urlToImage: "https://images.pexels.com/photos/3483098/pexels-photo-3483098.jpeg",
-            publishedAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(), // 12 hours ago
-            source: { name: "Ghana Business News" }
-          },
-          {
-            title: "African Fintech Partnerships Drive Financial Inclusion to 78%",
-            description: "Strategic partnerships between traditional banks and fintech startups across Africa result in significant improvement in financial inclusion rates continent-wide.",
-            url: "#",
-            urlToImage: "https://images.pexels.com/photos/4386321/pexels-photo-4386321.jpeg",
-            publishedAt: new Date(Date.now() - 18 * 60 * 60 * 1000).toISOString(), // 18 hours ago
-            source: { name: "Financial Inclusion Insights" }
-          }
-        ]);
-        setLastUpdated(new Date());
-        return; // Exit early with fallback data
-      }
-
-      // Remove duplicates and filter out articles without images
-      const uniqueArticles = articles
-        .filter((article, index, self) => 
-          index === self.findIndex(a => a.title === article.title) &&
-          article.urlToImage &&
-          article.description &&
-          article.title !== '[Removed]'
-        )
-        .slice(0, 6);
-
-      setNews(uniqueArticles);
-      setLastUpdated(new Date());
-      
-    } catch (err) {
-      console.error('Error fetching news:', err);
-      setError('Unable to load latest news');
-      
-      // Fallback to enhanced mock data with more realistic content
-      setNews([
-        {
-          title: "Nigeria's Fintech Sector Attracts $800M in Q4 2024 Investment",
-          description: "Nigerian fintech companies secured record funding as international investors show increased confidence in Africa's largest economy's digital financial services sector.",
-          url: "#",
-          urlToImage: "https://images.pexels.com/photos/3483098/pexels-photo-3483098.jpeg",
-          publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-          source: { name: "African Business" }
-        },
-        {
-          title: "Kenya's M-Pesa Expands Cross-Border Payments to 15 African Countries",
-          description: "Safaricom's mobile money service M-Pesa announces major expansion of cross-border payment services, enabling seamless money transfers across East and West Africa.",
-          url: "#",
-          urlToImage: "https://images.pexels.com/photos/4386321/pexels-photo-4386321.jpeg",
-          publishedAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
-          source: { name: "TechCrunch Africa" }
-        },
-        {
-          title: "South African Digital Banks Report 300% Growth in User Base",
-          description: "Digital-only banks in South Africa experience unprecedented growth as consumers increasingly adopt mobile-first banking solutions amid economic digitization.",
-          url: "#",
-          urlToImage: "https://images.pexels.com/photos/3483098/pexels-photo-3483098.jpeg",
-          publishedAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6 hours ago
-          source: { name: "Banking Review Africa" }
-        },
-        {
-          title: "Egyptian Fintech Startup Raises $50M Series B for MENA Expansion",
-          description: "Cairo-based payment processor secures significant funding round to accelerate expansion across Middle East and North Africa region, targeting underbanked populations.",
-          url: "#",
-          urlToImage: "https://images.pexels.com/photos/4386321/pexels-photo-4386321.jpeg",
-          publishedAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(), // 8 hours ago
-          source: { name: "Startup Scene ME" }
-        },
-        {
-          title: "Ghana Central Bank Launches Digital Currency Pilot Program",
-          description: "Bank of Ghana initiates comprehensive pilot testing of digital cedi (e-Cedi) with select financial institutions and merchants across major cities.",
-          url: "#",
-          urlToImage: "https://images.pexels.com/photos/3483098/pexels-photo-3483098.jpeg",
-          publishedAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(), // 12 hours ago
-          source: { name: "Ghana Business News" }
-        },
-        {
-          title: "African Fintech Partnerships Drive Financial Inclusion to 78%",
-          description: "Strategic partnerships between traditional banks and fintech startups across Africa result in significant improvement in financial inclusion rates continent-wide.",
-          url: "#",
-          urlToImage: "https://images.pexels.com/photos/4386321/pexels-photo-4386321.jpeg",
-          publishedAt: new Date(Date.now() - 18 * 60 * 60 * 1000).toISOString(), // 18 hours ago
-          source: { name: "Financial Inclusion Insights" }
-        }
-      ]);
-      setLastUpdated(new Date());
+    } catch (error) {
+      console.error('Error fetching news:', error);
+      setError('Failed to fetch news');
     } finally {
       setLoading(false);
     }

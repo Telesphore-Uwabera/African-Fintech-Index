@@ -6,6 +6,7 @@ import authRoutes from './routes/auth';
 import usersRoutes from './routes/users';
 import startupsRoutes from './routes/startups';
 import countryDataRoutes from './routes/countryData';
+import newsRoutes from './routes/news';
 
 // Load environment variables first
 dotenv.config();
@@ -75,6 +76,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/startups', startupsRoutes);
 app.use('/api/country-data', countryDataRoutes);
+app.use('/api/news', newsRoutes);
 
 console.log('🔗 Attempting to connect to MongoDB...');
 console.log('🔍 MongoDB URI length:', process.env.MONGO_URI?.length || 0);
