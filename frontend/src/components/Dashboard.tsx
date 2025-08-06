@@ -291,6 +291,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange, avail
                       shapefilePath={getLocalShapefilePath()}
                       hoveredCountry={hoveredCountry}
                       onCountryHover={setHoveredCountry}
+                      selectedYear={selectedYear}
                     />
                   </div>
                 </div>

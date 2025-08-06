@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import { TrendingUp, BarChart3, PieChart as PieChartIcon, Activity, ChevronDown, Settings, Calendar, RotateCcw } from 'lucide-react';
 import type { CountryData } from '../types';
@@ -18,12 +18,52 @@ const COUNTRY_COLORS = [
 
 export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYearsData, selectedYear, onCountrySelect, selectedCountry: externalSelectedCountry }) => {
   const [chartType, setChartType] = useState<'trend' | 'comparison' | 'distribution'>('trend');
-  const [visibleCountries, setVisibleCountries] = useState<Set<string>>(new Set());
-  const [showCountrySelector, setShowCountrySelector] = useState(false);
+
+
   const [yearRange, setYearRange] = useState<'custom' | number>('custom');
   const [customStartYear, setCustomStartYear] = useState<number>(2020);
   const [customEndYear, setCustomEndYear] = useState<number>(selectedYear);
-  const [selectedCountry, setSelectedCountry] = useState<string | null>(externalSelectedCountry || null);
+  const [hoveredCountryId, setHoveredCountryId] = useState<string | null>(null);
+  const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null);
+  const [startupCounts, setStartupCounts] = useState<Map<string, number>>(new Map());
+
+  // Global mouse position tracker
+  useEffect(() => {
+    const handleMouseMove = (event: MouseEvent) => {
+      if (hoveredCountryId) {
+        setMousePosition({ x: event.clientX, y: event.clientY });
+      }
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    return () => document.removeEventListener('mousemove', handleMouseMove);
+  }, [hoveredCountryId]);
+
+  // Fetch startup counts by country and year
+  const fetchStartupCounts = useCallback(async () => {
+    if (!selectedYear) return;
+    
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || '/api';
+      const response = await fetch(`${apiUrl}/startups/counts?year=${selectedYear}`);
+      if (response.ok) {
+        const counts = await response.json();
+        const countsMap = new Map();
+        counts.forEach((item: { country: string; count: number }) => {
+          countsMap.set(item.country, item.count);
+        });
+        setStartupCounts(countsMap);
+        console.log('Startup counts fetched:', countsMap);
+      }
+    } catch (error) {
+      console.error('Error fetching startup counts:', error);
+    }
+  }, [selectedYear]);
+
+  useEffect(() => {
+    fetchStartupCounts();
+  }, [fetchStartupCounts]);
+
 
   // Get all available years from the data
   const availableYears = React.useMemo(() => {
@@ -57,10 +97,7 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
     return Array.from(countryMap.values());
   }, [allYearsData]);
 
-  // Initialize with all countries visible
-  useEffect(() => {
-    setVisibleCountries(new Set(allCountries.map(c => c.id)));
-  }, [allCountries]);
+
 
   // Calculate the year range to display based on selection
   const getYearRange = () => {
@@ -77,27 +114,27 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
   const trendData = React.useMemo(() => {
     const { startYear, endYear } = getYearRange();
     
-    const yearlyData = allYearsData
-      .filter(country => country.year >= startYear && country.year <= endYear)
-      .reduce((acc, country) => {
-        // Only include data points with non-zero scores
-        if (country.finalScore > 0) {
-          if (!acc[country.year]) {
-            acc[country.year] = {
-              year: country.year,
-              countries: {}
-            };
-          }
-          acc[country.year].countries[country.id] = country.finalScore;
+    // Create a map of all years in the range
+    const years = [];
+    for (let year = startYear; year <= endYear; year++) {
+      years.push(year);
+    }
+    
+    // For each year, create an object with year and all country scores
+    return years.map(year => {
+      const yearData: any = { year };
+      
+      // Add data for each country for this year
+      allCountries.forEach(country => {
+        const countryData = allYearsData.find(c => c.id === country.id && c.year === year);
+        if (countryData && countryData.finalScore > 0) {
+          yearData[country.id] = countryData.finalScore;
         }
-        return acc;
-      }, {} as any);
-
-    return Object.values(yearlyData).map((yearData: any) => ({
-      year: yearData.year,
-      ...yearData.countries
-    })).sort((a, b) => a.year - b.year);
-  }, [allYearsData, selectedYear, yearRange, customStartYear, customEndYear]);
+      });
+      
+      return yearData;
+    });
+  }, [allYearsData, selectedYear, yearRange, customStartYear, customEndYear, allCountries]);
 
   // Prepare comparison data for selected year, filtering out zero scores
   const comparisonData = data
@@ -127,6 +164,12 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
     { id: 'distribution', label: 'Score Distribution', icon: PieChartIcon }
   ];
 
+  const resetToAllYears = () => {
+    setYearRange('custom');
+    setCustomStartYear(minYear);
+    setCustomEndYear(maxYear);
+  };
+
   const yearRangeOptions = [
     { value: 2, label: '2 years' },
     { value: 3, label: '3 years' },
@@ -135,62 +178,26 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
     { value: 'custom', label: 'Custom Range' }
   ];
 
-  const toggleCountryVisibility = (countryId: string) => {
-    const newVisible = new Set(visibleCountries);
-    if (newVisible.has(countryId)) {
-      newVisible.delete(countryId);
-    } else {
-      newVisible.add(countryId);
-    }
-    setVisibleCountries(newVisible);
-  };
 
-  const toggleAllCountries = () => {
-    if (visibleCountries.size === allCountries.length) {
-      setVisibleCountries(new Set());
-    } else {
-      setVisibleCountries(new Set(allCountries.map(c => c.id)));
-    }
-  };
 
-  const resetToAllYears = () => {
-    setYearRange('custom');
-    setCustomStartYear(minYear);
-    setCustomEndYear(maxYear);
-  };
 
-  // Handle country line click
-  const handleCountryClick = (countryId: string) => {
-    if (selectedCountry === countryId) {
-      // If clicking the same country, show all countries
-      const newSelectedCountry = null;
-      setSelectedCountry(newSelectedCountry);
-      setVisibleCountries(new Set(allCountries.map(c => c.id)));
-      onCountrySelect?.(newSelectedCountry);
-    } else {
-      // Show only the clicked country
-      setSelectedCountry(countryId);
-      setVisibleCountries(new Set([countryId]));
-      onCountrySelect?.(countryId);
-    }
-  };
+
+
 
   // Custom dot component to add country labels at line ends
   const CustomDot = (props: any) => {
     const { cx, cy, payload, dataKey } = props;
     const country = allCountries.find(c => c.id === dataKey);
     
-    if (!country || !visibleCountries.has(country.id) || !payload) return null;
+    if (!country || !payload) return null;
     
     // Check if this is the last data point for this country
     const isLastPoint = trendData.findIndex(d => d.year === payload.year) === trendData.length - 1;
     
     if (!isLastPoint) return null;
     
-    // Show full country name if only one country is selected, otherwise show abbreviated name
-    const displayText = selectedCountry === country.id 
-      ? `${country.name} (${payload[dataKey]?.toFixed(0)})`
-      : `${country.name.substring(0, 2).toUpperCase()} (${payload[dataKey]?.toFixed(0)})`;
+    // Show abbreviated country name and score
+    const displayText = `${country.name.substring(0, 2).toUpperCase()} (${payload[dataKey]?.toFixed(0)})`;
     
     return (
       <g>
@@ -199,7 +206,7 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
           x={cx + 5}
           y={cy}
           fill={country.color}
-          fontSize={selectedCountry === country.id ? "12" : "10"}
+          fontSize="10"
           fontWeight="600"
           textAnchor="start"
           dominantBaseline="middle"
@@ -212,6 +219,12 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
 
   const { startYear, endYear } = getYearRange();
   const totalYearsShown = endYear - startYear + 1;
+  
+  // Debug logging
+  console.log('InteractiveChart render - allCountries:', allCountries.map(c => ({ id: c.id, name: c.name })));
+  console.log('InteractiveChart render - trendData sample:', trendData.slice(0, 2));
+  console.log('InteractiveChart render - allCountries length:', allCountries.length);
+  console.log('InteractiveChart render - trendData length:', trendData.length);
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-2 sm:p-3 md:p-4 lg:p-4 w-full min-w-0 overflow-hidden">
@@ -288,34 +301,7 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
                 <span className="text-xs">({minYear}-{maxYear})</span>
               </button>
 
-              <button
-                onClick={() => setShowCountrySelector(!showCountrySelector)}
-                className="flex items-center space-x-1 sm:space-x-2 px-1.5 sm:px-2 md:px-3 py-1 sm:py-1.5 md:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors text-gray-600 hover:bg-gray-100"
-              >
-                <Settings className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span>Countries</span>
-                <ChevronDown className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform ${showCountrySelector ? 'rotate-180' : ''}`} />
-              </button>
 
-              {/* Selected Country Indicator */}
-              {selectedCountry && (
-                <div className="flex items-center space-x-1 sm:space-x-2 px-1.5 sm:px-2 md:px-3 py-1 sm:py-1.5 md:py-2 bg-purple-50 text-purple-700 rounded-lg border border-purple-200">
-                  <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full" style={{ backgroundColor: allCountries.find(c => c.id === selectedCountry)?.color }}></div>
-                  <span className="text-xs sm:text-sm font-medium">
-                    {allCountries.find(c => c.id === selectedCountry)?.name}
-                  </span>
-                  <button
-                    onClick={() => {
-                      setSelectedCountry(null);
-                      setVisibleCountries(new Set(allCountries.map(c => c.id)));
-                    }}
-                    className="ml-1 sm:ml-2 text-purple-500 hover:text-purple-700"
-                    title="Show all countries"
-                  >
-                    ×
-                  </button>
-                </div>
-              )}
             </>
           )}
           
@@ -364,82 +350,7 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
         </div>
       )}
 
-      {/* Country Selection for Trend Chart */}
-      {chartType === 'trend' && showCountrySelector && (
-        <div className="mb-3 sm:mb-4 md:mb-6 p-2 sm:p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <div className="flex flex-col space-y-1 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between mb-2 sm:mb-3">
-            <h4 className="text-xs sm:text-sm font-medium text-gray-900">
-              {selectedCountry ? `Selected: ${allCountries.find(c => c.id === selectedCountry)?.name}` : 'Select Countries to Display'}
-            </h4>
-            <div className="flex items-center space-x-1 sm:space-x-2">
-              <span className="text-xs text-gray-500">
-                Showing {startYear}-{endYear}
-              </span>
-              {selectedCountry ? (
-                <button
-                  onClick={() => {
-                    setSelectedCountry(null);
-                    setVisibleCountries(new Set(allCountries.map(c => c.id)));
-                  }}
-                  className="px-1.5 sm:px-2 md:px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
-                >
-                  Show All Countries
-                </button>
-              ) : (
-                <button
-                  onClick={toggleAllCountries}
-                  className="px-1.5 sm:px-2 md:px-3 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
-                >
-                  {visibleCountries.size === allCountries.length ? 'Hide All' : 'Show All'}
-                </button>
-              )}
-            </div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1 sm:gap-2">
-            {(selectedCountry ? allCountries.filter(c => c.id === selectedCountry) : allCountries).map((country) => (
-              <label
-                key={country.id}
-                className="flex items-center space-x-1 sm:space-x-2 p-1 sm:p-1.5 md:p-2 rounded-lg cursor-pointer hover:bg-white transition-colors"
-              >
-                <input
-                  type="checkbox"
-                  checked={visibleCountries.has(country.id)}
-                  onChange={() => toggleCountryVisibility(country.id)}
-                  className="sr-only"
-                />
-                <div
-                  className={`w-3 h-3 sm:w-4 sm:h-4 rounded border-2 flex items-center justify-center ${
-                    visibleCountries.has(country.id) ? 'border-transparent' : 'border-gray-300'
-                  }`}
-                  style={{
-                    backgroundColor: visibleCountries.has(country.id) ? country.color : 'transparent'
-                  }}
-                >
-                  {visibleCountries.has(country.id) && (
-                    <svg className="w-1.5 h-1.5 sm:w-2 sm:h-2 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  )}
-                </div>
-                <span className="text-xs sm:text-sm text-gray-700">{country.name}</span>
-              </label>
-            ))}
-          </div>
-          <p className="text-xs text-gray-500 mt-2 sm:mt-3">
-            {selectedCountry ? (
-              <>
-                <span className="font-medium text-green-700">Focusing on {allCountries.find(c => c.id === selectedCountry)?.name}</span> • 
-              </>
-            ) : (
-              <>
-                Showing {visibleCountries.size} of {allCountries.length} countries • 
-              </>
-            )}
-            Trend shows {totalYearsShown} year{totalYearsShown > 1 ? 's' : ''} from {startYear} to {endYear} • 
-            Country names and scores displayed at line endpoints
-          </p>
-        </div>
-      )}
+
 
       {/* Chart Container */}
       <div className="h-80 sm:h-96 md:h-[500px] lg:h-[600px] xl:h-[700px] 2xl:h-[800px] w-full min-w-0 overflow-hidden">
@@ -462,39 +373,27 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
                 tick={{ fontSize: 8 }}
                 label={{ value: 'Score', angle: -90, position: 'insideLeft', fontSize: 8 }}
               />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'white', 
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                  fontSize: '12px'
-                }}
-                labelFormatter={(label) => `Year: ${label}`}
-                formatter={(value: any, name: string) => {
-                  const country = allCountries.find(c => c.id === name);
-                  return [
-                    `${value?.toFixed(1) || 'N/A'}`,
-                    country?.name || name
-                  ];
-                }}
-              />
+
               {allCountries.map((country) => (
-                visibleCountries.has(country.id) && (
-                  <Line
-                    key={country.id}
-                    type="linear"
-                    dataKey={country.id}
-                    stroke={country.color}
-                    strokeWidth={selectedCountry === country.id ? 3 : 1.5}
-                    name={country.name}
-                    dot={<CustomDot />}
-                    activeDot={{ r: 3, stroke: country.color, strokeWidth: 1, fill: 'white' }}
-                    connectNulls={false}
-                    onClick={() => handleCountryClick(country.id)}
-                    style={{ cursor: 'pointer' }}
-                  />
-                )
+                <Line
+                  key={country.id}
+                  type="linear"
+                  dataKey={country.id}
+                  stroke={country.color}
+                  strokeWidth={hoveredCountryId === country.id ? 3 : 1.5}
+                  name={country.name}
+                  dot={<CustomDot />}
+                  activeDot={{ r: 3, stroke: country.color, strokeWidth: 1, fill: 'white' }}
+                  connectNulls={false}
+                  onMouseEnter={() => {
+                    console.log('Mouse enter on country:', country.name, country.id);
+                    setHoveredCountryId(country.id);
+                  }}
+                  onMouseLeave={() => {
+                    setHoveredCountryId(null);
+                    setMousePosition(null);
+                  }}
+                />
               ))}
             </LineChart>
           </ResponsiveContainer>
@@ -572,13 +471,76 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
         )}
       </div>
 
+      {/* Custom Floating Tooltip */}
+      {hoveredCountryId && mousePosition && (() => {
+        console.log('Rendering tooltip for country:', hoveredCountryId, 'mouse position:', mousePosition);
+        const country = allCountries.find(c => c.id === hoveredCountryId);
+        if (!country) {
+          console.log('Country not found for ID:', hoveredCountryId);
+          return null;
+        }
+        
+        // Get the latest data for this country
+        const countryData = allYearsData.find(c => c.id === hoveredCountryId && c.year === selectedYear);
+        if (!countryData) {
+          console.log('Country data not found for:', hoveredCountryId, 'year:', selectedYear);
+          return null;
+        }
+        
+        return (
+          <div
+            className="fixed z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-3 max-w-xs pointer-events-none"
+            style={{
+              left: mousePosition.x + 10,
+              top: mousePosition.y - 10,
+              transform: 'translateY(-50%)'
+            }}
+          >
+            <div className="flex items-center space-x-2 mb-2">
+              <div 
+                className="w-3 h-3 rounded-full"
+                style={{ backgroundColor: country.color }}
+              />
+              <h4 className="font-semibold text-gray-900 text-sm">{country.name}</h4>
+            </div>
+            
+            <div className="space-y-1 text-xs">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Year:</span>
+                <span className="font-medium">{selectedYear}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Score:</span>
+                <span className="font-medium">{countryData.finalScore?.toFixed(1)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Literacy:</span>
+                <span className="font-medium">{countryData.literacyRate?.toFixed(1)}%</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Digital Infra:</span>
+                <span className="font-medium">{countryData.digitalInfrastructure?.toFixed(1)}%</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Investment:</span>
+                <span className="font-medium">{countryData.investment?.toFixed(1)}%</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Fintech Companies:</span>
+                <span className="font-medium">{startupCounts.get(country.name) || 0}</span>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Footer Info - Responsive */}
       {chartType === 'trend' && (
         <div className="mt-2 sm:mt-3 md:mt-4 text-xs text-gray-500 text-center px-2">
           <div className="break-words leading-relaxed">
             <p className="mb-1">Showing fintech index trends from {startYear} to {endYear}</p>
             <p className="mb-1">Country names and latest scores displayed at line endpoints</p>
-            <p className="mb-1">💡 <strong>Click any country line to focus on that country only</strong></p>
+            <p className="mb-1">💡 <strong>Hover over any country line to see detailed information</strong></p>
             <p>Use controls above to adjust time period or view all {availableYears.length} available years ({minYear}-{maxYear})</p>
           </div>
         </div>

@@ -7,6 +7,7 @@ export const FinanceNews: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     fetchNews();
@@ -17,7 +18,7 @@ export const FinanceNews: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const fetchNews = async () => {
+  const fetchNews = async (isRetry = false) => {
     try {
       setLoading(true);
       setError('');
@@ -32,15 +33,33 @@ export const FinanceNews: React.FC = () => {
           setNews(data.articles);
           setLastUpdated(new Date());
           setError('');
+          setRetryCount(0); // Reset retry count on success
         } else {
           throw new Error('No articles found');
         }
       } else {
-        throw new Error('Failed to fetch news');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: Failed to fetch news`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching news:', error);
-      setError('Failed to fetch news');
+      
+      // Provide more specific error messages
+      if (error.message.includes('timeout') || error.message.includes('504')) {
+        setError('News service is slow. Please try again in a moment.');
+      } else if (error.message.includes('unavailable') || error.message.includes('503')) {
+        setError('News service is temporarily unavailable. Please try again later.');
+      } else if (error.message.includes('No articles found')) {
+        setError('No news articles available at the moment.');
+      } else {
+        setError('Unable to load news. Please check your connection and try again.');
+      }
+      
+      // Auto-retry for network errors (up to 3 times)
+      if (!isRetry && retryCount < 3 && (error.message.includes('timeout') || error.message.includes('unavailable'))) {
+        setRetryCount(prev => prev + 1);
+        setTimeout(() => fetchNews(true), 5000); // Retry after 5 seconds
+      }
     } finally {
       setLoading(false);
     }
@@ -138,7 +157,20 @@ export const FinanceNews: React.FC = () => {
 
         {error && (
           <div className="mt-2 sm:mt-4 p-2 sm:p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-xs sm:text-sm text-yellow-700 break-words">{error} - Showing recent headlines</p>
+            <div className="flex items-start justify-between gap-2">
+              <p className="text-xs sm:text-sm text-yellow-700 break-words flex-1">{error}</p>
+              <button
+                onClick={() => {
+                  setRetryCount(0);
+                  fetchNews();
+                }}
+                disabled={loading}
+                className="text-xs bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-2 py-1 rounded transition-colors disabled:opacity-50 flex items-center space-x-1"
+              >
+                <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
+                <span>Retry</span>
+              </button>
+            </div>
           </div>
         )}
       </div>
