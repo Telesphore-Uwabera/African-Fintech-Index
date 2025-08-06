@@ -452,7 +452,8 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
                 cy="50%"
                 labelLine={false}
                 label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
-                outerRadius={50}
+                outerRadius={120}
+                innerRadius={60}
                 fill="#8884d8"
                 dataKey="value"
               >
