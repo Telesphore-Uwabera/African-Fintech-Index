@@ -1,7 +1,7 @@
 [build]
-  base = "frontend"
-  command = "mv ../../package.json ../../package.json.backup && npm install --legacy-peer-deps && npm run build && mv ../../package.json.backup ../../package.json"
-  publish = "dist"
+  base = "."
+  command = "cd frontend && npm install --legacy-peer-deps && npm run build"
+  publish = "frontend/dist"
 
 [build.environment]
   NODE_VERSION = "20"
