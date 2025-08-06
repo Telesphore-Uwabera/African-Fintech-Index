@@ -1,6 +1,5 @@
 import React from 'react';
 import { InteractiveChart } from '../components/InteractiveChart';
-import { CountryList } from '../components/CountryList';
 import { useEffect, useState } from 'react';
 import { useDataPersistence } from '../hooks/useDataPersistence';
 
@@ -34,28 +33,13 @@ const AnalyticsPage: React.FC<{ selectedYear: number; onYearChange: (year: numbe
             ))}
           </select>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 w-full max-w-full min-w-0 overflow-hidden">
-          {/* Chart - Takes up 3/4 of the space */}
-          <div className="lg:col-span-3">
-            <InteractiveChart
-              data={currentData}
-              allYearsData={countryData}
-              selectedYear={selectedYear}
-              selectedCountry={selectedCountry}
-              onCountrySelect={setSelectedCountry}
-            />
-          </div>
-          
-          {/* Country List - Takes up 1/4 of the space */}
-          <div className="lg:col-span-1">
-            <CountryList
-              data={currentData}
-              selectedYear={selectedYear}
-              selectedCountry={selectedCountry}
-              onCountrySelect={setSelectedCountry}
-            />
-          </div>
-        </div>
+        <InteractiveChart
+          data={currentData}
+          allYearsData={countryData}
+          selectedYear={selectedYear}
+          selectedCountry={selectedCountry}
+          onCountrySelect={setSelectedCountry}
+        />
       </main>
     </div>
   );

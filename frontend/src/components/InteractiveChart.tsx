@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import { TrendingUp, BarChart3, PieChart as PieChartIcon, Activity, ChevronDown, Settings, Calendar, RotateCcw } from 'lucide-react';
 import type { CountryData } from '../types';
+import { CountryList } from './CountryList';
 
 interface InteractiveChartProps {
   data: CountryData[];
@@ -352,8 +353,10 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
 
 
 
-      {/* Chart Container */}
-      <div className="h-80 sm:h-96 md:h-[500px] lg:h-[600px] xl:h-[700px] 2xl:h-[800px] w-full min-w-0 overflow-hidden">
+      {/* Chart and Country List Container */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 w-full min-w-0 overflow-hidden">
+        {/* Chart Container */}
+        <div className="lg:col-span-3 h-80 sm:h-96 md:h-[500px] lg:h-[600px] xl:h-[700px] 2xl:h-[800px] w-full min-w-0 overflow-hidden">
         {chartType === 'trend' && (
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={trendData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
@@ -470,8 +473,19 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
           </ResponsiveContainer>
         )}
       </div>
+      
+      {/* Country List - Takes up 1/4 of the space */}
+      <div className="lg:col-span-1">
+        <CountryList
+          data={data}
+          selectedYear={selectedYear}
+          selectedCountry={externalSelectedCountry}
+          onCountrySelect={onCountrySelect}
+        />
+      </div>
+    </div>
 
-      {/* Custom Floating Tooltip */}
+    {/* Custom Floating Tooltip */}
       {hoveredCountryId && mousePosition && (() => {
         console.log('Rendering tooltip for country:', hoveredCountryId, 'mouse position:', mousePosition);
         const country = allCountries.find(c => c.id === hoveredCountryId);
