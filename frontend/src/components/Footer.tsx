@@ -121,7 +121,7 @@ export const Footer: React.FC = () => {
           </div>
 
           {/* Platform Links */}
-          <div>
+          <div className="ml-4 sm:ml-0">
             <h4 className="text-base sm:text-lg font-semibold mb-4 sm:mb-6">Platform</h4>
             <ul className="space-y-2 sm:space-y-3">
               <li>
@@ -158,7 +158,7 @@ export const Footer: React.FC = () => {
           </div>
 
           {/* Research & Resources */}
-          <div>
+          <div className="ml-4 sm:ml-0">
             <h4 className="text-base sm:text-lg font-semibold mb-4 sm:mb-6">Research</h4>
             <ul className="space-y-2 sm:space-y-3">
               <li>
@@ -195,7 +195,7 @@ export const Footer: React.FC = () => {
           </div>
 
           {/* Contact & University */}
-          <div>
+          <div className="ml-4 sm:ml-0">
             <h4 className="text-base sm:text-lg font-semibold mb-4 sm:mb-6">Contact</h4>
             <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
               <div className="flex items-start space-x-3">
