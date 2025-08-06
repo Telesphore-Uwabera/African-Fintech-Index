@@ -10,7 +10,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'changeme';
 // Email utility function
 async function sendEmail(to: string, subject: string, text: string) {
   try {
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT) || 587,
       secure: false,

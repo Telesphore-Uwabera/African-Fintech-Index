@@ -186,7 +186,7 @@ const UserManagementPage: React.FC = () => {
                     <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                       <span className="text-blue-600 font-semibold text-sm">
                         {user.email.charAt(0).toUpperCase()}
-                      </span>
+                  </span>
                     </div>
                     <div>
                       <p className="font-medium text-gray-900">{user.email}</p>
@@ -316,18 +316,18 @@ const UserManagementPage: React.FC = () => {
                     required
                   />
                 </div>
-                <div>
+              <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Email Address <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    value={registerForm.email}
-                    onChange={(e) => setRegisterForm({ ...registerForm, email: e.target.value })}
+                  Email Address <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  value={registerForm.email}
+                  onChange={(e) => setRegisterForm({ ...registerForm, email: e.target.value })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                    placeholder="Enter email address"
-                    required
-                  />
+                  placeholder="Enter email address"
+                  required
+                />
                 </div>
               </div>
 
@@ -335,57 +335,57 @@ const UserManagementPage: React.FC = () => {
 
               {/* Country and Organization */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div>
+              <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Country <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={countrySearch}
-                      onChange={e => {
-                        setCountrySearch(e.target.value);
-                        setRegisterForm({ ...registerForm, country: '' });
-                        setCountryDropdownOpen(true);
-                      }}
-                      onFocus={() => setCountryDropdownOpen(true)}
-                      onBlur={() => setTimeout(() => setCountryDropdownOpen(false), 100)}
-                      placeholder="Search for a country..."
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                      autoComplete="off"
-                      required
-                    />
-                    {countryDropdownOpen && filteredCountries.length > 0 && (
-                      <ul className="absolute left-0 right-0 mt-1 max-h-48 overflow-auto bg-white border border-gray-300 rounded-lg shadow-lg z-20">
-                        {filteredCountries.map(country => (
-                          <li
-                            key={country}
-                            className="px-4 py-3 cursor-pointer hover:bg-blue-50 transition-colors"
-                            onMouseDown={() => {
-                              setCountrySearch(country);
-                              setRegisterForm({ ...registerForm, country });
-                              setCountryDropdownOpen(false);
-                            }}
-                          >
-                            {country}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Organization
-                  </label>
+                  Country <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
                   <input
                     type="text"
-                    value={registerForm.organization}
-                    onChange={(e) => setRegisterForm({ ...registerForm, organization: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                    placeholder="Company or organization"
+                    value={countrySearch}
+                    onChange={e => {
+                      setCountrySearch(e.target.value);
+                      setRegisterForm({ ...registerForm, country: '' });
+                      setCountryDropdownOpen(true);
+                    }}
+                    onFocus={() => setCountryDropdownOpen(true)}
+                    onBlur={() => setTimeout(() => setCountryDropdownOpen(false), 100)}
+                      placeholder="Search for a country..."
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    autoComplete="off"
+                    required
                   />
+                  {countryDropdownOpen && filteredCountries.length > 0 && (
+                    <ul className="absolute left-0 right-0 mt-1 max-h-48 overflow-auto bg-white border border-gray-300 rounded-lg shadow-lg z-20">
+                      {filteredCountries.map(country => (
+                        <li
+                          key={country}
+                            className="px-4 py-3 cursor-pointer hover:bg-blue-50 transition-colors"
+                          onMouseDown={() => {
+                            setCountrySearch(country);
+                            setRegisterForm({ ...registerForm, country });
+                            setCountryDropdownOpen(false);
+                          }}
+                        >
+                          {country}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Organization
+                </label>
+                <input
+                  type="text"
+                  value={registerForm.organization}
+                  onChange={(e) => setRegisterForm({ ...registerForm, organization: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  placeholder="Company or organization"
+                />
                 </div>
               </div>
 
@@ -447,20 +447,20 @@ const UserManagementPage: React.FC = () => {
                     minLength={6}
                   />
                 </div>
-                <div>
+              <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Role <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={registerForm.role}
-                    onChange={(e) => setRegisterForm({ ...registerForm, role: e.target.value })}
+                  Role <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={registerForm.role}
+                  onChange={(e) => setRegisterForm({ ...registerForm, role: e.target.value })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                    required
-                  >
-                    <option value="viewer">Viewer</option>
-                    <option value="editor">Editor</option>
-                    <option value="admin">Admin</option>
-                  </select>
+                  required
+                >
+                  <option value="viewer">Viewer</option>
+                  <option value="editor">Editor</option>
+                  <option value="admin">Admin</option>
+                </select>
                 </div>
               </div>
 
@@ -509,10 +509,10 @@ const UserManagementPage: React.FC = () => {
               </div>
               
               <div className="space-y-3">
-                {allUsers.filter(user =>
-                  user.email.toLowerCase().includes(userSearch.toLowerCase()) ||
-                  (user.name && user.name.toLowerCase().includes(userSearch.toLowerCase()))
-                ).map(user => (
+              {allUsers.filter(user =>
+                user.email.toLowerCase().includes(userSearch.toLowerCase()) ||
+                (user.name && user.name.toLowerCase().includes(userSearch.toLowerCase()))
+              ).map(user => (
                   <div key={user._id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
                     <div className="flex items-center space-x-3">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
@@ -522,7 +522,7 @@ const UserManagementPage: React.FC = () => {
                           user.isVerified ? 'text-green-600' : 'text-red-600'
                         }`}>
                           {user.email.charAt(0).toUpperCase()}
-                        </span>
+                  </span>
                       </div>
                       <div>
                         <p className="font-medium text-gray-900">{user.email}</p>
@@ -536,8 +536,8 @@ const UserManagementPage: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      <button
+                  <div className="flex gap-2">
+                    <button
                         className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium text-sm"
                         onClick={() => handleViewProfile(user)}
                         title="View Profile"
@@ -546,17 +546,17 @@ const UserManagementPage: React.FC = () => {
                       </button>
                       <button
                         className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
-                        onClick={() => handleEditUser(user)}
-                      >
-                        Edit
-                      </button>
-                      <button
+                      onClick={() => handleEditUser(user)}
+                    >
+                      Edit
+                    </button>
+                    <button
                         className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium text-sm"
-                        onClick={() => handleDeleteUser(user._id)}
-                      >
-                        Delete
-                      </button>
-                    </div>
+                      onClick={() => handleDeleteUser(user._id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
                   </div>
                 ))}
               </div>

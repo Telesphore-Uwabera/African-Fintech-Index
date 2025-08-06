@@ -27,9 +27,9 @@ export const FinanceNews: React.FC = () => {
       const apiUrl = import.meta.env.VITE_API_URL || '/api';
       const response = await fetch(`${apiUrl}/news`);
       
-      if (response.ok) {
-        const data = await response.json();
-        if (data.articles && data.articles.length > 0) {
+          if (response.ok) {
+            const data = await response.json();
+            if (data.articles && data.articles.length > 0) {
           setNews(data.articles);
           setLastUpdated(new Date());
           setError('');
@@ -76,9 +76,9 @@ export const FinanceNews: React.FC = () => {
       return `${diffInHours}h ago`;
     } else {
       return date ? date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
       }) : 'Date not available';
     }
   };

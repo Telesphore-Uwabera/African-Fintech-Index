@@ -26,6 +26,7 @@ jobs:
       - name: Build backend
         run: |
           cd backend
+          rm -rf dist node_modules/.cache
           npm install
           npm run build
           ls -la dist/
