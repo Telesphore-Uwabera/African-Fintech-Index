@@ -94,23 +94,6 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center space-x-6">
-              {/* Year Selector */}
-              <div className="flex items-center space-x-2">
-                <BarChart3 className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                <span className="text-sm text-gray-600 whitespace-nowrap">Year:</span>
-                <div className="relative">
-                  <select
-                    value={selectedYear}
-                    onChange={(e) => onYearChange(Number(e.target.value))}
-                    className="border rounded px-2 py-1 sm:px-3 sm:py-2 text-base sm:text-lg"
-                  >
-                    {availableYears.map(year => (
-                      <option key={year} value={year} className="text-black">{year}</option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                </div>
-              </div>
               {/* User Menu */}
               {currentUser ? (
                 <div className="relative user-menu-container">
@@ -149,13 +132,33 @@ export const Header: React.FC<HeaderProps> = ({
                   )}
                 </div>
               ) : (
-                <button
-                  onClick={onAuthClick}
-                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
-                >
-                  <User className="w-4 h-4 flex-shrink-0" />
-                  <span>Sign In</span>
-                </button>
+                <div className="flex items-center space-x-4">
+                  {/* Year Selector - White text near Sign In */}
+                  <div className="flex items-center space-x-2">
+                    <BarChart3 className="w-4 h-4 text-white flex-shrink-0" />
+                    <span className="text-sm text-white whitespace-nowrap font-medium">Year:</span>
+                    <div className="relative">
+                      <select
+                        value={selectedYear}
+                        onChange={(e) => onYearChange(Number(e.target.value))}
+                        className="bg-white/20 backdrop-blur-sm border border-white/30 rounded px-2 py-1 sm:px-3 sm:py-2 text-base sm:text-lg text-white placeholder-white"
+                        style={{ color: 'white' }}
+                      >
+                        {availableYears.map(year => (
+                          <option key={year} value={year} className="text-black bg-white">{year}</option>
+                        ))}
+                      </select>
+                      <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white pointer-events-none" />
+                    </div>
+                  </div>
+                  <button
+                    onClick={onAuthClick}
+                    className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
+                  >
+                    <User className="w-4 h-4 flex-shrink-0" />
+                    <span>Sign In</span>
+                  </button>
+                </div>
               )}
             </div>
             {/* Mobile/Tablet Controls */}
@@ -194,28 +197,50 @@ export const Header: React.FC<HeaderProps> = ({
                   )}
                 </div>
               ) : (
-                <button
-                  onClick={onAuthClick}
-                  className="flex items-center space-x-1 px-2 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs whitespace-nowrap"
-                >
-                  <User className="w-3 h-3 flex-shrink-0" />
-                  <span>Sign In</span>
-                </button>
+                <div className="flex items-center space-x-2">
+                  {/* Year Selector for Mobile - White text near Sign In */}
+                  <div className="flex items-center space-x-1">
+                    <BarChart3 className="w-3 h-3 text-white flex-shrink-0" />
+                    <span className="text-xs text-white whitespace-nowrap font-medium">Year:</span>
+                    <div className="relative">
+                      <select
+                        value={selectedYear}
+                        onChange={(e) => onYearChange(Number(e.target.value))}
+                        className="appearance-none bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg px-2 py-1 pr-6 text-xs focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent text-white min-w-0"
+                        style={{ color: 'white' }}
+                      >
+                        {availableYears.map(year => (
+                          <option key={year} value={year} className="text-black bg-white">{year}</option>
+                        ))}
+                      </select>
+                      <ChevronDown className="absolute right-1 top-1/2 transform -translate-y-1/2 w-3 h-3 text-white pointer-events-none" />
+                    </div>
+                  </div>
+                  <button
+                    onClick={onAuthClick}
+                    className="flex items-center space-x-1 px-2 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs whitespace-nowrap"
+                  >
+                    <User className="w-3 h-3 flex-shrink-0" />
+                    <span>Sign In</span>
+                  </button>
+                </div>
               )}
               
-              {/* Year Selector for Mobile */}
-              <div className="relative">
-                <select
-                  value={selectedYear}
-                  onChange={(e) => onYearChange(Number(e.target.value))}
-                  className="appearance-none bg-white border border-gray-300 rounded-lg px-2 py-1 pr-6 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black min-w-0"
-                >
-                  {availableYears.map(year => (
-                    <option key={year} value={year} className="text-black">{year}</option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-1 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
-              </div>
+              {/* Year Selector for Mobile - Only show when user is signed in */}
+              {currentUser && (
+                <div className="relative">
+                  <select
+                    value={selectedYear}
+                    onChange={(e) => onYearChange(Number(e.target.value))}
+                    className="appearance-none bg-white border border-gray-300 rounded-lg px-2 py-1 pr-6 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black min-w-0"
+                  >
+                    {availableYears.map(year => (
+                      <option key={year} value={year} className="text-black">{year}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-1 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
+                </div>
+              )}
               
               {/* Sidebar Hamburger for Mobile - Only show when user is signed in */}
               {currentUser && (
