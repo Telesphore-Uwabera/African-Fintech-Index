@@ -27,7 +27,12 @@ export const AdminNotifications: React.FC<AdminNotificationsProps> = ({ currentU
         fetch(`${apiUrl}/users/unverified`, {
           headers: { Authorization: `Bearer ${currentUser.token}` },
         })
-          .then(res => res.json())
+          .then(res => {
+            if (!res.ok) {
+              throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            return res.json();
+          })
           .then(users => {
             const userNotifications: Notification[] = users.map((user: any) => ({
               id: user._id,
@@ -43,14 +48,15 @@ export const AdminNotifications: React.FC<AdminNotificationsProps> = ({ currentU
           })
           .catch(error => {
             console.error('Failed to fetch notifications:', error);
+            // Don't show error to user, just log it
           });
       };
 
       // Initial fetch
       fetchNotifications();
 
-      // Poll every 30 seconds for new notifications
-      const interval = setInterval(fetchNotifications, 30000);
+      // Poll every 60 seconds for new notifications
+      const interval = setInterval(fetchNotifications, 60000);
 
       return () => clearInterval(interval);
     }
@@ -79,11 +85,10 @@ export const AdminNotifications: React.FC<AdminNotificationsProps> = ({ currentU
       {/* Notification Bell */}
       <button
         onClick={() => setShowNotifications(!showNotifications)}
-        className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors"
+        className="relative p-2 text-white hover:text-gray-200 transition-colors"
       >
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75v-.7a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
         </svg>
         
         {/* Unread Badge */}
