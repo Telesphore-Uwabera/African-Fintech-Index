@@ -490,45 +490,45 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
         
         return (
           <div
-            className="fixed z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-3 max-w-xs pointer-events-none"
+            className="fixed z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-4 sm:p-5 max-w-sm pointer-events-none"
             style={{
               left: mousePosition.x + 10,
               top: mousePosition.y - 10,
               transform: 'translateY(-50%)'
             }}
           >
-            <div className="flex items-center space-x-2 mb-2">
+            <div className="flex items-center space-x-3 mb-3">
               <div 
-                className="w-3 h-3 rounded-full"
+                className="w-4 h-4 rounded-full"
                 style={{ backgroundColor: country.color }}
               />
-              <h4 className="font-semibold text-gray-900 text-sm">{country.name}</h4>
+              <h4 className="font-bold text-gray-900 text-base sm:text-lg lg:text-xl">{country.name}</h4>
             </div>
             
-            <div className="space-y-1 text-xs">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Year:</span>
-                <span className="font-medium">{selectedYear}</span>
+            <div className="space-y-2 text-sm sm:text-base">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600 font-medium">Year:</span>
+                <span className="font-bold text-lg sm:text-xl">{selectedYear}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Score:</span>
-                <span className="font-medium">{countryData.finalScore?.toFixed(1)}</span>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600 font-medium">Score:</span>
+                <span className="font-bold text-lg sm:text-xl text-blue-600">{countryData.finalScore?.toFixed(1)}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Literacy:</span>
-                <span className="font-medium">{countryData.literacyRate?.toFixed(1)}%</span>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600 font-medium">Literacy:</span>
+                <span className="font-bold text-lg sm:text-xl text-blue-700">{countryData.literacyRate?.toFixed(1)}%</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Digital Infra:</span>
-                <span className="font-medium">{countryData.digitalInfrastructure?.toFixed(1)}%</span>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600 font-medium">Digital Infra:</span>
+                <span className="font-bold text-lg sm:text-xl text-green-700">{countryData.digitalInfrastructure?.toFixed(1)}%</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Investment:</span>
-                <span className="font-medium">{countryData.investment?.toFixed(1)}%</span>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600 font-medium">Investment:</span>
+                <span className="font-bold text-lg sm:text-xl text-purple-700">{countryData.investment?.toFixed(1)}%</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Fintech Companies:</span>
-                <span className="font-medium">{startupCounts.get(country.name) || 0}</span>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600 font-medium">Fintech Companies:</span>
+                <span className="font-bold text-lg sm:text-xl text-orange-700">{startupCounts.get(country.name) || 0}</span>
               </div>
             </div>
           </div>
