@@ -246,8 +246,8 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
           </div>
         </div>
 
-        {/* Controls Section */}
-        <div className="flex flex-col space-y-1 sm:space-y-2 min-w-0 w-full text-xs sm:text-sm overflow-hidden">
+        {/* Controls Section - Combined into one row */}
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 min-w-0 w-full text-xs sm:text-sm overflow-hidden">
           {chartType === 'trend' && (
             <>
               {/* Year Range Selector */}
@@ -301,8 +301,6 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
                 <span className="sm:hidden">All</span>
                 <span className="text-xs">({minYear}-{maxYear})</span>
               </button>
-
-
             </>
           )}
           
@@ -326,30 +324,15 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
               </button>
             ))}
           </div>
+
+          {/* Currently Showing Info */}
+          <div className="text-xs text-gray-600 ml-auto">
+            Currently showing: {startYear} - {endYear} ({totalYearsShown} year{totalYearsShown > 1 ? 's' : ''})
+          </div>
         </div>
       </div>
 
-      {/* Available Years Info - Responsive */}
-      {chartType === 'trend' && (
-        <div className="mb-2 sm:mb-3 md:mb-4 p-2 sm:p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
-          <div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:items-start sm:justify-between">
-            <div className="flex items-start space-x-1 sm:space-x-2">
-              <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 flex-shrink-0 mt-0.5" />
-              <div className="min-w-0 flex-1">
-                <span className="text-xs sm:text-sm font-medium text-blue-900 break-words">
-                  Available Data: {availableYears.join(', ')}
-                </span>
-                <div className="text-xs text-blue-700 mt-1">
-                  ({availableYears.length} years total)
-                </div>
-              </div>
-            </div>
-            <div className="text-xs text-blue-700 sm:text-right">
-              Currently showing: {startYear} - {endYear} ({totalYearsShown} year{totalYearsShown > 1 ? 's' : ''})
-            </div>
-          </div>
-        </div>
-      )}
+
 
 
 
