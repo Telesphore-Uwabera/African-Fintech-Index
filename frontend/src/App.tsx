@@ -46,16 +46,42 @@ function App() {
 
   useEffect(() => {
     const apiUrl = import.meta.env.VITE_API_URL || '/api';
-    fetch(`${apiUrl}/country-data/years`)
-      .then(res => res.json())
+    
+    // Add timeout to prevent hanging requests
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    
+    fetch(`${apiUrl}/country-data/years`, {
+      signal: controller.signal
+    })
+      .then(res => {
+        clearTimeout(timeoutId);
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+        return res.json();
+      })
       .then(years => {
         setAvailableYears(years);
         if (years.length > 0 && selectedYear === null) {
           setSelectedYear(years[0]); // Default to latest year
         }
       })
-      .catch(() => setAvailableYears([]));
-  }, []);
+      .catch((error) => {
+        clearTimeout(timeoutId);
+        console.error('Failed to fetch years:', error);
+        setAvailableYears([]);
+        // Set a default year if fetch fails
+        if (selectedYear === null) {
+          setSelectedYear(2024);
+        }
+      });
+      
+    return () => {
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, [selectedYear]);
 
   const handleSignIn = (user: User) => {
     setCurrentUser(user);

@@ -19,7 +19,11 @@ router.get('/', async (req: Request, res: Response) => {
     
     // Filter by year if provided
     if (year) {
-      query.year = parseInt(year as string);
+      const yearNum = parseInt(year as string);
+      if (isNaN(yearNum)) {
+        return res.status(400).json({ error: 'Invalid year parameter' });
+      }
+      query.year = yearNum;
     }
     
     // Filter by country if provided
@@ -39,14 +43,25 @@ router.get('/', async (req: Request, res: Response) => {
     
     const limitNum = limit ? parseInt(limit as string) : 1000;
     
-    const data = await CountryData.find(query)
-      .sort(sortOption)
-      .limit(limitNum);
+    // Add timeout to prevent long-running queries
+    const data = await Promise.race([
+      CountryData.find(query)
+        .sort(sortOption)
+        .limit(limitNum)
+        .lean(), // Use lean() for better performance
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Query timeout')), 10000)
+      )
+    ]);
     
     res.json(data);
   } catch (err) {
     console.error('Error fetching country data:', err);
-    res.status(500).json({ error: 'Failed to fetch country data' });
+    if (err instanceof Error && err.message === 'Query timeout') {
+      res.status(408).json({ error: 'Request timeout - please try again' });
+    } else {
+      res.status(500).json({ error: 'Failed to fetch country data' });
+    }
   }
 });
 

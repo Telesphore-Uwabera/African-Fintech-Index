@@ -201,45 +201,45 @@ export const FinanceNews: React.FC = () => {
             }
             
             return (
-              <div key={index} className="bg-gray-50 rounded-lg border border-gray-200 p-3 sm:p-4 hover:shadow-md transition-shadow">
-                {article.urlToImage && (
-                  <div className="mb-3">
-                    <img
-                      src={article.urlToImage}
-                      alt={article.title}
-                      className="w-full h-32 sm:h-40 object-cover rounded-lg"
-                      onError={(e) => {
-                        e.currentTarget.src = 'https://images.pexels.com/photos/3483098/pexels-photo-3483098.jpeg';
-                      }}
-                    />
+            <div key={index} className="bg-gray-50 rounded-lg border border-gray-200 p-3 sm:p-4 hover:shadow-md transition-shadow">
+              {article.urlToImage && (
+                <div className="mb-3">
+                  <img
+                    src={article.urlToImage}
+                    alt={article.title}
+                    className="w-full h-32 sm:h-40 object-cover rounded-lg"
+                    onError={(e) => {
+                      e.currentTarget.src = 'https://images.pexels.com/photos/3483098/pexels-photo-3483098.jpeg';
+                    }}
+                  />
+                </div>
+              )}
+              <div className="space-y-2 sm:space-y-3">
+                <h3 className="text-sm sm:text-base font-semibold text-gray-900 line-clamp-2 leading-tight break-words">
+                  {article.title}
+                </h3>
+                <p className="text-xs sm:text-sm text-gray-600 line-clamp-3 leading-relaxed break-words">
+                  {article.description}
+                </p>
+                <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+                  <div className="flex items-center space-x-2 text-xs text-gray-500 min-w-0">
+                    <Calendar className="w-3 h-3 flex-shrink-0" />
+                    <span className="truncate">{formatDate(article.publishedAt)}</span>
+                    <span className="hidden sm:inline">•</span>
+                    <span className="truncate max-w-16 sm:max-w-20">{article.source.name}</span>
                   </div>
-                )}
-                <div className="space-y-2 sm:space-y-3">
-                  <h3 className="text-sm sm:text-base font-semibold text-gray-900 line-clamp-2 leading-tight break-words">
-                    {article.title}
-                  </h3>
-                  <p className="text-xs sm:text-sm text-gray-600 line-clamp-3 leading-relaxed break-words">
-                    {article.description}
-                  </p>
-                  <div className="flex items-center justify-between pt-2 border-t border-gray-200">
-                    <div className="flex items-center space-x-2 text-xs text-gray-500 min-w-0">
-                      <Calendar className="w-3 h-3 flex-shrink-0" />
-                      <span className="truncate">{formatDate(article.publishedAt)}</span>
-                      <span className="hidden sm:inline">•</span>
-                      <span className="truncate max-w-16 sm:max-w-20">{article.source.name}</span>
-                    </div>
-                    <a
-                      href={article.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-700 text-xs flex items-center space-x-1 transition-colors flex-shrink-0 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded"
-                    >
-                      <span>Read</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  </div>
+                  <a
+                    href={article.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-700 text-xs flex items-center space-x-1 transition-colors flex-shrink-0 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded"
+                  >
+                    <span>Read</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
                 </div>
               </div>
+            </div>
             );
           })}
         </div>
