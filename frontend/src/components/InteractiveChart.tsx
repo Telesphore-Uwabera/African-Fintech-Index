@@ -371,6 +371,7 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
                   dot={<CustomDot />}
                   activeDot={{ r: 3, stroke: country.color, strokeWidth: 1, fill: 'white' }}
                   connectNulls={false}
+                  style={{ cursor: 'pointer' }}
                   onMouseEnter={() => {
                     console.log('Mouse enter on country:', country.name, country.id);
                     setHoveredCountryId(country.id);

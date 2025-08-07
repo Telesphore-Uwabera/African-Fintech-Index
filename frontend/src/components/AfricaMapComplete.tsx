@@ -315,29 +315,29 @@ export const AfricaMapComplete: React.FC<AfricaMapProps> = ({
           
           return (
             <div
-              className={`pointer-events-auto fixed z-50 ${cardWidth} bg-white rounded-xl shadow-lg border border-gray-200 ${cardPadding} flex flex-col gap-2 animate-fade-in`}
+              className={`pointer-events-auto fixed z-50 ${cardWidth} bg-white rounded-xl shadow-lg border border-gray-200 ${cardPadding} flex flex-col gap-3 animate-fade-in`}
               style={cardPosition}
             >
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900">{selectedCountry.name}</h4>
-                <span className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600">{selectedCountry.finalScore?.toFixed(1)}</span>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-base sm:text-lg lg:text-xl xl:text-2xl font-bold text-gray-900">{selectedCountry.name}</h4>
+                <span className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-blue-600">{selectedCountry.finalScore?.toFixed(1)}</span>
               </div>
-              <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm">
-                <div className="bg-blue-50 p-2 rounded">
-                  <div className="text-gray-600">Literacy Rate</div>
-                  <div className="font-semibold text-blue-700">{selectedCountry.literacyRate?.toFixed(1)}%</div>
+              <div className="grid grid-cols-2 gap-3 text-sm sm:text-base lg:text-lg">
+                <div className="bg-blue-50 p-3 sm:p-4 rounded-lg">
+                  <div className="text-gray-600 font-medium">Literacy Rate</div>
+                  <div className="font-bold text-blue-700 text-lg sm:text-xl">{selectedCountry.literacyRate?.toFixed(1)}%</div>
                 </div>
-                <div className="bg-green-50 p-2 rounded">
-                  <div className="text-gray-600">Digital Infra</div>
-                  <div className="font-semibold text-green-700">{selectedCountry.digitalInfrastructure?.toFixed(1)}%</div>
+                <div className="bg-green-50 p-3 sm:p-4 rounded-lg">
+                  <div className="text-gray-600 font-medium">Digital Infra</div>
+                  <div className="font-bold text-green-700 text-lg sm:text-xl">{selectedCountry.digitalInfrastructure?.toFixed(1)}%</div>
                 </div>
-                <div className="bg-purple-50 p-2 rounded">
-                  <div className="text-gray-600">Investment</div>
-                  <div className="font-semibold text-purple-700">{selectedCountry.investment?.toFixed(1)}%</div>
+                <div className="bg-purple-50 p-3 sm:p-4 rounded-lg">
+                  <div className="text-gray-600 font-medium">Investment</div>
+                  <div className="font-bold text-purple-700 text-lg sm:text-xl">{selectedCountry.investment?.toFixed(1)}%</div>
                 </div>
-                <div className="bg-orange-50 p-2 rounded">
-                  <div className="text-gray-600">Fintech Cos</div>
-                  <div className="font-semibold text-orange-700">
+                <div className="bg-orange-50 p-3 sm:p-4 rounded-lg">
+                  <div className="text-gray-600 font-medium">Fintech Cos</div>
+                  <div className="font-bold text-orange-700 text-lg sm:text-xl">
                     {startupCounts.get(selectedCountry.name) || 0}
                   </div>
                 </div>
