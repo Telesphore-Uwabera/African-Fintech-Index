@@ -2,33 +2,16 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { User, IUser } from '../models/User';
-import nodemailer from 'nodemailer';
+import { sendEmail, sendPhoneNotification } from '../utils/notifications';
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'changeme';
 
-// Email utility function
-async function sendEmail(to: string, subject: string, text: string) {
-  try {
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT) || 587,
-      secure: false,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
-    await transporter.sendMail({
-      from: process.env.SMTP_FROM || process.env.SMTP_USER,
-      to,
-      subject,
-      text,
-    });
-  } catch (error) {
-    console.error('Failed to send email:', error);
-  }
-}
+// Admin contact information
+const ADMIN_CONTACT = {
+  email: 'ntakirpetero@gmail.com',
+  phone: '+250 781 712 615'
+};
 
 // Register
 router.post('/register', async (req, res) => {
@@ -57,15 +40,11 @@ router.post('/register', async (req, res) => {
     });
     await user.save();
     
-    // Send admin notification email (non-blocking)
+    // Send admin notification email and phone (non-blocking)
     setImmediate(async () => {
       try {
-        const adminUsers = await User.find({ role: 'admin', isVerified: true });
-        const adminEmails = adminUsers.map(admin => admin.email);
-        
-        if (adminEmails.length > 0) {
-          const notificationSubject = 'New User Registration - Requires Verification';
-          const notificationText = `
+        const notificationSubject = 'New User Registration - Requires Verification';
+        const notificationText = `
 New user registration requires admin verification:
 
 User Details:
@@ -77,15 +56,18 @@ User Details:
 Please log in to the admin panel to verify this user.
 
 African Fintech Index Admin Panel
-          `.trim();
-          
-          // Send to all admin users
-          for (const adminEmail of adminEmails) {
-            await sendEmail(adminEmail, notificationSubject, notificationText);
-          }
-        }
+        `.trim();
+        
+        // Send email notification to admin
+        await sendEmail(ADMIN_CONTACT.email, notificationSubject, notificationText);
+        
+        // Send phone notification to admin
+        const phoneMessage = `New user ${name} (${email}) registered. Role: ${role}. Please verify.`;
+        await sendPhoneNotification(ADMIN_CONTACT.phone, phoneMessage);
+        
+        console.log(`✅ Admin notifications sent for new user: ${email}`);
       } catch (error) {
-        console.error('Failed to send admin notification:', error);
+        console.error('❌ Failed to send admin notification:', error);
       }
     });
     
@@ -102,6 +84,12 @@ router.post('/login', async (req, res) => {
     
     if (!email || !password) {
       return res.status(400).json({ message: 'Email and password are required' });
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: 'Please enter a valid email address' });
     }
     
     const user = await User.findOne({ email }).select('+password');

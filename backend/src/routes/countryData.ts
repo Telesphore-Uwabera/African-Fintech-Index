@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import CountryData, { ICountryData } from '../models/CountryData';
 import { requireRole, requireAnyRole } from '../middleware/role';
 import { authMiddleware } from './auth';
+import { sendEmail, sendPhoneNotification } from '../utils/notifications';
 
 // AuthRequest interface for req.user
 interface AuthRequest extends Request {
@@ -9,6 +10,12 @@ interface AuthRequest extends Request {
 }
 
 const router = express.Router();
+
+// Admin contact information
+const ADMIN_CONTACT = {
+  email: 'ntakirpetero@gmail.com',
+  phone: '+250 781 712 615'
+};
 
 // GET /api/country-data - Get all country data with optional filters
 router.get('/', async (req: Request, res: Response) => {
@@ -294,10 +301,34 @@ router.delete('/', requireRole('admin'), async (req: Request, res: Response) => 
 // POST /api/country-data/bulk - Add multiple country data records (admin or editor)
 router.post('/bulk', authMiddleware, requireAnyRole(['admin', 'editor']), async (req: AuthRequest, res: Response) => {
   try {
+    console.log('🔍 Bulk upload request received:', {
+      user: req.user?.email,
+      bodyKeys: Object.keys(req.body),
+      dataLength: req.body.data?.length || 0
+    });
+
     const { data } = req.body;
     
     if (!Array.isArray(data) || data.length === 0) {
+      console.log('❌ Validation failed: data is not an array or is empty');
       return res.status(400).json({ error: 'Data array is required and must not be empty' });
+    }
+
+    console.log('🔍 Sample data item:', data[0]);
+    console.log('🔍 Total records to insert:', data.length);
+
+    // Check for existing data that might cause conflicts
+    const existingData = await CountryData.find({
+      $or: data.map(item => ({ id: item.id, year: item.year }))
+    }).lean();
+
+    if (existingData.length > 0) {
+      console.log('⚠️ Found existing data that would conflict:', existingData.map(item => ({ id: item.id, year: item.year })));
+      return res.status(400).json({ 
+        error: 'Duplicate data detected', 
+        details: `Found ${existingData.length} existing records that would conflict with the upload. Each country can only have one record per year.`,
+        conflicts: existingData.map(item => ({ id: item.id, year: item.year }))
+      });
     }
     
     const countryDataArray = data.map(item => ({
@@ -305,18 +336,56 @@ router.post('/bulk', authMiddleware, requireAnyRole(['admin', 'editor']), async 
       createdBy: req.user?.email || 'admin',
       updatedBy: req.user?.email || 'admin'
     }));
-    
+
+    console.log('🔍 Attempting to insert data...');
     const result = await CountryData.insertMany(countryDataArray, { 
       ordered: false
     });
+
+    console.log('✅ Successfully inserted:', result.length, 'records');
+    
+    // Send admin notification about data upload
+    const notificationSubject = 'Country Data Upload Completed';
+    const notificationText = `
+Country data upload has been completed:
+
+Upload Details:
+- User: ${req.user?.email || 'Unknown'}
+- Records Added: ${result.length}
+- Upload Date: ${new Date().toLocaleString()}
+- Years Covered: ${[...new Set(data.map(item => item.year))].join(', ')}
+
+Please review and verify this uploaded data.
+
+African Fintech Index Admin Panel
+    `.trim();
+    
+    // Send email notification
+    await sendEmail(ADMIN_CONTACT.email, notificationSubject, notificationText);
+    
+    // Send phone notification
+    const phoneMessage = `Country data upload: ${result.length} records added by ${req.user?.email || 'Unknown'}. Please verify.`;
+    await sendPhoneNotification(ADMIN_CONTACT.phone, phoneMessage);
+    
+    console.log(`✅ Admin notifications sent for country data upload: ${result.length} records`);
     
     res.status(201).json({
       message: `Successfully added ${result.length} records`,
       insertedCount: result.length
     });
   } catch (err) {
-    console.error('Error creating bulk country data:', err);
-    res.status(400).json({ error: 'Failed to create bulk country data' });
+    console.error('❌ Error creating bulk country data:', err);
+    
+    // Check if it's a duplicate key error
+    if (err && typeof err === 'object' && 'code' in err && err.code === 11000) {
+      return res.status(400).json({ 
+        error: 'Duplicate data detected',
+        details: 'Some countries already have data for the specified year(s). Each country can only have one record per year.'
+      });
+    }
+    
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+    res.status(400).json({ error: 'Failed to create bulk country data', details: errorMessage });
   }
 });
 

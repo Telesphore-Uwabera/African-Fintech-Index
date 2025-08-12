@@ -19,22 +19,46 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
   const [selectedCountry, setSelectedCountry] = useState('');
   const [selectedSector, setSelectedSector] = useState('');
   const [displayCount, setDisplayCount] = useState(6);
+  const [showUploadGuide, setShowUploadGuide] = useState(false);
 
-  // Fetch startups from backend on mount
+  // Fetch startups from backend on mount and when filters change
   useEffect(() => {
     setLoading(true);
     const apiUrl = import.meta.env.VITE_API_URL || '/api';
-    fetch(`${apiUrl}/startups`)
+    
+    // Build query parameters
+    const params = new URLSearchParams();
+    if (searchTerm) params.append('search', searchTerm);
+    if (selectedCountry && selectedCountry !== 'All Countries') params.append('country', selectedCountry);
+    if (selectedSector && selectedSector !== 'All Sectors') params.append('sector', selectedSector);
+    
+    const queryString = params.toString();
+    const url = queryString ? `${apiUrl}/startups?${queryString}` : `${apiUrl}/startups`;
+    
+    fetch(url)
       .then(res => res.json())
       .then(data => {
+        // Log what sectors are received from backend
+        console.log('🔍 Frontend received startups from backend:', {
+          totalCount: data.length,
+          sampleSectors: data.slice(0, 3).map((s: any) => ({
+            name: s.name,
+            sector: s.sector,
+            parsedSectors: parseSectors(s.sector),
+            sectorsCount: parseSectors(s.sector).length,
+            hasMultipleSectors: parseSectors(s.sector).length > 1
+          }))
+        });
+        
         setStartups(data);
         setLoading(false);
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error('Error fetching startups:', err);
         setError('Failed to fetch startups');
         setLoading(false);
       });
-  }, []);
+  }, [searchTerm, selectedCountry, selectedSector]); // Refetch when filters change
 
   // Reset display count when filters change
   useEffect(() => {
@@ -128,42 +152,52 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
   const handleBulkUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    
+    // Validate file type
+    const fileExtension = file.name.split('.').pop()?.toLowerCase();
+    if (!['xlsx', 'xls', 'csv'].includes(fileExtension || '')) {
+      setUploadStatus('❌ Invalid file format! Please upload only Excel (.xlsx, .xls) or CSV files.');
+      return;
+    }
+    
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadStatus('❌ File too large! Maximum size is 10MB.');
+      return;
+    }
+    
     const reader = new FileReader();
     reader.onload = async (evt) => {
-      const data = new Uint8Array(evt.target?.result as ArrayBuffer);
-      const workbook = XLSX.read(data, { type: 'array' });
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      const json = XLSX.utils.sheet_to_json(worksheet);
-      
-      console.log('Excel data parsed:', {
-        sheetName,
-        rowCount: json.length,
-        columns: Object.keys(json[0] || {}),
-        firstRow: json[0]
-      });
-      
-      // POST to backend
       try {
+        const data = new Uint8Array(evt.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const json = XLSX.utils.sheet_to_json(worksheet);
+        
+        // Validate required fields
+        const requiredFields = ['Organization Name', 'Headquarters Location', 'Industries', 'Founded Date'];
+        const missingFields = requiredFields.filter(field => !Object.keys(json[0] || {}).some(col => 
+          col.toLowerCase().includes(field.toLowerCase().replace(/\s+/g, '')) ||
+          col.toLowerCase().includes(field.toLowerCase().split(' ')[0])
+        ));
+        
+        if (missingFields.length > 0) {
+          setUploadStatus(`❌ Missing required fields: ${missingFields.join(', ')}. Please check the upload guide for required column names.`);
+          return;
+        }
+        
+        // POST to backend
         setUploadStatus('Uploading...');
         const apiUrl = import.meta.env.VITE_API_URL || '/api';
-        console.log('Sending request to:', `${apiUrl}/startups/bulk`);
-        console.log('API URL:', apiUrl);
         
         const requestBody = { data: json };
-        console.log('Request body sample:', {
-          dataLength: json.length,
-          firstRow: json[0]
-        });
         
         const res = await fetch(`${apiUrl}/startups/bulk`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(requestBody),
         });
-        
-        console.log('Response status:', res.status);
-        console.log('Response ok:', res.ok);
         
         if (!res.ok) {
           const errorData = await res.json();
@@ -172,29 +206,21 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
         }
         
         const result = await res.json();
-        console.log('Backend success response:', result);
-        setUploadStatus(`Successfully uploaded ${result.insertedCount} startups!`);
+        setUploadStatus(`✅ Successfully uploaded ${result.insertedCount} startups!`);
         // Refresh startups list
         fetch(`${apiUrl}/startups`)
           .then(res => res.json())
           .then(data => setStartups(data));
       } catch (err) {
         console.error('Bulk upload error:', err);
-        setUploadStatus(`Bulk upload failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+        setUploadStatus(`❌ Bulk upload failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
       }
     };
     reader.readAsArrayBuffer(file);
   };
 
-  const filteredStartups = startups.filter(startup => {
-    const matchesSearch = startup.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         startup.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCountry = !selectedCountry || startup.country === selectedCountry;
-    const matchesSector = !selectedSector || parseSectors(startup.sector).some(s => s === selectedSector);
-    // Remove year filtering - show all startups independent of year selection
-    
-    return matchesSearch && matchesCountry && matchesSector;
-  });
+  // Filtering is now handled by the backend API
+  const filteredStartups = startups;
 
   // Show startups in batches of 6
   const displayedStartups = filteredStartups.slice(0, displayCount);
@@ -224,21 +250,30 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
               <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
               <span>Add Startup</span>
             </button>
-            <label className="flex items-center justify-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer text-sm">
-              <span>Bulk Upload (.xlsx)</span>
-              <input
-                type="file"
-                accept=".xlsx, .xls"
-                style={{ display: 'none' }}
-                onChange={handleBulkUpload}
-              />
-            </label>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <label className="flex items-center justify-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer text-sm">
+                <span>Bulk Upload (.xlsx, .csv)</span>
+                <input
+                  type="file"
+                  accept=".xlsx, .xls, .csv"
+                  style={{ display: 'none' }}
+                  onChange={handleBulkUpload}
+                />
+              </label>
+              <button
+                onClick={() => setShowUploadGuide(true)}
+                className="flex items-center justify-center space-x-1 sm:space-x-2 px-3 sm:px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm"
+                title="View upload requirements"
+              >
+                <span>📋 Guide</span>
+              </button>
+            </div>
           </div>
         )}
       </div>
 
       {uploadStatus && (
-        <div className={`mb-3 sm:mb-4 p-2 sm:p-3 rounded text-xs sm:text-sm ${uploadStatus.startsWith('Successfully') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+        <div className={`mb-3 sm:mb-4 p-2 sm:p-3 rounded text-xs sm:text-sm ${uploadStatus.startsWith('✅') || uploadStatus.startsWith('❌') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
           {uploadStatus}
         </div>
       )}
@@ -332,7 +367,7 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
                 className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm bg-white placeholder-gray-400"
                 required
               />
-              <p className="text-xs text-gray-500 mt-1">Separate multiple sectors with commas</p>
+              <p className="text-xs text-gray-500 mt-1">💡 Separate multiple sectors with commas (e.g., "Payments, Mobile Money, Lending")</p>
             </div>
 
             <div className="sm:col-span-1">
@@ -399,20 +434,55 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 md:gap-6 w-full max-w-full min-w-0 overflow-hidden">
-          {displayedStartups.map((startup) => (
-              <div key={startup.id} className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow w-full max-w-full min-w-0 overflow-hidden bg-white">
-                <div className="flex items-start justify-between mb-2 sm:mb-3 w-full max-w-full min-w-0">
+          {displayedStartups.map((startup, index) => (
+              <div key={startup.id || `startup-${index}-${startup.name}`} className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow w-full max-w-full min-w-0 overflow-hidden bg-white">
+                <div className="flex items-start justify-between mb-2 sm:mb-3 w-full max-w-full min-w-0 overflow-hidden">
                   <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 flex-1 min-w-0 mr-2 break-words leading-tight">{startup.name}</h3>
                   <div className="flex flex-wrap gap-1 ml-2">
-                    {parseSectors(startup.sector).map((sector, index) => (
-                      <span 
-                        key={index} 
-                        className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full flex-shrink-0"
-                        title={sector}
-                      >
-                        {sector}
-                      </span>
-                    ))}
+                    {(() => {
+                      const sectors = parseSectors(startup.sector);
+                      
+                      // Log what sectors are being rendered for this startup
+                      console.log(`🔍 Rendering sectors for ${startup.name}:`, {
+                        originalSector: startup.sector,
+                        parsedSectors: sectors,
+                        sectorsCount: sectors.length,
+                        hasMultipleSectors: sectors.length > 1
+                      });
+                      
+                      // Color palette for different sectors
+                      const sectorColors = [
+                        'bg-blue-100 text-blue-800',
+                        'bg-green-100 text-green-800', 
+                        'bg-purple-100 text-purple-800',
+                        'bg-orange-100 text-orange-800',
+                        'bg-pink-100 text-pink-800',
+                        'bg-indigo-100 text-indigo-800',
+                        'bg-teal-100 text-teal-800',
+                        'bg-yellow-100 text-yellow-800'
+                      ];
+                      
+                      // If no sectors, show a placeholder
+                      if (sectors.length === 0) {
+                        return (
+                          <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full flex-shrink-0 font-medium">
+                            No Sector
+                          </span>
+                        );
+                      }
+                      
+                      return sectors.map((sector, index) => (
+                        <span 
+                          key={index} 
+                          className={`px-2 py-1 text-xs rounded-full flex-shrink-0 font-medium ${
+                            sectorColors[index % sectorColors.length]
+                          }`}
+                          title={sector}
+                        >
+                          {sector}
+                        </span>
+                      ));
+                    })()}
                   </div>
                 </div>
                 <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 line-clamp-3 break-words leading-relaxed">{startup.description}</p>
@@ -482,6 +552,126 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
               Add the first startup
             </button>
           )}
+        </div>
+      )}
+
+      {/* Upload Guide Modal */}
+      {showUploadGuide && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900">📋 Bulk Upload Guide</h3>
+                <button
+                  onClick={() => setShowUploadGuide(false)}
+                  className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+                >
+                  ×
+                </button>
+              </div>
+              
+              <div className="space-y-6">
+                {/* File Requirements */}
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-800 mb-3">📁 File Requirements</h4>
+                  <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                    <p className="text-sm text-gray-700"><strong>Supported formats:</strong> Excel (.xlsx, .xls) or CSV</p>
+                    <p className="text-sm text-gray-700"><strong>Maximum size:</strong> 10MB</p>
+                    <p className="text-sm text-gray-700"><strong>Sheet:</strong> First sheet will be processed</p>
+                  </div>
+                </div>
+
+                {/* Required Columns */}
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-800 mb-3">🔴 Required Columns</h4>
+                  <div className="bg-red-50 p-4 rounded-lg space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <p className="font-semibold text-red-800">Organization Name</p>
+                        <p className="text-sm text-red-700">Company/startup name</p>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-red-800">Headquarters Location</p>
+                        <p className="text-sm text-red-700">City, Country (e.g., "Lagos, Nigeria")</p>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-red-800">Industries</p>
+                        <p className="text-sm text-red-700">Sectors separated by commas (e.g., "Payments, Mobile Money, Lending")</p>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-red-800">Founded Date</p>
+                        <p className="text-sm text-red-700">Year founded (e.g., 2020)</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Optional Columns */}
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-800 mb-3">🟡 Optional Columns</h4>
+                  <div className="bg-yellow-50 p-4 rounded-lg space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <p className="font-semibold text-yellow-800">Description</p>
+                        <p className="text-sm text-yellow-700">Company description</p>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-yellow-800">Website</p>
+                        <p className="text-sm text-yellow-700">Company website URL</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Example */}
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-800 mb-3">📝 Example Row</h4>
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-blue-200">
+                            <th className="text-left p-2 text-blue-800">Organization Name</th>
+                            <th className="text-left p-2 text-blue-800">Headquarters Location</th>
+                            <th className="text-left p-2 text-blue-800">Industries</th>
+                            <th className="text-left p-2 text-blue-800">Founded Date</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td className="p-2 text-blue-700">Teletech</td>
+                            <td className="p-2 text-blue-700">Congo</td>
+                            <td className="p-2 text-blue-700">Payments, Mobile Money, Lending</td>
+                            <td className="p-2 text-blue-700">2025</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tips */}
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-800 mb-3">💡 Tips</h4>
+                  <div className="bg-green-50 p-4 rounded-lg space-y-2">
+                    <p className="text-sm text-green-700">• Multiple sectors can be separated by commas or semicolons</p>
+                    <p className="text-sm text-green-700">• Only African countries are accepted</p>
+                    <p className="text-sm text-green-700">• Founded date should be a year (1900-2024)</p>
+                    <p className="text-sm text-green-700">• Column names are case-insensitive</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={() => setShowUploadGuide(false)}
+                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                >
+                  Got it!
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

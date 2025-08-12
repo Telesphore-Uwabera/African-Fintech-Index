@@ -5,8 +5,6 @@ import { AfricaMap } from './AfricaMap';
 import { AfricaMapComplete } from './AfricaMapComplete';
 import { SubComponentCards } from './SubComponentCards';
 import { CountryTable } from './CountryTable';
-import { FileUpload } from './FileUpload';
-import { DataManagement } from './DataManagement';
 import { AuthModal } from './AuthModal';
 import { FinanceNews } from './FinanceNews';
 import { InteractiveChart } from './InteractiveChart';
@@ -248,21 +246,6 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange, avail
           <div className="w-full max-w-full min-w-0 overflow-hidden">
             <StatsCards stats={currentStats} />
           </div>
-          
-          {/* Admin Data Management */}
-          {currentUser?.role === 'admin' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 lg:gap-6 w-full max-w-full min-w-0 overflow-hidden">
-              <DataManagement 
-                getDataInfo={() => ({ total: countryData.length, years: availableYears })}
-                clearData={() => {}}
-                isAuthenticated={true}
-              />
-              <FileUpload 
-                onDataUpdate={handleDataUpdate}
-                currentYear={selectedYear}
-              />
-            </div>
-          )}
           
           {/* Sub-component Cards */}
           <div className="w-full max-w-full min-w-0 overflow-hidden">

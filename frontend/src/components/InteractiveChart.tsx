@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, Legend } from 'recharts';
-import { TrendingUp, BarChart3, PieChart as PieChartIcon, Activity, ChevronDown, Settings, Calendar, RotateCcw } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import { TrendingUp, PieChart as PieChartIcon, Activity, ChevronDown, Settings, Calendar, RotateCcw } from 'lucide-react';
 import type { CountryData } from '../types';
 import { CountryList } from './CountryList';
 
@@ -18,7 +18,7 @@ const COUNTRY_COLORS = [
 ];
 
 export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYearsData, selectedYear, onCountrySelect, selectedCountry: externalSelectedCountry }) => {
-  const [chartType, setChartType] = useState<'trend' | 'comparison' | 'distribution'>('comparison');
+  const [chartType, setChartType] = useState<'trend' | 'distribution'>('trend');
 
 
   const [yearRange, setYearRange] = useState<'custom' | number>('custom');
@@ -137,19 +137,6 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
     });
   }, [allYearsData, selectedYear, yearRange, customStartYear, customEndYear, allCountries]);
 
-  // Prepare comparison data for selected year, filtering out zero scores
-  const comparisonData = data
-    .filter(country => country.finalScore > 0)
-    .map(country => ({
-      name: country.name,
-      fullName: country.name,
-      finalScore: country.finalScore,
-      literacyRate: country.literacyRate,
-      digitalInfra: country.digitalInfrastructure,
-      investment: country.investment,
-      fintechCompanies: startupCounts.get(country.name) || country.fintechCompanies || 0
-    })).sort((a, b) => b.finalScore - a.finalScore).slice(0, 10);
-
   // Prepare distribution data for selected year, filtering out zero scores
   const filteredData = data.filter(c => c.finalScore > 0);
   const distributionData = [
@@ -160,7 +147,6 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
   ].filter(item => item.value > 0); // Remove categories with zero countries
 
   const chartTypes = [
-    { id: 'comparison', label: 'Country Comparison', icon: BarChart3 },
     { id: 'trend', label: 'Country Trends', icon: TrendingUp },
     { id: 'distribution', label: 'Score Distribution', icon: PieChartIcon }
   ];
@@ -380,98 +366,6 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
           </ResponsiveContainer>
         )}
 
-        {chartType === 'comparison' && (
-          <div className="w-full h-full flex flex-col">
-            {/* Chart Title - Matching the styling */}
-            <div className="mb-4 text-center">
-              <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">
-                Total Score Breakdown (%)
-              </h3>
-              <p className="text-sm sm:text-base text-gray-600 mt-1">
-                Detailed breakdown of fintech development metrics for {selectedYear}
-              </p>
-            </div>
-            
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart 
-                data={comparisonData} 
-                margin={{ top: 20, right: 30, left: 120, bottom: 20 }}
-                layout="horizontal"
-                barSize={20}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={false} />
-                <XAxis 
-                  type="number"
-                  domain={[0, 100]}
-                  stroke="#6b7280"
-                  tick={{ fontSize: 12, fontWeight: 'bold' }}
-                  label={{ value: 'Total Score Breakdown (%)', position: 'insideBottom', offset: -10, fontSize: 14, fontWeight: 'bold' }}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis 
-                  type="category"
-                  dataKey="name" 
-                  stroke="#6b7280"
-                  tick={{ fontSize: 12, fontWeight: 'bold' }}
-                  width={110}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'white', 
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                    fontSize: '14px',
-                    fontWeight: '600'
-                  }}
-                  formatter={(value: any, name: string) => [
-                    `${value.toFixed(1)}%`,
-                    name === 'investment' ? 'Investment' : 
-                    name === 'digitalInfra' ? 'Digital Infrastructure' : 
-                    name === 'literacyRate' ? 'Literacy Rate' : name
-                  ]}
-                />
-                <Legend 
-                  verticalAlign="top" 
-                  align="right"
-                  wrapperStyle={{ paddingBottom: '10px' }}
-                />
-                <Bar 
-                  dataKey="investment" 
-                  fill="#3b82f6" 
-                  name="Investment" 
-                  radius={[0, 4, 4, 0]}
-                  stackId="a"
-                />
-                <Bar 
-                  dataKey="digitalInfra" 
-                  fill="#f97316" 
-                  name="Digital Infrastructure" 
-                  radius={[0, 4, 4, 0]}
-                  stackId="a"
-                />
-                <Bar 
-                  dataKey="literacyRate" 
-                  fill="#10b981" 
-                  name="Literacy Rate" 
-                  radius={[0, 4, 4, 0]}
-                  stackId="a"
-                />
-              </BarChart>
-            </ResponsiveContainer>
-            
-            {/* Bold Footer Text */}
-            <div className="mt-4 text-center">
-              <p className="text-sm sm:text-base font-bold text-gray-700">
-                Top 10 countries by fintech index score for {selectedYear} • Only countries with scores above zero are included
-              </p>
-            </div>
-          </div>
-        )}
-
         {chartType === 'distribution' && (
           <div className="w-full h-full flex flex-col">
             {/* Chart Title - Matching Country Comparison styling */}
@@ -602,15 +496,6 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
             <p className="mb-2">Country names and latest scores displayed at line endpoints</p>
             <p className="mb-2">💡 Hover over any country line to see detailed information</p>
             <p>Use controls above to adjust time period or view all {availableYears.length} available years ({minYear}-{maxYear})</p>
-          </div>
-        </div>
-      )}
-      
-      {chartType === 'comparison' && (
-        <div className="mt-2 sm:mt-3 md:mt-4 text-xs text-gray-500 text-center px-2">
-          <div className="break-words">
-            Top 10 countries by fintech index score for {selectedYear} • 
-            Only countries with scores above zero are included
           </div>
         </div>
       )}

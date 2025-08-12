@@ -168,10 +168,14 @@ export const FileUpload: React.FC<FileUploadProps> = ({ onDataUpdate, currentYea
         });
         if (!res.ok) {
           const err = await res.json();
+          console.error('❌ Upload failed:', err);
           setUploadStatus({
             type: 'error',
-            message: 'Failed to upload data to backend',
-            details: [err.error || 'Unknown error']
+            message: err.error || 'Failed to upload data to backend',
+            details: [
+              err.details || err.message || 'Unknown error',
+              ...(err.conflicts ? [`Conflicts: ${err.conflicts.map((c: any) => `${c.id} (${c.year})`).join(', ')}`] : [])
+            ].filter(Boolean)
           });
           return;
         }

@@ -1,14 +1,58 @@
 import express from 'express';
 import Startup from '../models/Startup';
+import { requireRole } from '../middleware/role';
+import { sendEmail, sendPhoneNotification } from '../utils/notifications';
+import { authMiddleware } from '../routes/auth';
 
 const router = express.Router();
 
-// GET /api/startups - list all startups
+// Admin contact information
+const ADMIN_CONTACT = {
+  email: 'ntakirpetero@gmail.com',
+  phone: '+250 781 712 615'
+};
+
+// GET /api/startups - list all startups with search and filtering
 router.get('/', async (req, res) => {
   try {
-    const startups = await Startup.find().sort({ addedAt: -1 });
+    const { search, country, sector } = req.query;
+    
+    let filter: any = {};
+    
+    // Search by name or description
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    // Filter by country
+    if (country && country !== 'All Countries') {
+      filter.country = { $regex: country, $options: 'i' };
+    }
+    
+    // Filter by sector (works with multiple sectors)
+    if (sector && sector !== 'All Sectors') {
+      filter.sector = { $regex: sector, $options: 'i' };
+    }
+    
+    const startups = await Startup.find(filter).sort({ addedAt: -1 });
+    
+    // Log what sectors are being returned to frontend
+    console.log('🔍 Backend sending startups to frontend:', {
+      totalCount: startups.length,
+      sampleSectors: startups.slice(0, 3).map(s => ({
+        name: s.name,
+        sector: s.sector,
+        sectorsCount: s.sector ? s.sector.split(',').length : 0,
+        hasMultipleSectors: s.sector && s.sector.includes(',')
+      }))
+    });
+    
     res.json(startups);
   } catch (err) {
+    console.error('Error fetching startups:', err);
     res.status(500).json({ error: 'Failed to fetch startups' });
   }
 });
@@ -47,19 +91,46 @@ router.get('/counts', async (req, res) => {
   }
 });
 
-// POST /api/startups - add a new startup
-router.post('/', async (req, res) => {
+// POST /api/startups - add a new startup (admin only)
+router.post('/', authMiddleware, requireRole('admin'), async (req, res) => {
   try {
     const startup = new Startup(req.body);
     await startup.save();
+    
+    // Send admin notification about new fintech company
+    const notificationSubject = 'New Fintech Company Added';
+    const notificationText = `
+New fintech company has been added to the system:
+
+Company Details:
+- Name: ${startup.name}
+- Country: ${startup.country}
+- Sector: ${startup.sector}
+- Founded Year: ${startup.foundedYear}
+- Added Date: ${new Date().toLocaleString()}
+
+Please review and verify this company data.
+
+African Fintech Index Admin Panel
+    `.trim();
+    
+    // Send email notification
+    await sendEmail(ADMIN_CONTACT.email, notificationSubject, notificationText);
+    
+    // Send phone notification
+    const phoneMessage = `New fintech ${startup.name} added. Country: ${startup.country}. Please verify.`;
+    await sendPhoneNotification(ADMIN_CONTACT.phone, phoneMessage);
+    
+    console.log(`✅ Admin notifications sent for new fintech company: ${startup.name}`);
+    
     res.status(201).json(startup);
   } catch (err) {
     res.status(400).json({ error: 'Failed to add startup' });
   }
 });
 
-// POST /api/startups/bulk - bulk add startups
-router.post('/bulk', async (req, res) => {
+// POST /api/startups/bulk - bulk add startups (admin only)
+router.post('/bulk', authMiddleware, requireRole('admin'), async (req, res) => {
   try {
     console.log('Bulk upload endpoint hit!');
     const { data } = req.body;
@@ -171,16 +242,31 @@ router.post('/bulk', async (req, res) => {
         isAfricanCountry 
       });
       
-              // Extract primary sector from industries (take the first one if multiple)
-        let primarySector = String(sector).trim();
-        if (primarySector.includes(',')) {
-          primarySector = primarySector.split(',')[0].trim();
-        }
+        // Extract all sectors from industries (keep all sectors, don't just take the first one)
+        let allSectors = String(sector).trim();
+        
+        // Clean up sectors - remove extra spaces and normalize
+        const sectorsArray = allSectors
+          .split(/[,;]/)
+          .map(s => s.trim())
+          .filter(s => s.length > 0)
+          .map(s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()); // Capitalize first letter
+        
+        // Join sectors back together for storage
+        const cleanSectors = sectorsArray.join(', ');
+        
+        // Log what sectors are being stored for this startup
+        console.log(`🔍 Backend storing sectors for ${String(name).trim()}:`, {
+          originalSector: sector,
+          cleanedSectors: cleanSectors,
+          sectorsArray: sectorsArray,
+          sectorsCount: sectorsArray.length
+        });
         
         return {
           name: String(name).trim(),
           country: countryName,
-          sector: primarySector,
+          sector: cleanSectors, // Store all sectors, not just the first one
           foundedYear: year,
           description: row.description || row.Description || row.DESC || row['Full Description'] || '',
           website: row.website || row.Website || row.URL || row.url || row['Organization Name URL'] || '',
@@ -229,6 +315,65 @@ router.post('/bulk', async (req, res) => {
     console.error('Error creating bulk startups:', err);
     const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
     res.status(400).json({ error: 'Failed to create bulk startups', details: errorMessage });
+  }
+});
+
+// PUT /api/startups/:id - update an existing startup
+router.put('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+    
+    const startup = await Startup.findByIdAndUpdate(
+      id, 
+      updateData, 
+      { new: true, runValidators: true }
+    );
+    
+    if (!startup) {
+      return res.status(404).json({ error: 'Startup not found' });
+    }
+    
+    res.json(startup);
+  } catch (err) {
+    console.error('Error updating startup:', err);
+    res.status(400).json({ error: 'Failed to update startup' });
+  }
+});
+
+// GET /api/startups/debug - debug endpoint to see current data structure
+router.get('/debug', async (req, res) => {
+  try {
+    const startups = await Startup.find().limit(5);
+    
+    console.log('🔍 Debug: Current startup data in database:', {
+      totalStartups: await Startup.countDocuments(),
+      sampleStartups: startups.map(s => ({
+        id: s._id,
+        name: s.name,
+        sector: s.sector,
+        sectorsCount: s.sector ? s.sector.split(',').length : 0,
+        hasMultipleSectors: s.sector && s.sector.includes(','),
+        country: s.country,
+        foundedYear: s.foundedYear
+      }))
+    });
+    
+    res.json({
+      totalStartups: await Startup.countDocuments(),
+      sampleStartups: startups.map(s => ({
+        id: s._id,
+        name: s.name,
+        sector: s.sector,
+        sectorsCount: s.sector ? s.sector.split(',').length : 0,
+        hasMultipleSectors: s.sector && s.sector.includes(','),
+        country: s.country,
+        foundedYear: s.foundedYear
+      }))
+    });
+  } catch (err) {
+    console.error('Error in debug endpoint:', err);
+    res.status(500).json({ error: 'Failed to get debug info' });
   }
 });
 
