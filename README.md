@@ -1,436 +1,306 @@
-# African Fintech Index Dashboard
+# African Fintech Index
 
-A comprehensive full-stack web application for tracking and analyzing fintech development across African countries. Built with React, TypeScript, Node.js, and MongoDB, featuring responsive design and real-time data visualization.
+A comprehensive research platform tracking financial technology development across Africa, providing insights into digital innovation, investment flows, and regulatory landscapes.
 
-## 🌟 Features
+## 🎯 Project Overview
 
-### 🗺️ Interactive Mapping
-- **Interactive African Map**: Visual representation of fintech development across African countries
-- **Color-coded Regions**: Countries are color-coded based on their fintech index scores
-- **Hover Effects**: Detailed country information on hover with custom tooltips
-- **Shapefile Support**: Enhanced map with real geographic data using D3-geo
-- **Responsive Design**: Optimized for all screen sizes from mobile to desktop
+The African Fintech Index is a collaborative research initiative between:
+- **Carnegie Mellon University** (Pittsburgh, Pennsylvania, USA)
+- **Carnegie Mellon Africa** (Kigali, Rwanda)
+- **University of the Witwatersrand** (Johannesburg, South Africa)
 
-### 📊 Analytics & Data Visualization
-- **Interactive Charts**: Multiple chart types (line, bar, pie) with Recharts
-- **Score Distribution**: Donut chart showing fintech score distributions
-- **Country Trends**: Time-series analysis with year-over-year comparisons
-- **Comparative Analysis**: Side-by-side country comparisons with real-time data
-- **Statistical Overview**: Key metrics and performance indicators
-- **Country List Integration**: Filterable country selection within analytics
-
-### 👥 Role-Based Access Control
-- **Admin**: Full system access, user management, data upload, notifications
-- **Editor**: Data management, startup addition, analytics access
-- **Viewer**: Read access, startup addition, analytics viewing
-- **Guest**: Limited public access with view-only capabilities
-
-### 🏢 Startup Management
-- **Startup Database**: Comprehensive fintech startup information
-- **Add/Edit Startups**: Role-based startup management with bulk upload
-- **Search & Filter**: Advanced filtering by country, sector, and keywords
-- **Sector Classification**: Organized by fintech sectors (Payments, Lending, etc.)
-- **Incremental Loading**: "View More" functionality showing 6 startups at a time
-- **Responsive Grid**: Optimized layout for mobile, tablet, and desktop
-
-### 📈 Data Management
-- **CSV/Excel Upload**: Bulk data import functionality with validation
-- **Data Validation**: Automated data quality checks and error handling
-- **Year-based Filtering**: Multi-year data analysis with global year selection
-- **Export Capabilities**: Data export in CSV format
-- **Real-time Updates**: Live data synchronization across components
-
-### 📰 News Integration
-- **Finance News**: Latest fintech developments from NewsAPI.org
-- **Auto-refresh**: Hourly updates with manual refresh option
-- **Responsive Cards**: Mobile-optimized news display
-- **Error Handling**: Graceful fallbacks for network issues
-
-### 🔔 Admin Notifications
-- **User Registration Alerts**: Real-time notifications for new user registrations
-- **Email Notifications**: Automated email alerts to admin users
-- **Unverified Users**: Easy management of pending user verifications
-- **Polling System**: Automatic updates every 60 seconds
-
-## 🏗️ Architecture
-
-### Frontend
-- **React 18** with TypeScript for type safety
-- **Vite** for fast development and optimized building
-- **Tailwind CSS** for responsive styling and utility classes
-- **React Router DOM** for client-side navigation
-- **Recharts** for interactive data visualization
-- **D3-geo** for advanced geographic mapping
-- **Lucide React** for modern iconography
-- **Responsive Design**: Mobile-first approach with breakpoint optimization
-
-### Backend
-- **Node.js** with Express.js framework
-- **TypeScript** for type safety and better development experience
-- **MongoDB** with Mongoose ODM for data modeling
-- **JWT** for secure authentication and session management
-- **Role-based middleware** for granular access control
-- **Nodemailer** for email notifications
-- **CORS** configuration for cross-origin requests
-
-### Key Technologies
-- **Shapefile Processing**: Geographic data handling with shpjs
-- **Data Visualization**: Interactive charts and maps with real-time updates
-- **Real-time Updates**: Live data synchronization across components
-- **Responsive Design**: Mobile-first approach with comprehensive breakpoints
-- **Email Integration**: Automated notification system
-- **File Upload**: Support for CSV, Excel, and JSON formats
+Proudly funded by the **AFRETEC NETWORK**.
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js (v18 or higher)
-- MongoDB (v6 or higher)
-- npm or yarn
+- Node.js 16+ and npm
+- MongoDB (for backend)
+- Git
 
 ### Installation
 
-1. **Clone the repository**
+1. **Clone the repository:**
    ```bash
-   git clone https://github.com/Telesphore-Uwabera/African-Fintech-Index.git
-   cd African-Fintech-Index
+   git clone <repository-url>
+   cd African-Fintech-Index-main
    ```
 
-2. **Install frontend dependencies**
+2. **Install dependencies:**
    ```bash
    npm install
+   cd frontend && npm install
+   cd ../backend && npm install
    ```
 
-3. **Install backend dependencies**
+3. **Set up environment variables:**
    ```bash
-   cd backend
-   npm install
-   cd ..
-   ```
-
-4. **Set up environment variables**
-   Create `.env` files in both root and backend directories:
-   ```env
-   # Backend .env
-   MONGODB_URI=mongodb://localhost:27017/african-fintech-index
-   JWT_SECRET=your-secret-key-here
-   PORT=5000
-   NODE_ENV=development
-   
-   # Frontend .env
+   # Frontend (.env)
    VITE_API_URL=http://localhost:5000/api
+   
+   # Backend (.env)
+   MONGODB_URI=mongodb://localhost:27017/african-fintech-index
+   JWT_SECRET=your-secret-key
+   EMAIL_USER=your-email@gmail.com
+   EMAIL_PASS=your-app-password
    ```
 
-5. **Start the development servers**
+4. **Start the development servers:**
    ```bash
-   # Start backend (in backend directory)
+   # Terminal 1 - Backend
    cd backend
    npm run dev
    
-   # Start frontend (in root directory)
+   # Terminal 2 - Frontend
+   cd frontend
    npm run dev
    ```
 
-6. **Access the application**
+5. **Open your browser:**
    - Frontend: http://localhost:5173
-   - Backend API: http://localhost:5000
-
-## 🌐 Live Deployment
-
-### Production URLs
-- **Frontend**: https://africanfintechindex.netlify.app
-- **Backend**: https://african-fintech-backend.azurewebsites.net
-
-### CI/CD Pipeline
-- **GitHub Actions**: Automated deployment workflows
-- **Netlify**: Frontend hosting with automatic builds
-- **Azure App Service**: Backend hosting with Node.js support
-- **MongoDB Atlas**: Cloud database hosting
-
-## 👑 Creating a Super User (Admin)
-
-### Method 1: Direct Database Creation (Recommended)
-
-1. **Start MongoDB and connect to your database**
-   ```bash
-   # Connect to MongoDB shell
-   mongosh
-   
-   # Switch to your database
-   use african-fintech-index
-   ```
-
-2. **Create the admin user directly in MongoDB**
-   ```javascript
-   db.users.insertOne({
-     email: "admin@africanfintech.com",
-     password: "$2a$10$YOUR_HASHED_PASSWORD", // Use bcrypt hash
-     role: "admin",
-     isVerified: true,
-     name: "Super Administrator",
-     createdAt: new Date(),
-     updatedAt: new Date()
-   })
-   ```
-
-3. **Generate a bcrypt hash for your password**
-   ```bash
-   # Install bcrypt-cli globally
-   npm install -g bcrypt-cli
-   
-   # Generate hash for the password
-   bcrypt "secure-password-here"
-   ```
-
-### Method 2: Using the Application Registration
-
-1. **Register a new user through the application**
-   - Go to http://localhost:5173
-   - Click "Sign In" → "Register"
-   - Use your admin email and select "admin" role
-   - Complete registration
-
-2. **Manually verify the user in MongoDB**
-   ```bash
-   mongosh
-   use african-fintech-index
-   
-   # Update the user to verified status
-   db.users.updateOne(
-     { email: "admin-email@example.com" },
-     { 
-       $set: { 
-         isVerified: true,
-         role: "admin"
-       }
-     }
-   )
-   ```
-
-### Admin User Credentials
-
-After creating the admin user, sign in with:
-- **Email**: admin@africanfintech.com (or chosen email)
-- **Password**: secure-password-here
-
-### Admin Capabilities
-
-Once logged in as admin, you can:
-- ✅ Manage all users (verify, edit, delete, view profiles)
-- ✅ Upload and manage data files (CSV, Excel, JSON)
-- ✅ Access all analytics and reports
-- ✅ Manage fintech startups with bulk upload
-- ✅ View system statistics and user activity
-- ✅ Receive real-time notifications for new registrations
-- ✅ Configure application settings
-
-## 📁 Project Structure
-
-```
-African-Fintech-Index/
-├── frontend/                 # React frontend application
-│   ├── src/
-│   │   ├── components/      # Reusable UI components
-│   │   │   ├── InteractiveChart.tsx    # Main analytics component
-│   │   │   ├── CountryTable.tsx        # Responsive data table
-│   │   │   ├── FintechStartups.tsx     # Startup management
-│   │   │   ├── FinanceNews.tsx         # News integration
-│   │   │   ├── AdminNotifications.tsx  # Admin notification system
-│   │   │   ├── Footer.tsx              # Responsive footer
-│   │   │   └── ...                    # Other components
-│   │   ├── pages/          # Page components
-│   │   ├── types/          # TypeScript type definitions
-│   │   ├── utils/          # Utility functions
-│   │   └── data/           # Static data and shapefiles
-│   ├── public/             # Static assets
-│   └── package.json
-├── backend/                 # Node.js backend application
-│   ├── src/
-│   │   ├── routes/         # API routes
-│   │   ├── models/         # MongoDB models
-│   │   ├── middleware/     # Express middleware
-│   │   └── utils/          # Backend utilities
-│   └── package.json
-├── .github/workflows/      # CI/CD pipelines
-├── public/                  # Public assets
-└── README.md
-```
-
-## 🔐 Authentication & Roles
-
-### User Roles
-- **Admin**: Full system access including user management and notifications
-- **Editor**: Data management and content creation
-- **Viewer**: Read access with startup addition capabilities
-- **Guest**: Limited public access
-
-### Registration Process
-1. Users register with email and role selection
-2. Admin verification required for account activation
-3. Email notifications sent to admin users for new registrations
-4. JWT tokens for session management
-5. Role-based route protection
+   - Backend: http://localhost:5000
 
 ## 🗺️ Map Features
 
-### Geographic Data
-- **Natural Earth Data**: High-quality geographic boundaries
-- **Shapefile Support**: Professional-grade mapping with D3-geo
-- **Country Coverage**: All African countries included
-- **Interactive Elements**: Hover, click, and zoom functionality
-- **Custom Tooltips**: Detailed country information on hover
+### Interactive African Countries Map
+- **Color-coded by fintech index scores**
+- **Hover effects with country information**
+- **Click interactions**
+- **Responsive design**
+- **Shapefile data integration**
 
-### Color Coding
-- **High (80+)**: Green - Advanced fintech development
-- **Medium (60-79)**: Yellow - Moderate fintech development
-- **Low (40-59)**: Red - Limited fintech development
-- **Very Low (<40)**: Gray - Minimal fintech development
+### Country Coverage
+- Nigeria (NG)
+- South Africa (ZA)
+- Kenya (KE)
+- Egypt (EG)
+- Ghana (GH)
+- Morocco (MA)
+- Ethiopia (ET)
+- Tanzania (TZ)
 
-## 📊 Data Management
+### Score Categories
+- 🟢 **Green: High (80+)** - Excellent fintech development
+- 🟡 **Yellow: Medium (60-79)** - Good fintech development
+- 🔴 **Red: Low (40-59)** - Moderate fintech development
+- ⚫ **Gray: Very Low (<40)** - Limited fintech development
 
-### Supported Formats
-- CSV files with automatic parsing
-- Excel spreadsheets (.xlsx) with xlsx library
-- JSON data with validation
+## 📊 Sample Data
 
-### Data Validation
-- Automatic format detection
-- Required field validation
-- Data type checking
-- Duplicate prevention
-- Error handling and user feedback
+The application includes sample data for 8 African countries:
 
-## 🛠️ Development
+| Country | Fintech Score | Population | GDP | Fintech Companies |
+|---------|---------------|------------|-----|-------------------|
+| South Africa | 75.7 | 59.3M | $301.9B | 490 |
+| Kenya | 61.0 | 53.8M | $98.5B | 180 |
+| Morocco | 62.7 | 36.9M | $119.7B | 85 |
+| Egypt | 55.3 | 102.3M | $363.1B | 120 |
+| Ghana | 53.7 | 31.1M | $72.4B | 90 |
+| Nigeria | 47.3 | 206.1M | $448.1B | 250 |
+| Tanzania | 46.0 | 59.7M | $63.2B | 60 |
+| Ethiopia | 35.7 | 115.0M | $107.5B | 45 |
+
+## 🔧 Shapefile Integration
+
+### Current Status
+- **Files Present:** ✅ All shapefile components are in `frontend/public/data/`
+- **Processing:** 🔄 Using simplified geometry as fallback
+- **Next Step:** 📦 Install shapefile parsing library
+
+### To Enable Full Shapefile Parsing
+
+1. **Install required dependencies:**
+   ```bash
+   cd frontend
+   npm install shapefile d3-geo d3-projection @types/d3-geo
+   ```
+
+2. **The components will automatically:**
+   - Load the actual shapefile data
+   - Parse country geometries
+   - Filter for African countries
+   - Render accurate country boundaries
+
+### Shapefile Setup
+
+1. **Place shapefile in the correct directory:**
+   ```
+   frontend/public/data/
+   ├── ne_110m_admin_0_countries.shp    ✅ Shapefile geometry
+   ├── ne_110m_admin_0_countries.dbf    ✅ Shapefile attributes
+   ├── ne_110m_admin_0_countries.shx    ✅ Shapefile index
+   └── ne_110m_admin_0_countries.prj    ✅ Shapefile projection
+   ```
+
+2. **Update the component path:**
+   ```tsx
+   <AfricaMapComplete
+     data={countryData}
+     onCountryHover={handleCountryHover}
+     hoveredCountry={hoveredCountry}
+     shapefilePath="/data/ne_110m_admin_0_countries.shp"
+   />
+   ```
+
+### Country Code Mapping
+
+The shapefile uses ISO country codes. Make sure your `CountryData` objects have matching `id` fields:
+
+- Nigeria: `NG`
+- South Africa: `ZA`
+- Kenya: `KE`
+- Egypt: `EG`
+- Ghana: `GH`
+- Morocco: `MA`
+- Ethiopia: `ET`
+- Tanzania: `TZ`
+
+## 🏗️ Project Structure
+
+```
+African-Fintech-Index-main/
+├── frontend/                          # React frontend application
+│   ├── public/
+│   │   ├── logos/                     # University and partner logos
+│   │   │   ├── cmu-africa-logo.png
+│   │   │   ├── seal-4c-600x600-min.jpg
+│   │   │   ├── FintechHubLogo.png
+│   │   │   └── 06-18-afretec.png
+│   │   └── data/                      # Shapefile data
+│   ├── src/
+│   │   ├── components/                # React components
+│   │   │   ├── AfricaMapComplete.tsx  # Enhanced map component
+│   │   │   ├── InteractiveChart.tsx   # Analytics charts
+│   │   │   ├── CountryTable.tsx       # Country rankings
+│   │   │   ├── FintechStartups.tsx    # Startup directory
+│   │   │   └── Footer.tsx             # Footer with real logos
+│   │   ├── pages/                     # Page components
+│   │   ├── types/                     # TypeScript interfaces
+│   │   └── utils/                     # Utility functions
+│   ├── package.json
+│   └── vite.config.ts
+├── backend/                           # Node.js backend API
+│   ├── src/
+│   │   ├── routes/                    # API endpoints
+│   │   ├── models/                    # MongoDB models
+│   │   └── middleware/                # Authentication & validation
+│   ├── package.json
+│   └── server.js
+├── netlify.toml                       # Netlify deployment config
+├── package.json                       # Root package.json
+└── README.md                          # This file
+```
+
+## 🎨 Features
+
+### Interactive Analytics
+- **Country Trends:** Line charts showing fintech development over time
+- **Country Comparison:** Horizontal stacked bar charts with score breakdowns
+- **Score Distribution:** Pie charts showing score ranges
+
+### Fintech Startups Directory
+- **Search & Filter:** By country, sector, and keywords
+- **Multiple Sectors:** Support for startups with multiple business sectors
+- **Bulk Upload:** Excel/CSV import functionality
+- **Real-time Data:** Live updates from backend
+
+### User Management
+- **Role-based Access:** Admin, Editor, Viewer roles
+- **User Verification:** Email-based verification system
+- **Admin Notifications:** Real-time alerts for new registrations
+
+### Responsive Design
+- **Mobile First:** Optimized for all screen sizes
+- **Modern UI:** Clean, professional interface
+- **Accessibility:** Proper contrast and interactive elements
+
+## 🚀 Deployment
+
+### Netlify (Frontend)
+1. Connect your GitHub repository
+2. Set build command: `cd frontend && npm run build`
+3. Set publish directory: `frontend/dist`
+4. Deploy automatically on push to main branch
+
+### Railway/Heroku (Backend)
+1. Connect your GitHub repository
+2. Set environment variables
+3. Deploy automatically on push to main branch
+
+## 🔧 Development
 
 ### Available Scripts
 
-**Frontend:**
 ```bash
-npm run dev          # Start development server
+# Root directory
+npm run dev          # Start both frontend and backend
+npm run build        # Build both applications
+npm run start        # Start production servers
+
+# Frontend only
+cd frontend
+npm run dev          # Start Vite dev server
 npm run build        # Build for production
 npm run preview      # Preview production build
-npm run lint         # Run ESLint
-```
 
-**Backend:**
-```bash
-npm run dev          # Start development server with nodemon
-npm run build        # Build TypeScript
-npm run lint         # Run ESLint
+# Backend only
+cd backend
+npm run dev          # Start with nodemon
+npm run start        # Start production server
+npm run test         # Run tests
 ```
 
 ### Code Quality
-- **ESLint**: Code linting and formatting
-- **TypeScript**: Type safety and IntelliSense
-- **Responsive Design**: Mobile-first approach with Tailwind CSS
-- **Error Handling**: Comprehensive error management
+- **TypeScript:** Full type safety
+- **ESLint:** Code linting and formatting
+- **Prettier:** Consistent code style
+- **Husky:** Pre-commit hooks
 
-## 🌐 Deployment
+## 📝 API Endpoints
 
-### Local Deployment
-See `LOCAL_DEPLOYMENT.md` for detailed local setup instructions.
+### Authentication
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/login` - User login
+- `GET /api/auth/verify/:token` - Email verification
 
-### Production Deployment
-1. **Frontend**: Automated deployment via Netlify
-   - Build the frontend: `npm run build`
-   - Connected to GitHub repository
-   - Automatic builds on push to main branch
+### Data
+- `GET /api/country-data` - Country fintech data
+- `GET /api/country-data/years` - Available years
+- `GET /api/startups` - Fintech startups
+- `POST /api/startups/bulk` - Bulk upload startups
 
-2. **Backend**: Automated deployment via Azure App Service
-   - Connected to GitHub repository
-   - Automatic builds and deployments
-   - Environment variables configured in Azure
-
-3. **Database**: MongoDB Atlas
-   - Cloud-hosted MongoDB
-   - Automated backups and monitoring
-
-## 📈 Key Metrics
-
-The dashboard tracks various fintech development indicators:
-- **Literacy Rate**: Educational foundation and financial literacy
-- **Digital Infrastructure**: Technology readiness and connectivity
-- **Investment**: Financial backing and funding availability
-- **Fintech Companies**: Market presence and startup ecosystem
-- **Final Score**: Composite fintech index calculation
-- **Year-over-Year Change**: Growth tracking and trends
-
-## 🎨 Responsive Design
-
-### Mobile Optimization
-- **Mobile-first approach**: Designed for mobile devices first
-- **Touch-friendly**: Optimized touch targets and interactions
-- **Responsive tables**: Horizontal scrolling for data tables
-- **Adaptive layouts**: Grid systems that work on all screen sizes
-
-### Breakpoint System
-- **Mobile**: < 640px (sm)
-- **Tablet**: 640px - 1024px (sm to lg)
-- **Desktop**: > 1024px (lg+)
-
-### Component Responsiveness
-- **Stats Cards**: Stacked on mobile, grid on larger screens
-- **Charts**: Responsive sizing with proper aspect ratios
-- **Navigation**: Collapsible sidebar on mobile
-- **Forms**: Responsive grid layouts
-- **Footer**: Optimized for all screen sizes
+### Users
+- `GET /api/users` - List all users (admin only)
+- `POST /api/users` - Create new user (admin only)
+- `PUT /api/users/:id` - Update user (admin only)
 
 ## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature-name`
-3. Make your changes with responsive design in mind
-4. Add tests if applicable
-5. Ensure mobile compatibility
+3. Make your changes
+4. Commit: `git commit -m 'Add feature'`
+5. Push: `git push origin feature-name`
 6. Submit a pull request
 
 ## 📄 License
 
-This project is licensed under the ISC License.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🆘 Support
+## 🙏 Acknowledgments
 
-For support and questions:
-- Check the documentation in `LOCAL_DEPLOYMENT.md`
-- Review the shapefile setup guide in `SHAPEFILE_SETUP.md`
-- Open an issue for bugs or feature requests
-- Check deployment status in GitHub Actions
+- **AFRETEC NETWORK** for funding and support
+- **Carnegie Mellon University** for research collaboration
+- **University of the Witwatersrand** for African expertise
+- **Open Source Community** for tools and libraries
 
-## 🔄 Version History
+## 📞 Support
 
-- **v1.0.0**: Initial release with basic mapping and analytics
-- **v1.1.0**: Added role-based access control
-- **v1.2.0**: Enhanced startup management features
-- **v1.3.0**: Improved data visualization and user experience
-- **v1.4.0**: Added responsive design and mobile optimization
-- **v1.5.0**: Enhanced admin notifications and email integration
-- **v1.6.0**: Improved analytics with country list integration
-- **v1.7.0**: Comprehensive responsive design overhaul
-
-## 🚀 Recent Updates
-
-### Responsive Design Improvements
-- ✅ Mobile-optimized dashboard layout
-- ✅ Responsive table design with horizontal scrolling
-- ✅ Adaptive chart sizing for all screen sizes
-- ✅ Touch-friendly navigation and interactions
-- ✅ Optimized footer layout for mobile devices
-
-### New Features
-- ✅ Admin notification system for new user registrations
-- ✅ Email integration with Nodemailer
-- ✅ Enhanced analytics with country list integration
-- ✅ Improved startup management with incremental loading
-- ✅ Real-time news integration with error handling
-
-### Performance Enhancements
-- ✅ Optimized build process with Vite
-- ✅ Improved loading states and error handling
-- ✅ Better data fetching with proper error boundaries
-- ✅ Enhanced user experience with smooth transitions
+For questions or support:
+- Create an issue on GitHub
+- Contact the development team
+- Check the documentation
 
 ---
 
-**Built with ❤️ for African Fintech Development**
-
-*Partnership between Carnegie Mellon University, Carnegie Mellon Africa, and University of the Witwatersrand*
+**Ready to explore the Africa Fintech Index! 🗺️✨**

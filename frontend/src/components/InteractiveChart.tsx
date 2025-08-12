@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, Legend } from 'recharts';
 import { TrendingUp, BarChart3, PieChart as PieChartIcon, Activity, ChevronDown, Settings, Calendar, RotateCcw } from 'lucide-react';
 import type { CountryData } from '../types';
 import { CountryList } from './CountryList';
@@ -18,7 +18,7 @@ const COUNTRY_COLORS = [
 ];
 
 export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYearsData, selectedYear, onCountrySelect, selectedCountry: externalSelectedCountry }) => {
-  const [chartType, setChartType] = useState<'trend' | 'comparison' | 'distribution'>('trend');
+  const [chartType, setChartType] = useState<'trend' | 'comparison' | 'distribution'>('comparison');
 
 
   const [yearRange, setYearRange] = useState<'custom' | number>('custom');
@@ -141,7 +141,7 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
   const comparisonData = data
     .filter(country => country.finalScore > 0)
     .map(country => ({
-      name: country.name.length > 8 ? country.name.substring(0, 8) + '...' : country.name,
+      name: country.name,
       fullName: country.name,
       finalScore: country.finalScore,
       literacyRate: country.literacyRate,
@@ -160,8 +160,8 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
   ].filter(item => item.value > 0); // Remove categories with zero countries
 
   const chartTypes = [
-    { id: 'trend', label: 'Country Trends', icon: TrendingUp },
     { id: 'comparison', label: 'Country Comparison', icon: BarChart3 },
+    { id: 'trend', label: 'Country Trends', icon: TrendingUp },
     { id: 'distribution', label: 'Score Distribution', icon: PieChartIcon }
   ];
 
@@ -197,17 +197,17 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
     
     if (!isLastPoint) return null;
     
-    // Show abbreviated country name and score
-    const displayText = `${country.name.substring(0, 2).toUpperCase()} (${payload[dataKey]?.toFixed(0)})`;
+    // Show full country name and score
+    const displayText = `${country.name} (${payload[dataKey]?.toFixed(0)})`;
     
     return (
       <g>
         <circle cx={cx} cy={cy} r={3} fill={country.color} stroke="white" strokeWidth={1} />
         <text
-          x={cx + 5}
+          x={cx + 8}
           y={cy}
           fill={country.color}
-          fontSize="10"
+          fontSize="9"
           fontWeight="600"
           textAnchor="start"
           dominantBaseline="middle"
@@ -237,12 +237,6 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
           </div>
           <div className="min-w-0 flex-1">
             <h2 className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl font-bold text-gray-900 break-words whitespace-normal">Interactive Analytics</h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600 break-words whitespace-normal">
-              {chartType === 'trend' 
-                ? `Showing data from ${startYear} to ${endYear} (${totalYearsShown} year${totalYearsShown > 1 ? 's' : ''})`
-                : `Data for ${selectedYear}`
-              }
-            </p>
           </div>
         </div>
 
@@ -326,7 +320,7 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
           </div>
 
           {/* Currently Showing Info */}
-          <div className="text-xs text-gray-600 ml-auto">
+          <div className="text-xs sm:text-sm font-bold text-gray-800 ml-auto">
             Currently showing: {startYear} - {endYear} ({totalYearsShown} year{totalYearsShown > 1 ? 's' : ''})
           </div>
         </div>
@@ -342,12 +336,12 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
         <div className={`${chartType === 'trend' ? 'lg:col-span-4' : 'lg:col-span-3'} h-80 sm:h-96 md:h-[500px] lg:h-[600px] xl:h-[700px] 2xl:h-[800px] w-full min-w-0 overflow-hidden`}>
         {chartType === 'trend' && (
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={trendData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+            <LineChart data={trendData} margin={{ top: 5, right: 80, left: 10, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis 
                 dataKey="year" 
                 stroke="#6b7280"
-                tick={{ fontSize: 8 }}
+                tick={{ fontSize: 12, fontWeight: 'bold' }}
                 domain={[startYear, endYear]}
                 type="number"
                 scale="linear"
@@ -356,8 +350,8 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
               <YAxis 
                 stroke="#6b7280" 
                 domain={[0, 100]}
-                tick={{ fontSize: 8 }}
-                label={{ value: 'Score', angle: -90, position: 'insideLeft', fontSize: 8 }}
+                tick={{ fontSize: 12, fontWeight: 'bold' }}
+                label={{ value: 'Score', angle: -90, position: 'insideLeft', fontSize: 14, fontWeight: 'bold' }}
               />
 
               {allCountries.map((country) => (
@@ -387,75 +381,140 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
         )}
 
         {chartType === 'comparison' && (
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={comparisonData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis 
-                dataKey="name" 
-                stroke="#6b7280"
-                tick={{ fontSize: 8 }}
-                interval={0}
-                angle={-45}
-                textAnchor="end"
-                height={50}
-              />
-              <YAxis 
-                stroke="#6b7280"
-                tick={{ fontSize: 8 }}
-                label={{ value: 'Score', angle: -90, position: 'insideLeft', fontSize: 8 }}
-              />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'white', 
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                }}
-                labelFormatter={(label, payload) => {
-                  const data = payload?.[0]?.payload;
-                  return data?.fullName || label;
-                }}
-                formatter={(value: any, name: string) => [
-                  typeof value === 'number' ? value.toFixed(1) : value,
-                  name === 'finalScore' ? 'Final Score' : 
-                  name === 'fintechCompanies' ? 'Fintech Companies' : name
-                ]}
-              />
-              <Bar dataKey="finalScore" fill="#8b5cf6" name="Final Score" radius={[1, 1, 0, 0]} />
-              <Bar dataKey="fintechCompanies" fill="#10b981" name="Fintech Companies" radius={[1, 1, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="w-full h-full flex flex-col">
+            {/* Chart Title - Matching the styling */}
+            <div className="mb-4 text-center">
+              <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">
+                Total Score Breakdown (%)
+              </h3>
+              <p className="text-sm sm:text-base text-gray-600 mt-1">
+                Detailed breakdown of fintech development metrics for {selectedYear}
+              </p>
+            </div>
+            
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart 
+                data={comparisonData} 
+                margin={{ top: 20, right: 30, left: 120, bottom: 20 }}
+                layout="horizontal"
+                barSize={20}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={false} />
+                <XAxis 
+                  type="number"
+                  domain={[0, 100]}
+                  stroke="#6b7280"
+                  tick={{ fontSize: 12, fontWeight: 'bold' }}
+                  label={{ value: 'Total Score Breakdown (%)', position: 'insideBottom', offset: -10, fontSize: 14, fontWeight: 'bold' }}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis 
+                  type="category"
+                  dataKey="name" 
+                  stroke="#6b7280"
+                  tick={{ fontSize: 12, fontWeight: 'bold' }}
+                  width={110}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'white', 
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                    fontSize: '14px',
+                    fontWeight: '600'
+                  }}
+                  formatter={(value: any, name: string) => [
+                    `${value.toFixed(1)}%`,
+                    name === 'investment' ? 'Investment' : 
+                    name === 'digitalInfra' ? 'Digital Infrastructure' : 
+                    name === 'literacyRate' ? 'Literacy Rate' : name
+                  ]}
+                />
+                <Legend 
+                  verticalAlign="top" 
+                  align="right"
+                  wrapperStyle={{ paddingBottom: '10px' }}
+                />
+                <Bar 
+                  dataKey="investment" 
+                  fill="#3b82f6" 
+                  name="Investment" 
+                  radius={[0, 4, 4, 0]}
+                  stackId="a"
+                />
+                <Bar 
+                  dataKey="digitalInfra" 
+                  fill="#f97316" 
+                  name="Digital Infrastructure" 
+                  radius={[0, 4, 4, 0]}
+                  stackId="a"
+                />
+                <Bar 
+                  dataKey="literacyRate" 
+                  fill="#10b981" 
+                  name="Literacy Rate" 
+                  radius={[0, 4, 4, 0]}
+                  stackId="a"
+                />
+              </BarChart>
+            </ResponsiveContainer>
+            
+            {/* Bold Footer Text */}
+            <div className="mt-4 text-center">
+              <p className="text-sm sm:text-base font-bold text-gray-700">
+                Top 10 countries by fintech index score for {selectedYear} • Only countries with scores above zero are included
+              </p>
+            </div>
+          </div>
         )}
 
         {chartType === 'distribution' && (
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={distributionData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
-                outerRadius={120}
-                innerRadius={60}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {distributionData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'white', 
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                }}
-                formatter={(value: any) => [`${value} countries`, 'Count']}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+          <div className="w-full h-full flex flex-col">
+            {/* Chart Title - Matching Country Comparison styling */}
+            <div className="mb-4 text-center">
+              <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">
+                Score Distribution Analysis
+              </h3>
+              <p className="text-sm sm:text-base text-gray-600 mt-1">
+                Breakdown of countries by score ranges for {selectedYear}
+              </p>
+            </div>
+            
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={distributionData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
+                  outerRadius={140}
+                  innerRadius={70}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {distributionData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'white', 
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                    fontSize: '14px',
+                    fontWeight: '600'
+                  }}
+                  formatter={(value: any) => [`${value} countries`, 'Count']}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         )}
       </div>
       
@@ -537,11 +596,11 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
 
       {/* Footer Info - Responsive */}
       {chartType === 'trend' && (
-        <div className="mt-2 sm:mt-3 md:mt-4 text-xs text-gray-500 text-center px-2">
-          <div className="break-words leading-relaxed">
-            <p className="mb-1">Showing fintech index trends from {startYear} to {endYear}</p>
-            <p className="mb-1">Country names and latest scores displayed at line endpoints</p>
-            <p className="mb-1">💡 <strong>Hover over any country line to see detailed information</strong></p>
+        <div className="mt-4 sm:mt-6 md:mt-8 text-sm sm:text-base md:text-lg lg:text-xl text-gray-700 text-center">
+          <div className="leading-relaxed">
+            <p className="mb-2">Showing fintech index trends from {startYear} to {endYear}</p>
+            <p className="mb-2">Country names and latest scores displayed at line endpoints</p>
+            <p className="mb-2">💡 Hover over any country line to see detailed information</p>
             <p>Use controls above to adjust time period or view all {availableYears.length} available years ({minYear}-{maxYear})</p>
           </div>
         </div>

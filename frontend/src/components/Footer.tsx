@@ -24,12 +24,9 @@ export const Footer: React.FC = () => {
               <div className="flex flex-col items-center space-y-3 sm:space-y-4">
                 <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-full flex items-center justify-center p-2 shadow-lg">
                   <img 
-                    src="https://images.pexels.com/photos/267885/pexels-photo-267885.jpeg" 
+                    src="/logos/seal-4c-600x600-min.jpg" 
                     alt="Carnegie Mellon University Logo" 
                     className="w-full h-full object-contain rounded-full"
-                    onError={(e) => {
-                      e.currentTarget.src = 'https://images.pexels.com/photos/159711/books-bookstore-book-reading-159711.jpeg';
-                    }}
                   />
                 </div>
                 <div className="text-center">
@@ -43,12 +40,9 @@ export const Footer: React.FC = () => {
               <div className="flex flex-col items-center space-y-3 sm:space-y-4">
                 <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-full flex items-center justify-center p-2 shadow-lg">
                   <img 
-                    src="https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg" 
+                    src="/logos/cmu-africa-logo.png" 
                     alt="Carnegie Mellon Africa Logo" 
                     className="w-full h-full object-contain rounded-full"
-                    onError={(e) => {
-                      e.currentTarget.src = 'https://images.pexels.com/photos/256490/pexels-photo-256490.jpeg';
-                    }}
                   />
                 </div>
                 <div className="text-center">
@@ -62,12 +56,9 @@ export const Footer: React.FC = () => {
               <div className="flex flex-col items-center space-y-3 sm:space-y-4">
                 <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-full flex items-center justify-center p-2 shadow-lg">
                   <img 
-                    src="https://images.pexels.com/photos/207692/pexels-photo-207692.jpeg" 
+                    src="/logos/FintechHubLogo.png" 
                     alt="University of the Witwatersrand Logo" 
                     className="w-full h-full object-contain rounded-full"
-                    onError={(e) => {
-                      e.currentTarget.src = 'https://images.pexels.com/photos/1595391/pexels-photo-1595391.jpeg';
-                    }}
                   />
                 </div>
                 <div className="text-center">
@@ -78,7 +69,11 @@ export const Footer: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center justify-center space-x-2 sm:space-x-3 p-3 sm:p-4 bg-white bg-opacity-10 rounded-lg backdrop-blur-sm">
-              <Award className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-300" />
+              <img 
+                src="/logos/06-18-afretec.png" 
+                alt="AFRETEC Network Logo" 
+                className="w-6 h-6 sm:w-8 sm:h-8 object-contain"
+              />
               <span className="text-sm sm:text-lg font-semibold text-center">Proudly Funded by AFRETEC NETWORK</span>
             </div>
           </div>

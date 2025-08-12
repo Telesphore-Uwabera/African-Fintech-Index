@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronUp, ChevronDown, Download, Building2 } from 'lucide-react';
-import { CountryData } from '../types';
+import type { CountryData } from '../types';
 
 interface CountryTableProps {
   data: CountryData[];
@@ -12,24 +12,42 @@ export const CountryTable: React.FC<CountryTableProps> = ({ data, selectedYear }
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [startupCounts, setStartupCounts] = useState<Map<string, number>>(new Map());
 
-  // Fetch startup counts by country and year
+  // Debug: Log props and component state
+  console.log('🔍 Table Component: Props received:', { selectedYear, dataLength: data.length });
+  console.log('🔍 Table Component: Current startupCounts size:', startupCounts.size);
+
+  // Fetch startup counts by country and year (same as map)
   useEffect(() => {
-    if (!selectedYear) return;
+    console.log('🔍 Table useEffect: Running with selectedYear:', selectedYear);
+    if (!selectedYear) {
+      console.log('🔍 Table useEffect: No selectedYear, skipping fetch');
+      return;
+    }
     
     const fetchStartupCounts = async () => {
       try {
         const apiUrl = import.meta.env.VITE_API_URL || '/api';
+        console.log('🔍 Table: Fetching startup counts for year:', selectedYear);
+        
         const response = await fetch(`${apiUrl}/startups/counts?year=${selectedYear}`);
         if (response.ok) {
           const counts = await response.json();
+          console.log('🔍 Table: Raw startup counts response:', counts);
+          
           const countsMap = new Map();
           counts.forEach((item: { country: string; count: number }) => {
             countsMap.set(item.country, item.count);
+            console.log(`🔍 Table: Setting ${item.country} = ${item.count}`);
           });
+          
+          console.log('🔍 Table: Final startup counts map:', Object.fromEntries(countsMap));
+          console.log('🔍 Table: Nigeria count:', countsMap.get('Nigeria'));
           setStartupCounts(countsMap);
+        } else {
+          console.error('❌ Table: Failed to fetch startup counts:', response.status, response.statusText);
         }
       } catch (error) {
-        console.error('Error fetching startup counts:', error);
+        console.error('❌ Table: Error fetching startup counts:', error);
       }
     };
 
@@ -195,7 +213,13 @@ export const CountryTable: React.FC<CountryTableProps> = ({ data, selectedYear }
                 <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                   <div className="flex items-center text-sm text-gray-900">
                     <Building2 className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 mr-1 sm:mr-2" />
-                    {startupCounts.get(country.name) || 0}
+                    {(() => {
+                      const count = startupCounts.get(country.name);
+                      if (country.name === 'Nigeria') {
+                        console.log(`🔍 Table Display: Nigeria - country.name: "${country.name}", startupCounts.get("${country.name}"): ${count}, startupCounts size: ${startupCounts.size}`);
+                      }
+                      return count || 0;
+                    })()}
                   </div>
                 </td>
               </tr>

@@ -50,6 +50,31 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
     website: ''
   });
 
+  // Helper function to parse sectors (handle both single and multiple sectors)
+  const parseSectors = (sectorData: string | string[]): string[] => {
+    if (Array.isArray(sectorData)) {
+      return sectorData;
+    }
+    if (typeof sectorData === 'string') {
+      // Handle comma-separated sectors, semicolon-separated, or single sector
+      return sectorData.split(/[,;]/).map(s => s.trim()).filter(s => s.length > 0);
+    }
+    return [];
+  };
+
+  // Get all unique sectors from all startups for filtering
+  const allSectors = React.useMemo(() => {
+    const sectorSet = new Set<string>();
+    startups.forEach(startup => {
+      const sectors = parseSectors(startup.sector);
+      sectors.forEach(sector => sectorSet.add(sector));
+    });
+    return Array.from(sectorSet).sort();
+  }, [startups]);
+
+  // Update sectors array to use dynamic sectors from data
+  const sectors = allSectors;
+
   // Replace with a full list of African countries
   const countries = [
     'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cameroon', 'Central African Republic',
@@ -59,7 +84,6 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
     'Niger', 'Nigeria', 'Rwanda', 'Sao Tome and Principe', 'Senegal', 'Seychelles', 'Sierra Leone', 'Somalia', 'South Africa',
     'South Sudan', 'Sudan', 'Tanzania', 'Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe'
   ];
-  const sectors = ['Payments', 'Mobile Money', 'Lending', 'Insurance', 'Investment', 'Banking', 'Blockchain', 'RegTech'];
 
   // Add startup handler
   const handleAddStartup = async (e: React.FormEvent) => {
@@ -166,7 +190,7 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
     const matchesSearch = startup.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          startup.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCountry = !selectedCountry || startup.country === selectedCountry;
-    const matchesSector = !selectedSector || startup.sector === selectedSector;
+    const matchesSector = !selectedSector || parseSectors(startup.sector).some(s => s === selectedSector);
     // Remove year filtering - show all startups independent of year selection
     
     return matchesSearch && matchesCountry && matchesSector;
@@ -300,17 +324,15 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
             </div>
 
             <div className="sm:col-span-1">
-              <select
+              <input
+                type="text"
+                placeholder="Sectors (e.g., Payments, Mobile Money, Lending)"
                 value={newStartup.sector}
                 onChange={(e) => setNewStartup({ ...newStartup, sector: e.target.value })}
-                className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm bg-white"
+                className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm bg-white placeholder-gray-400"
                 required
-              >
-                <option value="">Select Sector</option>
-                {sectors.map(sector => (
-                  <option key={sector} value={sector}>{sector}</option>
-                ))}
-              </select>
+              />
+              <p className="text-xs text-gray-500 mt-1">Separate multiple sectors with commas</p>
             </div>
 
             <div className="sm:col-span-1">
@@ -381,10 +403,18 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
               <div key={startup.id} className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow w-full max-w-full min-w-0 overflow-hidden bg-white">
                 <div className="flex items-start justify-between mb-2 sm:mb-3 w-full max-w-full min-w-0">
                   <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 flex-1 min-w-0 mr-2 break-words leading-tight">{startup.name}</h3>
-                  <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full flex-shrink-0 truncate ml-2">
-                  {startup.sector}
-                </span>
-              </div>
+                  <div className="flex flex-wrap gap-1 ml-2">
+                    {parseSectors(startup.sector).map((sector, index) => (
+                      <span 
+                        key={index} 
+                        className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full flex-shrink-0"
+                        title={sector}
+                      >
+                        {sector}
+                      </span>
+                    ))}
+                  </div>
+                </div>
                 <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 line-clamp-3 break-words leading-relaxed">{startup.description}</p>
                 <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-500">
                 <div className="flex items-center space-x-1.5 sm:space-x-2">

@@ -165,7 +165,7 @@ function App() {
         
         {/* Country Rankings Table */}
         {currentData.length > 0 ? (
-          <CountryTable data={currentData} />
+          <CountryTable data={currentData} selectedYear={selectedYear} />
         ) : (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
             <div className="text-gray-400 mb-4">

@@ -90,17 +90,27 @@ export const AfricaMapComplete: React.FC<AfricaMapProps> = ({
     
     try {
       const apiUrl = import.meta.env.VITE_API_URL || '/api';
+      console.log('🗺️ Map: Fetching startup counts for year:', selectedYear);
+      
       const response = await fetch(`${apiUrl}/startups/counts?year=${selectedYear}`);
       if (response.ok) {
         const counts = await response.json();
+        console.log('🗺️ Map: Raw startup counts response:', counts);
+        
         const countsMap = new Map();
         counts.forEach((item: { country: string; count: number }) => {
           countsMap.set(item.country, item.count);
+          console.log(`🗺️ Map: Setting ${item.country} = ${item.count}`);
         });
+        
+        console.log('🗺️ Map: Final startup counts map:', Object.fromEntries(countsMap));
+        console.log('🗺️ Map: Nigeria count:', countsMap.get('Nigeria'));
         setStartupCounts(countsMap);
+      } else {
+        console.error('❌ Map: Failed to fetch startup counts:', response.status, response.statusText);
       }
     } catch (error) {
-      console.error('Error fetching startup counts:', error);
+      console.error('❌ Map: Error fetching startup counts:', error);
     }
   }, [selectedYear]);
 
@@ -226,6 +236,23 @@ export const AfricaMapComplete: React.FC<AfricaMapProps> = ({
     <div className="w-full h-full relative overflow-hidden">
       {geoData && (
         <div className="w-full h-full relative">
+          {/* Map Title - Above the map, not overlapping */}
+          <div className="mb-4">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V8zm0 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl font-bold text-gray-900">African Fintech Index Map</h2>
+                <p className="text-xs sm:text-sm md:text-base text-gray-600">
+                  {selectedYear ? `Data for ${selectedYear}` : 'Interactive visualization of fintech development across Africa'}
+                </p>
+              </div>
+            </div>
+          </div>
+
           <svg
             ref={svgRef}
             viewBox="0 0 1000 900"
