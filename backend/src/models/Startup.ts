@@ -9,6 +9,11 @@ export interface IStartup extends Document {
   website?: string;
   addedBy?: string;
   addedAt?: Date;
+  isVerified: boolean;
+  verifiedBy?: string;
+  verifiedAt?: Date;
+  verificationStatus: 'pending' | 'approved' | 'rejected';
+  adminNotes?: string;
 }
 
 const StartupSchema = new Schema<IStartup>({
@@ -20,6 +25,11 @@ const StartupSchema = new Schema<IStartup>({
   website: { type: String },
   addedBy: { type: String },
   addedAt: { type: Date, default: Date.now },
+  isVerified: { type: Boolean, default: false },
+  verifiedBy: { type: String },
+  verifiedAt: { type: Date },
+  verificationStatus: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+  adminNotes: { type: String }
 });
 
 export default mongoose.model<IStartup>('Startup', StartupSchema); 

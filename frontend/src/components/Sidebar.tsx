@@ -6,9 +6,10 @@ interface SidebarProps {
   currentUser: any;
   onSignIn: () => void;
   onSignOut: () => void;
+  onSidebarToggle?: (collapsed: boolean) => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onSignIn, onSignOut }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onSignIn, onSignOut, onSidebarToggle }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const role = currentUser?.role;
@@ -49,6 +50,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentUser, onSignIn, onSignO
     window.addEventListener('sidebar-toggle', handler);
     return () => window.removeEventListener('sidebar-toggle', handler);
   }, []);
+
+  // Notify parent component when sidebar state changes
+  useEffect(() => {
+    if (onSidebarToggle) {
+      onSidebarToggle(isCollapsed);
+    }
+  }, [isCollapsed, onSidebarToggle]);
 
   // Close sidebar when clicking on backdrop
   const handleBackdropClick = () => {

@@ -12,12 +12,12 @@ const ADMIN_CONTACT = {
   phone: '+250 781 712 615'
 };
 
-// GET /api/startups - list all startups with search and filtering
+// GET /api/startups - list all verified startups with search and filtering (public)
 router.get('/', async (req, res) => {
   try {
     const { search, country, sector } = req.query;
     
-    let filter: any = {};
+    let filter: any = { verificationStatus: 'approved' }; // Only show verified startups
     
     // Search by name or description
     if (search) {
@@ -40,7 +40,7 @@ router.get('/', async (req, res) => {
     const startups = await Startup.find(filter).sort({ addedAt: -1 });
     
     // Log what sectors are being returned to frontend
-    console.log('🔍 Backend sending startups to frontend:', {
+    console.log('🔍 Backend sending verified startups to frontend:', {
       totalCount: startups.length,
       sampleSectors: startups.slice(0, 3).map(s => ({
         name: s.name,
@@ -52,8 +52,8 @@ router.get('/', async (req, res) => {
     
     res.json(startups);
   } catch (err) {
-    console.error('Error fetching startups:', err);
-    res.status(500).json({ error: 'Failed to fetch startups' });
+    console.error('Error fetching verified startups:', err);
+    res.status(500).json({ error: 'Failed to fetch verified startups' });
   }
 });
 
@@ -91,25 +91,31 @@ router.get('/counts', async (req, res) => {
   }
 });
 
-// POST /api/startups - add a new startup (admin only)
-router.post('/', authMiddleware, requireRole('admin'), async (req, res) => {
+// POST /api/startups - add a new startup (public, but requires admin verification)
+router.post('/', async (req, res) => {
   try {
-    const startup = new Startup(req.body);
+    const startup = new Startup({
+      ...req.body,
+      isVerified: false,
+      verificationStatus: 'pending',
+      addedBy: req.body.addedBy || 'public_user'
+    });
     await startup.save();
     
-    // Send admin notification about new fintech company
-    const notificationSubject = 'New Fintech Company Added';
+    // Send admin notification about new startup pending verification
+    const notificationSubject = 'New Startup Pending Verification';
     const notificationText = `
-New fintech company has been added to the system:
+New startup has been uploaded and requires admin verification:
 
-Company Details:
+Startup Details:
 - Name: ${startup.name}
 - Country: ${startup.country}
 - Sector: ${startup.sector}
 - Founded Year: ${startup.foundedYear}
-- Added Date: ${new Date().toLocaleString()}
+- Added By: ${startup.addedBy}
+- Upload Date: ${new Date().toLocaleString()}
 
-Please review and verify this company data.
+Please log in to the admin panel to verify this startup.
 
 African Fintech Index Admin Panel
     `.trim();
@@ -118,19 +124,22 @@ African Fintech Index Admin Panel
     await sendEmail(ADMIN_CONTACT.email, notificationSubject, notificationText);
     
     // Send phone notification
-    const phoneMessage = `New fintech ${startup.name} added. Country: ${startup.country}. Please verify.`;
+    const phoneMessage = `New startup ${startup.name} uploaded. Country: ${startup.country}. Pending verification.`;
     await sendPhoneNotification(ADMIN_CONTACT.phone, phoneMessage);
     
-    console.log(`✅ Admin notifications sent for new fintech company: ${startup.name}`);
+    console.log(`✅ Admin notifications sent for new startup pending verification: ${startup.name}`);
     
-    res.status(201).json(startup);
+    res.status(201).json({
+      ...startup.toObject(),
+      message: 'Startup uploaded successfully. Awaiting admin verification before public display.'
+    });
   } catch (err) {
     res.status(400).json({ error: 'Failed to add startup' });
   }
 });
 
-// POST /api/startups/bulk - bulk add startups (admin only)
-router.post('/bulk', authMiddleware, requireRole('admin'), async (req, res) => {
+// POST /api/startups/bulk - bulk add startups (public, but requires admin verification)
+router.post('/bulk', async (req, res) => {
   try {
     console.log('Bulk upload endpoint hit!');
     const { data } = req.body;
@@ -271,7 +280,9 @@ router.post('/bulk', authMiddleware, requireRole('admin'), async (req, res) => {
           description: row.description || row.Description || row.DESC || row['Full Description'] || '',
           website: row.website || row.Website || row.URL || row.url || row['Organization Name URL'] || '',
           addedBy: row.addedBy || 'bulk_upload',
-          addedAt: new Date()
+          addedAt: new Date(),
+          isVerified: false,
+          verificationStatus: 'pending'
         };
     }).filter(Boolean);
     
@@ -306,10 +317,37 @@ router.post('/bulk', authMiddleware, requireRole('admin'), async (req, res) => {
     }
     
     const result = await Startup.insertMany(validatedData, { ordered: false });
+    
+    // Send admin notification about bulk startup upload pending verification
+    const notificationSubject = 'Bulk Startup Upload Pending Verification';
+    const notificationText = `
+Bulk startup upload has been completed and requires admin verification:
+
+Upload Details:
+- Startups Added: ${result.length}
+- Upload Date: ${new Date().toLocaleString()}
+- Upload Method: Bulk Upload
+- Status: Pending Verification
+
+Please log in to the admin panel to verify these startups before they become publicly visible.
+
+African Fintech Index Admin Panel
+    `.trim();
+    
+    // Send email notification
+    await sendEmail(ADMIN_CONTACT.email, notificationSubject, notificationText);
+    
+    // Send phone notification
+    const phoneMessage = `Bulk upload: ${result.length} startups added. Pending verification.`;
+    await sendPhoneNotification(ADMIN_CONTACT.phone, phoneMessage);
+    
+    console.log(`✅ Admin notifications sent for bulk startup upload: ${result.length} startups pending verification`);
+    
     res.status(201).json({
-      message: `Successfully added ${result.length} startups`,
+      message: `Successfully added ${result.length} startups. Awaiting admin verification before public display.`,
       insertedCount: result.length,
-      startups: result
+      startups: result,
+      verificationRequired: true
     });
   } catch (err) {
     console.error('Error creating bulk startups:', err);
@@ -374,6 +412,181 @@ router.get('/debug', async (req, res) => {
   } catch (err) {
     console.error('Error in debug endpoint:', err);
     res.status(500).json({ error: 'Failed to get debug info' });
+  }
+});
+
+// GET /api/startups/pending - Get startups pending verification (admin only)
+router.get('/pending', authMiddleware, requireRole('admin'), async (req: any, res) => {
+  try {
+    const pendingStartups = await Startup.find({ 
+      verificationStatus: 'pending' 
+    }).sort({ addedAt: -1 });
+    
+    res.json({
+      count: pendingStartups.length,
+      startups: pendingStartups
+    });
+  } catch (err) {
+    console.error('Error fetching pending startups:', err);
+    res.status(500).json({ error: 'Failed to fetch pending startups' });
+  }
+});
+
+// GET /api/startups/verified - Get only verified startups (public)
+router.get('/verified', async (req, res) => {
+  try {
+    const { search, country, sector } = req.query;
+    
+    let filter: any = { verificationStatus: 'approved' };
+    
+    // Search by name or description
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    // Filter by country
+    if (country && country !== 'All Countries') {
+      filter.country = { $regex: country, $options: 'i' };
+    }
+    
+    // Filter by sector (works with multiple sectors)
+    if (sector && sector !== 'All Sectors') {
+      filter.sector = { $regex: sector, $options: 'i' };
+    }
+    
+    const startups = await Startup.find(filter).sort({ addedAt: -1 });
+    
+    res.json(startups);
+  } catch (err) {
+    console.error('Error fetching verified startups:', err);
+    res.status(500).json({ error: 'Failed to fetch verified startups' });
+  }
+});
+
+// PATCH /api/startups/:id/verify - Verify a startup (admin only)
+router.patch('/:id/verify', authMiddleware, requireRole('admin'), async (req: any, res) => {
+  try {
+    const { id } = req.params;
+    const { verificationStatus, adminNotes } = req.body;
+    
+    if (!['approved', 'rejected'].includes(verificationStatus)) {
+      return res.status(400).json({ error: 'Invalid verification status. Must be "approved" or "rejected".' });
+    }
+    
+    const startup = await Startup.findByIdAndUpdate(
+      id,
+      {
+        verificationStatus,
+        isVerified: verificationStatus === 'approved',
+        verifiedBy: req.user?.email || 'admin',
+        verifiedAt: new Date(),
+        adminNotes: adminNotes || ''
+      },
+      { new: true, runValidators: true }
+    );
+    
+    if (!startup) {
+      return res.status(404).json({ error: 'Startup not found' });
+    }
+    
+    // Send notification about verification result
+    const notificationSubject = `Startup Verification ${verificationStatus === 'approved' ? 'Approved' : 'Rejected'}`;
+    const notificationText = `
+Startup verification has been completed:
+
+Startup Details:
+- Name: ${startup.name}
+- Country: ${startup.country}
+- Sector: ${startup.sector}
+- Status: ${verificationStatus.toUpperCase()}
+- Verified By: ${req.user?.email || 'admin'}
+- Verification Date: ${new Date().toLocaleString()}
+- Admin Notes: ${adminNotes || 'None'}
+
+${verificationStatus === 'approved' ? 'This startup is now publicly visible.' : 'This startup has been rejected and is not publicly visible.'}
+
+African Fintech Index Admin Panel
+    `.trim();
+    
+    // Send email notification
+    await sendEmail(ADMIN_CONTACT.email, notificationSubject, notificationText);
+    
+    // Send phone notification
+    const phoneMessage = `Startup ${startup.name} ${verificationStatus}. ${verificationStatus === 'approved' ? 'Now public.' : 'Rejected.'}`;
+    await sendPhoneNotification(ADMIN_CONTACT.phone, phoneMessage);
+    
+    console.log(`✅ Admin notifications sent for startup verification: ${startup.name} - ${verificationStatus}`);
+    
+    res.json({
+      message: `Startup ${verificationStatus} successfully`,
+      startup
+    });
+  } catch (err) {
+    console.error('Error verifying startup:', err);
+    res.status(500).json({ error: 'Failed to verify startup' });
+  }
+});
+
+// PATCH /api/startups/bulk-verify - Bulk verify multiple startups (admin only)
+router.patch('/bulk-verify', authMiddleware, requireRole('admin'), async (req: any, res) => {
+  try {
+    const { startupIds, verificationStatus, adminNotes } = req.body;
+    
+    if (!Array.isArray(startupIds) || startupIds.length === 0) {
+      return res.status(400).json({ error: 'Startup IDs array is required' });
+    }
+    
+    if (!['approved', 'rejected'].includes(verificationStatus)) {
+      return res.status(400).json({ error: 'Invalid verification status. Must be "approved" or "rejected".' });
+    }
+    
+    const result = await Startup.updateMany(
+      { _id: { $in: startupIds } },
+      {
+        verificationStatus,
+        isVerified: verificationStatus === 'approved',
+        verifiedBy: req.user?.email || 'admin',
+        verifiedAt: new Date(),
+        adminNotes: adminNotes || ''
+      }
+    );
+    
+    // Send bulk verification notification
+    const notificationSubject = `Bulk Startup Verification ${verificationStatus === 'approved' ? 'Approved' : 'Rejected'}`;
+    const notificationText = `
+Bulk startup verification has been completed:
+
+Verification Details:
+- Startups Processed: ${result.modifiedCount}
+- Status: ${verificationStatus.toUpperCase()}
+- Verified By: ${req.user?.email || 'admin'}
+- Verification Date: ${new Date().toLocaleString()}
+- Admin Notes: ${adminNotes || 'None'}
+
+${verificationStatus === 'approved' ? 'These startups are now publicly visible.' : 'These startups have been rejected and are not publicly visible.'}
+
+African Fintech Index Admin Panel
+    `.trim();
+    
+    // Send email notification
+    await sendEmail(ADMIN_CONTACT.email, notificationSubject, notificationText);
+    
+    // Send phone notification
+    const phoneMessage = `Bulk verification: ${result.modifiedCount} startups ${verificationStatus}. ${verificationStatus === 'approved' ? 'Now public.' : 'Rejected.'}`;
+    await sendPhoneNotification(ADMIN_CONTACT.phone, phoneMessage);
+    
+    console.log(`✅ Admin notifications sent for bulk startup verification: ${result.modifiedCount} startups - ${verificationStatus}`);
+    
+    res.json({
+      message: `Successfully ${verificationStatus} ${result.modifiedCount} startups`,
+      modifiedCount: result.modifiedCount
+    });
+  } catch (err) {
+    console.error('Error bulk verifying startups:', err);
+    res.status(500).json({ error: 'Failed to bulk verify startups' });
   }
 });
 

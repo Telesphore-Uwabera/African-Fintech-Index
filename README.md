@@ -40,9 +40,9 @@ Proudly funded by the **AFRETEC NETWORK**.
    
    # Backend (.env)
    MONGODB_URI=mongodb://localhost:27017/african-fintech-index
-   JWT_SECRET=your-secret-key
-   EMAIL_USER=your-email@gmail.com
-   EMAIL_PASS=your-app-password
+   JWT_SECRET=ntakirpetero-secret-key
+EMAIL_USER=ntakirpetero@gmail.com
+EMAIL_PASS=ntakirpetero-app-password
    ```
 
 4. **Start the development servers:**
@@ -56,7 +56,7 @@ Proudly funded by the **AFRETEC NETWORK**.
    npm run dev
    ```
 
-5. **Open your browser:**
+5. **Open the browser:**
    - Frontend: http://localhost:5173
    - Backend: http://localhost:5000
 
@@ -144,7 +144,7 @@ The application includes sample data for 8 African countries:
 
 ### Country Code Mapping
 
-The shapefile uses ISO country codes. Make sure your `CountryData` objects have matching `id` fields:
+The shapefile uses ISO country codes. Make sure the `CountryData` objects have matching `id` fields:
 
 - Nigeria: `NG`
 - South Africa: `ZA`
@@ -217,13 +217,13 @@ African-Fintech-Index-main/
 ## 🚀 Deployment
 
 ### Netlify (Frontend)
-1. Connect your GitHub repository
+1. Connect the GitHub repository
 2. Set build command: `cd frontend && npm run build`
 3. Set publish directory: `frontend/dist`
 4. Deploy automatically on push to main branch
 
 ### Railway/Heroku (Backend)
-1. Connect your GitHub repository
+1. Connect the GitHub repository
 2. Set environment variables
 3. Deploy automatically on push to main branch
 
@@ -278,7 +278,7 @@ npm run test         # Run tests
 
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature-name`
-3. Make your changes
+3. Make the changes
 4. Commit: `git commit -m 'Add feature'`
 5. Push: `git push origin feature-name`
 6. Submit a pull request
