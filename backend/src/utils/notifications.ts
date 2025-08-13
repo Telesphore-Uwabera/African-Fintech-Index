@@ -24,44 +24,42 @@ export async function sendEmail(to: string, subject: string, text: string) {
   }
 }
 
-// Phone notification utility function using Africa's Talking
+// Phone notification utility function using Twilio
 export async function sendPhoneNotification(phone: string, message: string) {
   try {
-    // Check if Africa's Talking is configured
-    const username = process.env.AFRICASTALKING_USERNAME;
-    const apiKey = process.env.AFRICASTALKING_API_KEY;
+    // Check if Twilio is configured
+    const accountSid = process.env.TWILIO_ACCOUNT_SID;
+    const authToken = process.env.TWILIO_AUTH_TOKEN;
+    const twilioPhone = process.env.TWILIO_PHONE_NUMBER;
+    const senderName = process.env.TWILIO_SENDER_NAME || 'African Fintech Index';
     
-    if (!username || !apiKey) {
+    if (!accountSid || !authToken || !twilioPhone) {
       // Fallback to console log if not configured
       console.log(`📱 Phone notification to ${phone}: ${message}`);
-      console.log('💡 To enable real SMS, set AFRICASTALKING_USERNAME and AFRICASTALKING_API_KEY in .env');
+      console.log('💡 To enable real SMS, set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_PHONE_NUMBER in .env');
       return true;
     }
 
-    // Format phone number for Africa's Talking (remove + and add country code)
-    const formattedPhone = phone.startsWith('+') ? phone.substring(1) : phone;
-    
-    // Africa's Talking API endpoint
-    const url = 'https://api.africastalking.com/version1/messaging';
+    // Twilio API endpoint
+    const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
     
     const response = await fetch(url, {
       method: 'POST',
       headers: {
+        'Authorization': `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString('base64')}`,
         'Content-Type': 'application/x-www-form-urlencoded',
-        'apiKey': apiKey,
       },
       body: new URLSearchParams({
-        username: username,
-        to: formattedPhone,
-        message: message,
-        from: 'AFRICAN-FINTECH' // Your sender ID (will show as "AFRICAN-FINTECH")
+        To: phone,
+        From: twilioPhone,
+        Body: `[${senderName}] ${message}`
       })
     });
 
     if (response.ok) {
       const result = await response.json();
       console.log(`✅ SMS sent to ${phone}: ${message}`);
-      console.log('📱 SMS Response:', result);
+      console.log('📱 Twilio Response:', result);
       return true;
     } else {
       const errorText = await response.text();
