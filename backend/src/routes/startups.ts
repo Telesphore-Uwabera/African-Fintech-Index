@@ -3,6 +3,8 @@ import Startup from '../models/Startup';
 import { requireRole } from '../middleware/role';
 import { sendEmail, sendPhoneNotification } from '../utils/notifications';
 import { authMiddleware } from '../routes/auth';
+import jwt from 'jsonwebtoken';
+import { User } from '../models/User';
 
 const router = express.Router();
 
@@ -57,6 +59,17 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /api/startups/all - list ALL startups (including pending) for stats calculation (admin only)
+router.get('/all', authMiddleware, requireRole('admin'), async (req: any, res) => {
+  try {
+    const startups = await Startup.find({}).sort({ addedAt: -1 });
+    res.json({ startups });
+  } catch (err) {
+    console.error('❌ Error fetching all startups:', err);
+    res.status(500).json({ error: 'Failed to fetch all startups' });
+  }
+});
+
 // GET /api/startups/counts - get startup counts by country and year
 router.get('/counts', async (req, res) => {
   try {
@@ -94,265 +107,129 @@ router.get('/counts', async (req, res) => {
 // POST /api/startups - add a new startup (public, but requires admin verification)
 router.post('/', async (req, res) => {
   try {
+    // Check if the user is an admin (if they provide a token)
+    let isAdmin = false;
+    let adminEmail = 'public_user';
+    
+    if (req.headers.authorization) {
+      try {
+        const token = req.headers.authorization.replace('Bearer ', '');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as any;
+        const user = await User.findById(decoded.userId);
+        if (user && user.role === 'admin') {
+          isAdmin = true;
+          adminEmail = user.email;
+        }
+      } catch (err) {
+        // Token invalid or expired, treat as public user
+      }
+    }
+
     const startup = new Startup({
       ...req.body,
-      isVerified: false,
-      verificationStatus: 'pending',
-      addedBy: req.body.addedBy || 'public_user'
+      isVerified: isAdmin, // Auto-verify if admin
+      verificationStatus: isAdmin ? 'approved' : 'pending',
+      addedBy: adminEmail
     });
+    
     await startup.save();
     
-    // Send admin notification about new startup pending verification
-    const notificationSubject = 'New Startup Pending Verification';
-    const notificationText = `
-New startup has been uploaded and requires admin verification:
-
-Startup Details:
-- Name: ${startup.name}
-- Country: ${startup.country}
-- Sector: ${startup.sector}
-- Founded Year: ${startup.foundedYear}
-- Added By: ${startup.addedBy}
-- Upload Date: ${new Date().toLocaleString()}
-
-Please log in to the admin panel to verify this startup.
-
-African Fintech Index Admin Panel
-    `.trim();
-    
-    // Send email notification
-    await sendEmail(ADMIN_CONTACT.email, notificationSubject, notificationText);
-    
-    // Send phone notification
-    const phoneMessage = `New startup ${startup.name} uploaded. Country: ${startup.country}. Pending verification.`;
-    await sendPhoneNotification(ADMIN_CONTACT.phone, phoneMessage);
-    
-    console.log(`✅ Admin notifications sent for new startup pending verification: ${startup.name}`);
+    // Send admin notification for non-admin uploads
+    if (!isAdmin) {
+      const notificationSubject = 'New Startup Pending Verification';
+      const notificationText = `
+      A new startup has been uploaded and requires verification:
+      
+      Name: ${startup.name}
+      Country: ${startup.country}
+      Sector: ${startup.sector}
+      Founded Year: ${startup.foundedYear}
+      Uploaded by: ${startup.addedBy}
+      
+      Please review and verify this startup.
+      `.trim();
+      
+      await sendEmail(ADMIN_CONTACT.email, notificationSubject, notificationText);
+      const phoneMessage = `New startup upload: ${startup.name} from ${startup.country} requires verification.`;
+      await sendPhoneNotification(ADMIN_CONTACT.phone, phoneMessage);
+    }
     
     res.status(201).json({
       ...startup.toObject(),
-      message: 'Startup uploaded successfully. Awaiting admin verification before public display.'
+      message: isAdmin 
+        ? 'Startup uploaded successfully and is now publicly visible.'
+        : 'Startup uploaded successfully. Awaiting admin verification before public display.'
     });
   } catch (err) {
-    res.status(400).json({ error: 'Failed to add startup' });
+    console.error('❌ Error creating startup:', err);
+    res.status(400).json({ error: 'Failed to create startup', details: err instanceof Error ? err.message : 'Unknown error' });
   }
 });
 
 // POST /api/startups/bulk - bulk add startups (public, but requires admin verification)
 router.post('/bulk', async (req, res) => {
   try {
-    console.log('Bulk upload endpoint hit!');
-    const { data } = req.body;
-    if (!Array.isArray(data) || data.length === 0) {
-      console.log('Invalid data received:', { data });
-      return res.status(400).json({ error: 'Data array is required and must not be empty' });
-    }
+    // Check if the user is an admin (if they provide a token)
+    let isAdmin = false;
+    let adminEmail = 'public_user';
     
-    console.log('Received bulk upload data:', {
-      count: data.length,
-      firstRow: data[0],
-      columns: Object.keys(data[0] || {})
-    });
-    
-    // Log a few sample rows to understand the data structure
-    console.log('Sample rows:');
-    data.slice(0, 3).forEach((row, index) => {
-      console.log(`Row ${index + 1}:`, {
-        name: row['Organization Name'],
-        country: row['Headquarters Location'],
-        sector: row['Industries'],
-        foundedDate: row['Founded Date']
-      });
-    });
-    
-    // Validate and transform data
-    const validatedData = data.map((row, index) => {
-      // Check if required fields exist - handle the specific column names from the Excel file
-      const name = row.name || row.Name || row.NAME || row['Company Name'] || row['Company name'] || 
-                   row['Organization Name'] || row['Organization name'];
-      const country = row.country || row.Country || row.COUNTRY || row['Country Name'] || row['Country name'] || 
-                      row['Headquarters Location'] || row['Headquarters location'] || row['Location'];
-      const sector = row.sector || row.Sector || row.SECTOR || row['Business Sector'] || row['Business sector'] || 
-                     row['Industries'] || row['Industry Groups'] || row['Industry'];
-      const foundedYear = row.foundedYear || row['Founded Year'] || row['Founded year'] || row['Year Founded'] || row['Year founded'] || 
-                          row['Founded Date'] || row['Founded date'];
-      
-      if (!name || !country || !sector || !foundedYear) {
-        console.log(`Row ${index + 1} missing required fields:`, { name, country, sector, foundedYear });
-        return null;
-      }
-      
-      // Parse founded year - handle different date formats including Excel serial numbers
-      let year;
-      if (typeof foundedYear === 'string') {
-        // Try to extract year from date string
-        const yearMatch = foundedYear.match(/\b(19|20)\d{2}\b/);
-        year = yearMatch ? parseInt(yearMatch[0]) : null;
-      } else if (typeof foundedYear === 'number') {
-        // Handle Excel date serial numbers (days since 1900-01-01)
-        if (foundedYear > 1000 && foundedYear < 100000) {
-          // This looks like an Excel date serial number
-          const excelDate = new Date((foundedYear - 25569) * 86400 * 1000);
-          year = excelDate.getFullYear();
-        } else {
-          year = foundedYear;
+    if (req.headers.authorization) {
+      try {
+        const token = req.headers.authorization.replace('Bearer ', '');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as any;
+        const user = await User.findById(decoded.userId);
+        if (user && user.role === 'admin') {
+          isAdmin = true;
+          adminEmail = user.email;
         }
-      } else {
-        year = null;
+      } catch (err) {
+        // Token invalid or expired, treat as public user
       }
-      
-      if (!year || year < 1900 || year > new Date().getFullYear()) {
-        console.log(`Row ${index + 1} invalid founded year:`, foundedYear, '->', year);
-        return null;
-      }
-      
-      // Validate country is in Africa
-      const africanCountries = [
-        'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cameroon', 
-        'Central African Republic', 'Chad', 'Comoros', 'Congo', 'Democratic Republic of the Congo', 
-        'Djibouti', 'Egypt', 'Equatorial Guinea', 'Eritrea', 'Eswatini', 'Ethiopia', 'Gabon', 'Gambia', 
-        'Ghana', 'Guinea', 'Guinea-Bissau', 'Ivory Coast', 'Kenya', 'Lesotho', 'Liberia', 'Libya', 
-        'Madagascar', 'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 
-        'Niger', 'Nigeria', 'Rwanda', 'Sao Tome and Principe', 'Senegal', 'Seychelles', 'Sierra Leone', 
-        'Somalia', 'South Africa', 'South Sudan', 'Sudan', 'Tanzania', 'Togo', 'Tunisia', 'Uganda', 
-        'Zambia', 'Zimbabwe'
-      ];
-      
-      // Extract country from location string (e.g., "Dar Es Salaam, Dar es Salaam, Tanzania" -> "Tanzania")
-      let countryName = String(country).trim();
-      
-      // Try to extract country from the end of the location string
-      const locationParts = countryName.split(',').map(part => part.trim());
-      const possibleCountry = locationParts[locationParts.length - 1];
-      
-      // Check if the last part is a known African country
-      const isLastPartCountry = africanCountries.some(africanCountry => 
-        possibleCountry.toLowerCase() === africanCountry.toLowerCase()
-      );
-      
-      if (isLastPartCountry) {
-        countryName = possibleCountry;
-      }
-      
-      const isAfricanCountry = africanCountries.some(africanCountry => 
-        countryName.toLowerCase().includes(africanCountry.toLowerCase()) ||
-        africanCountry.toLowerCase().includes(countryName.toLowerCase())
-      );
-      
-      // Temporarily disable African country validation for debugging
-      if (!isAfricanCountry) {
-        console.log(`Row ${index + 1} skipped - not an African country:`, countryName);
-        // return null; // Commented out for debugging
-      }
-      
-      console.log(`Row ${index + 1} country validation:`, { 
-        originalLocation: country, 
-        extractedCountry: countryName, 
-        isAfricanCountry 
-      });
-      
-        // Extract all sectors from industries (keep all sectors, don't just take the first one)
-        let allSectors = String(sector).trim();
-        
-        // Clean up sectors - remove extra spaces and normalize
-        const sectorsArray = allSectors
-          .split(/[,;]/)
-          .map(s => s.trim())
-          .filter(s => s.length > 0)
-          .map(s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()); // Capitalize first letter
-        
-        // Join sectors back together for storage
-        const cleanSectors = sectorsArray.join(', ');
-        
-        // Log what sectors are being stored for this startup
-        console.log(`🔍 Backend storing sectors for ${String(name).trim()}:`, {
-          originalSector: sector,
-          cleanedSectors: cleanSectors,
-          sectorsArray: sectorsArray,
-          sectorsCount: sectorsArray.length
-        });
-        
-        return {
-          name: String(name).trim(),
-          country: countryName,
-          sector: cleanSectors, // Store all sectors, not just the first one
-          foundedYear: year,
-          description: row.description || row.Description || row.DESC || row['Full Description'] || '',
-          website: row.website || row.Website || row.URL || row.url || row['Organization Name URL'] || '',
-          addedBy: row.addedBy || 'bulk_upload',
-          addedAt: new Date(),
-          isVerified: false,
-          verificationStatus: 'pending'
-        };
-    }).filter(Boolean);
-    
-    console.log(`Validated ${validatedData.length} out of ${data.length} rows`);
-    console.log('Sample of validated data:', validatedData.slice(0, 3));
-    
-    if (validatedData.length === 0) {
-      // Log more details about why validation failed
-      console.log('Validation failed. Sample of rejected rows:');
-      data.slice(0, 5).forEach((row, index) => {
-        const name = row['Organization Name'] || row.name || row.Name;
-        const country = row['Headquarters Location'] || row.country || row.Country;
-        const sector = row['Industries'] || row.sector || row.Sector;
-        const foundedDate = row['Founded Date'] || row.foundedYear;
-        
-        console.log(`Row ${index + 1}:`, {
-          name: name || 'MISSING',
-          country: country || 'MISSING',
-          sector: sector || 'MISSING',
-          foundedDate: foundedDate || 'MISSING',
-          hasName: !!name,
-          hasCountry: !!country,
-          hasSector: !!sector,
-          hasFoundedDate: !!foundedDate
-        });
-      });
-      
-      return res.status(400).json({ 
-        error: 'No valid startup data found. Please check your Excel file format.',
-        details: 'Required fields: name, country, sector, foundedYear. Only African countries are accepted.'
-      });
     }
-    
-    const result = await Startup.insertMany(validatedData, { ordered: false });
-    
-    // Send admin notification about bulk startup upload pending verification
-    const notificationSubject = 'Bulk Startup Upload Pending Verification';
-    const notificationText = `
-Bulk startup upload has been completed and requires admin verification:
 
-Upload Details:
-- Startups Added: ${result.length}
-- Upload Date: ${new Date().toLocaleString()}
-- Upload Method: Bulk Upload
-- Status: Pending Verification
+    const { startups } = req.body;
+    
+    if (!Array.isArray(startups) || startups.length === 0) {
+      return res.status(400).json({ error: 'Startups array is required and must not be empty' });
+    }
 
-Please log in to the admin panel to verify these startups before they become publicly visible.
+    const startupsToSave = startups.map(startup => ({
+      ...startup,
+      isVerified: isAdmin, // Auto-verify if admin
+      verificationStatus: isAdmin ? 'approved' : 'pending',
+      addedBy: adminEmail,
+      addedAt: new Date()
+    }));
 
-African Fintech Index Admin Panel
-    `.trim();
+    const result = await Startup.insertMany(startupsToSave);
     
-    // Send email notification
-    await sendEmail(ADMIN_CONTACT.email, notificationSubject, notificationText);
-    
-    // Send phone notification
-    const phoneMessage = `Bulk upload: ${result.length} startups added. Pending verification.`;
-    await sendPhoneNotification(ADMIN_CONTACT.phone, phoneMessage);
-    
-    console.log(`✅ Admin notifications sent for bulk startup upload: ${result.length} startups pending verification`);
+    // Send admin notification for non-admin bulk uploads
+    if (!isAdmin) {
+      const notificationSubject = 'Bulk Startup Upload Pending Verification';
+      const notificationText = `
+      A bulk startup upload has been completed and requires verification:
+      
+      Number of Startups: ${result.length}
+      Upload Date: ${new Date().toLocaleString()}
+      Uploaded by: ${adminEmail}
+      
+      Please review and verify these startups.
+      `.trim();
+      
+      await sendEmail(ADMIN_CONTACT.email, notificationSubject, notificationText);
+      const phoneMessage = `Bulk startup upload: ${result.length} startups require verification.`;
+      await sendPhoneNotification(ADMIN_CONTACT.phone, phoneMessage);
+    }
     
     res.status(201).json({
-      message: `Successfully added ${result.length} startups. Awaiting admin verification before public display.`,
-      insertedCount: result.length,
       startups: result,
-      verificationRequired: true
+      message: isAdmin 
+        ? `Successfully uploaded ${result.length} startups. All are now publicly visible.`
+        : `Successfully uploaded ${result.length} startups. Awaiting admin verification before public display.`
     });
   } catch (err) {
-    console.error('Error creating bulk startups:', err);
-    const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-    res.status(400).json({ error: 'Failed to create bulk startups', details: errorMessage });
+    console.error('❌ Error creating bulk startups:', err);
+    res.status(400).json({ error: 'Failed to create bulk startups', details: err instanceof Error ? err.message : 'Unknown error' });
   }
 });
 

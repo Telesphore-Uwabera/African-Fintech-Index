@@ -33,8 +33,6 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange, avail
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [userSearch, setUserSearch] = useState('');
   const [startups, setStartups] = useState<any[]>([]);
-  const [pendingStartups, setPendingStartups] = useState<any[]>([]);
-  const [loadingPendingStartups, setLoadingPendingStartups] = useState(false);
 
   useEffect(() => {
     // Load user from localStorage on mount
@@ -76,33 +74,41 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange, avail
     }
   }, [currentUser]);
 
-  // Fetch pending startups if admin
+  // Fetch startups data for fintech companies calculation
   useEffect(() => {
+    // Fetch ALL startups (including pending) for stats calculation if admin
     if (currentUser?.role === 'admin' && currentUser.token) {
-      setLoadingPendingStartups(true);
-      fetch(`${apiUrl}/startups/pending`, {
-        headers: { Authorization: `Bearer ${currentUser.token}` },
+      fetch(`${apiUrl}/startups/all`, {
+        headers: { Authorization: `Bearer ${currentUser.token}` }
       })
         .then(res => res.json())
         .then(data => {
-          setPendingStartups(data.startups || []);
-          setLoadingPendingStartups(false);
+          setStartups(data.startups || data || []);
         })
-        .catch(() => setLoadingPendingStartups(false));
+        .catch(() => {
+          console.error('Failed to fetch all startups for stats calculation');
+          // Fallback to verified startups only if all startups fetch fails
+          fetch(`${apiUrl}/startups`)
+            .then(res => res.json())
+            .then(data => {
+              setStartups(data);
+            })
+            .catch(() => {
+              console.error('Failed to fetch verified startups as fallback');
+            });
+        });
+    } else {
+      // For non-admin users, fetch verified startups only
+      fetch(`${apiUrl}/startups`)
+        .then(res => res.json())
+        .then(data => {
+          setStartups(data);
+        })
+        .catch(() => {
+          console.error('Failed to fetch verified startups');
+        });
     }
-  }, [currentUser]);
-
-  // Fetch startups data for fintech companies calculation
-  useEffect(() => {
-    fetch(`${apiUrl}/startups`)
-      .then(res => res.json())
-      .then(data => {
-        setStartups(data);
-      })
-      .catch(() => {
-        console.error('Failed to fetch startups for stats calculation');
-      });
-  }, [apiUrl]);
+  }, [apiUrl, currentUser]);
 
   const handleVerifyUser = async (userId: string) => {
     if (!currentUser?.token) return;
@@ -117,43 +123,6 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange, avail
       } catch {
         setNotification({ type: 'error', message: 'Failed to verify user.' });
       }
-    }
-  };
-
-  const handleVerifyStartup = async (startupId: string, status: 'approved' | 'rejected', notes?: string) => {
-    if (!currentUser?.token) return;
-    
-    const action = status === 'approved' ? 'approve' : 'reject';
-    if (!window.confirm(`Are you sure you want to ${action} this startup?`)) return;
-    
-    try {
-      const response = await fetch(`${apiUrl}/startups/${startupId}/verify`, {
-        method: 'PATCH',
-        headers: { 
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${currentUser.token}` 
-        },
-        body: JSON.stringify({ 
-          verificationStatus: status,
-          adminNotes: notes || ''
-        }),
-      });
-      
-      if (response.ok) {
-        // Remove from pending list
-        setPendingStartups(prev => prev.filter(s => s._id !== startupId));
-        setNotification({ 
-          type: 'success', 
-          message: `Startup ${status} successfully.` 
-        });
-      } else {
-        throw new Error('Failed to verify startup');
-      }
-    } catch (error) {
-      setNotification({ 
-        type: 'error', 
-        message: 'Failed to verify startup.' 
-      });
     }
   };
 
@@ -557,68 +526,6 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange, avail
                   </div>
                 )}
               </div>
-            </div>
-          )}
-
-          {/* Startup Verification Panel - Admin Only */}
-          {currentUser?.role === 'admin' && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-6">
-              <div className="flex items-center space-x-2 sm:space-x-3 mb-4">
-                <div className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-orange-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <svg className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-sm sm:text-base md:text-lg font-bold text-gray-900">Startup Verification</h3>
-                  <p className="text-xs sm:text-sm text-gray-600">Review and verify pending startup uploads</p>
-                </div>
-              </div>
-
-              {loadingPendingStartups ? (
-                <p className="text-gray-500">Loading pending startups...</p>
-              ) : pendingStartups.length === 0 ? (
-                <p className="text-gray-500">No startups pending verification.</p>
-              ) : (
-                <div className="space-y-3">
-                  <p className="text-sm text-gray-600">
-                    <span className="font-semibold">{pendingStartups.length}</span> startup(s) awaiting verification
-                  </p>
-                  {pendingStartups.map(startup => (
-                    <div key={startup._id} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-sm">{startup.name}</h4>
-                          <div className="text-xs text-gray-600 space-y-1">
-                            <p>📍 {startup.country}</p>
-                            <p>🏢 {startup.sector}</p>
-                            <p>📅 Founded: {startup.foundedYear}</p>
-                            <p>📤 Added: {new Date(startup.addedAt).toLocaleDateString()}</p>
-                            {startup.addedBy && <p>👤 By: {startup.addedBy}</p>}
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleVerifyStartup(startup._id, 'approved')}
-                            className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-xs font-medium"
-                          >
-                            ✅ Approve
-                          </button>
-                          <button
-                            onClick={() => {
-                              const notes = prompt('Rejection reason (optional):');
-                              handleVerifyStartup(startup._id, 'rejected', notes || '');
-                            }}
-                            className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-xs font-medium"
-                          >
-                            ❌ Reject
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           )}
         </main>

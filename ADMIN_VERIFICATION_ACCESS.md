@@ -11,12 +11,12 @@
 - **Actions**: Verify user, Edit user, Delete user
 
 ### 2. **🚀 Startup Verification Panel** 
-**Location**: Admin Dashboard → Startup Verification Section
+**Location**: Startup Page → Startup Verification Section
 **Access**: `GET /api/startups/pending`
 **What You See**:
 - Startups pending verification
 - Startup details: name, country, sector, founded year, upload date
-- **Actions**: ✅ Approve startup, ❌ Reject startup (with notes)
+- **Actions**: ✅ Approve startup, ❌ Reject startup (with notes), ✅ Verify All
 
 ### 3. **📊 Country Data Management**
 **Location**: Admin Dashboard → Data Management Section
@@ -41,12 +41,6 @@
 │ ├─ Add New User                                       │
 │ ├─ Edit User Roles & Verification                     │
 ├─────────────────────────────────────────────────────────┤
-│ 🚀 Startup Verification (Admin Only)                  │
-│ ├─ Pending Startups Count                             │
-│ ├─ Startup Details (Name, Country, Sector, Year)     │
-│ ├─ ✅ Approve Button                                  │
-│ ├─ ❌ Reject Button (with notes)                      │
-├─────────────────────────────────────────────────────────┤
 │ 📊 Interactive Analytics                               │
 │ ├─ Charts and Data Visualization                      │
 ├─────────────────────────────────────────────────────────┤
@@ -60,6 +54,30 @@
 ├─────────────────────────────────────────────────────────┤
 │ 📋 Country Rankings Table                             │
 └─────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────┐
+│                STARTUP PAGE                            │
+├─────────────────────────────────────────────────────────┤
+│ 🚀 Startup Verification (Admin Only)                  │
+│ ├─ Pending Startups Count                             │
+│ ├─ Startup Details (Name, Country, Sector, Year)     │
+│ ├─ ✅ Approve Button                                  │
+│ ├─ ❌ Reject Button (with notes)                      │
+│ ├─ ✅ Verify All Button (Bulk Approval)               │
+├─────────────────────────────────────────────────────────┤
+│ 📤 Startup Upload & Management                        │
+│ ├─ Add Individual Startup                             │
+│ ├─ Bulk Upload (.xlsx, .csv)                         │
+│ ├─ Upload Guide                                       │
+└─────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────┐
+│                DATA MANAGEMENT PAGE                     │
+├─────────────────────────────────────────────────────────┤
+│ 📊 Country Data Management                             │
+│ ├─ Upload, delete, manage country data                │
+│ ├─ File upload and data operations                    │
+└─────────────────────────────────────────────────────────┘
 ```
 
 ## 🔍 **How to Access Verification Data**
@@ -70,8 +88,8 @@
 - Ensure you have `role: 'admin'`
 
 ### **Step 2: Navigate to Verification Sections**
-1. **User Verification**: Scroll to "User Management" section
-2. **Startup Verification**: Scroll to "Startup Verification" section
+1. **User Verification**: Scroll to "User Management" section in Dashboard
+2. **Startup Verification**: Go to "Startups" page → "Startup Verification" section
 3. **Data Management**: Use dedicated Data Management page
 
 ### **Step 3: Review Pending Items**
@@ -114,7 +132,7 @@
 |---------|-----|--------|
 | **Admin Dashboard** | `/dashboard` | Admin only |
 | **User Management** | `/dashboard` (User Management section) | Admin only |
-| **Startup Verification** | `/dashboard` (Startup Verification section) | Admin only |
+| **Startup Verification** | `/startups` (Startup Verification section) | Admin only |
 | **Data Management** | `/data-management` | Admin only |
 | **Pending Startups API** | `/api/startups/pending` | Admin only |
 | **Unverified Users API** | `/api/users/unverified` | Admin only |

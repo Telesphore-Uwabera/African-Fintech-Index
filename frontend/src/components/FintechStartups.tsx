@@ -12,58 +12,57 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
   const [startups, setStartups] = useState<FintechStartup[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [uploadStatus, setUploadStatus] = useState<string | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<string>('');
+  const [showUploadGuide, setShowUploadGuide] = useState(false);
+  const [pendingStartups, setPendingStartups] = useState<any[]>([]);
+  const [loadingPendingStartups, setLoadingPendingStartups] = useState(false);
+  const [verificationNotification, setVerificationNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [pendingDisplayCount, setPendingDisplayCount] = useState(3);
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('');
   const [selectedSector, setSelectedSector] = useState('');
   const [displayCount, setDisplayCount] = useState(6);
-  const [showUploadGuide, setShowUploadGuide] = useState(false);
 
   // Fetch startups from backend on mount and when filters change
   useEffect(() => {
-    setLoading(true);
-    const apiUrl = import.meta.env.VITE_API_URL || '/api';
-    
-    // Build query parameters
-    const params = new URLSearchParams();
-    if (searchTerm) params.append('search', searchTerm);
-    if (selectedCountry && selectedCountry !== 'All Countries') params.append('country', selectedCountry);
-    if (selectedSector && selectedSector !== 'All Sectors') params.append('sector', selectedSector);
-    
-    const queryString = params.toString();
-    const url = queryString ? `${apiUrl}/startups?${queryString}` : `${apiUrl}/startups`;
-    
-    fetch(url)
-      .then(res => res.json())
-      .then(data => {
-        // Log what sectors are received from backend
-        console.log('🔍 Frontend received startups from backend:', {
-          totalCount: data.length,
-          sampleSectors: data.slice(0, 3).map((s: any) => ({
-            name: s.name,
-            sector: s.sector,
-            parsedSectors: parseSectors(s.sector),
-            sectorsCount: parseSectors(s.sector).length,
-            hasMultipleSectors: parseSectors(s.sector).length > 1
-          }))
-        });
-        
+    const fetchStartups = async () => {
+      try {
+        setLoading(true);
+        const apiUrl = import.meta.env.VITE_API_URL || '/api';
+        const res = await fetch(`${apiUrl}/startups`);
+        if (!res.ok) throw new Error('Failed to fetch startups');
+        const data = await res.json();
         setStartups(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error('Error fetching startups:', err);
+        setError(null);
+      } catch (err) {
         setError('Failed to fetch startups');
+        console.error('Error fetching startups:', err);
+      } finally {
         setLoading(false);
-      });
-  }, [searchTerm, selectedCountry, selectedSector]); // Refetch when filters change
+      }
+    };
 
-  // Reset display count when filters change
+    fetchStartups();
+  }, []);
+
+  // Fetch pending startups for admin verification
   useEffect(() => {
-    setDisplayCount(6);
-  }, [searchTerm, selectedCountry, selectedSector]);
+    if (currentUser?.role === 'admin' && currentUser.token) {
+      setLoadingPendingStartups(true);
+      const apiUrl = import.meta.env.VITE_API_URL || '/api';
+      fetch(`${apiUrl}/startups/pending`, {
+        headers: { Authorization: `Bearer ${currentUser.token}` },
+      })
+        .then(res => res.json())
+        .then(data => {
+          setPendingStartups(data.startups || []);
+          setLoadingPendingStartups(false);
+        })
+        .catch(() => setLoadingPendingStartups(false));
+    }
+  }, [currentUser]);
   
   const [newStartup, setNewStartup] = useState({
     name: '',
@@ -127,9 +126,16 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
 
     try {
       const apiUrl = import.meta.env.VITE_API_URL || '/api';
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      
+      // Include auth token if available (for admin auto-approval)
+      if (currentUser.token) {
+        headers['Authorization'] = `Bearer ${currentUser.token}`;
+      }
+      
       const res = await fetch(`${apiUrl}/startups`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(startup),
       });
       if (!res.ok) throw new Error('Failed to add startup');
@@ -193,9 +199,16 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
         
         const requestBody = { data: json };
         
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        
+        // Include auth token if available (for admin auto-approval)
+        if (currentUser?.token) {
+          headers['Authorization'] = `Bearer ${currentUser.token}`;
+        }
+        
         const res = await fetch(`${apiUrl}/startups/bulk`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify(requestBody),
         });
         
@@ -206,7 +219,7 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
         }
         
         const result = await res.json();
-        setUploadStatus(`✅ Successfully uploaded ${result.insertedCount} startups!`);
+        setUploadStatus(`✅ ${result.message}`);
         // Refresh startups list
         fetch(`${apiUrl}/startups`)
           .then(res => res.json())
@@ -218,6 +231,108 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
     };
     reader.readAsArrayBuffer(file);
   };
+
+  // Handle individual startup verification
+  const handleVerifyStartup = async (startupId: string, status: 'approved' | 'rejected', notes?: string) => {
+    if (!currentUser?.token) return;
+    
+    const action = status === 'approved' ? 'approve' : 'reject';
+    if (!window.confirm(`Are you sure you want to ${action} this startup?`)) return;
+    
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || '/api';
+      const response = await fetch(`${apiUrl}/startups/${startupId}/verify`, {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${currentUser.token}` 
+        },
+        body: JSON.stringify({ 
+          verificationStatus: status,
+          adminNotes: notes || ''
+        }),
+      });
+      
+      if (response.ok) {
+        // Remove from pending list
+        setPendingStartups(prev => prev.filter(s => s._id !== startupId));
+        setVerificationNotification({ 
+          type: 'success', 
+          message: `Startup ${status} successfully.` 
+        });
+        
+        // Refresh verified startups list
+        const res = await fetch(`${apiUrl}/startups`);
+        if (res.ok) {
+          const data = await res.json();
+          setStartups(data);
+        }
+      } else {
+        throw new Error('Failed to verify startup');
+      }
+    } catch (error) {
+      setVerificationNotification({ 
+        type: 'error', 
+        message: 'Failed to verify startup.' 
+      });
+    }
+  };
+
+  // Handle bulk verification of all pending startups
+  const handleVerifyAllStartups = async () => {
+    if (!currentUser?.token || pendingStartups.length === 0) return;
+    
+    if (!window.confirm(`Are you sure you want to approve all ${pendingStartups.length} pending startups?`)) return;
+    
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || '/api';
+      const response = await fetch(`${apiUrl}/startups/bulk-verify`, {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${currentUser.token}` 
+        },
+        body: JSON.stringify({ 
+          startupIds: pendingStartups.map(s => s._id),
+          verificationStatus: 'approved',
+          adminNotes: 'Bulk approved by admin'
+        }),
+      });
+      
+      if (response.ok) {
+        // Clear pending list
+        setPendingStartups([]);
+        setVerificationNotification({ 
+          type: 'success', 
+          message: `All ${pendingStartups.length} startups approved successfully.` 
+        });
+        
+        // Refresh verified startups list
+        const res = await fetch(`${apiUrl}/startups`);
+        if (res.ok) {
+          const data = await res.json();
+          setStartups(data);
+        }
+      } else {
+        throw new Error('Failed to bulk verify startups');
+      }
+    } catch (error) {
+      setVerificationNotification({ 
+        type: 'error', 
+        message: 'Failed to bulk verify startups.' 
+      });
+    }
+  };
+
+  // Handle showing more pending startups
+  const handleShowMorePending = () => {
+    setPendingDisplayCount(prev => prev + 3);
+  };
+
+  // Reset pending display count when pending startups change
+  useEffect(() => {
+    setPendingDisplayCount(3);
+  }, [pendingStartups.length]);
 
   // Filtering is now handled by the backend API
   const filteredStartups = startups;
@@ -268,6 +383,106 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
                 <span>📋 Guide</span>
               </button>
             </div>
+          </div>
+        )}
+
+        {/* Startup Verification Panel - Admin Only */}
+        {currentUser?.role === 'admin' && (
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center space-x-2">
+                <div className="w-6 h-6 bg-orange-600 rounded-lg flex items-center justify-center">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-sm font-bold text-orange-900">Startup Verification</h3>
+              </div>
+              {pendingStartups.length > 0 && (
+                <button
+                  onClick={handleVerifyAllStartups}
+                  className="px-3 py-1 bg-orange-600 text-white rounded hover:bg-orange-700 text-xs font-medium"
+                >
+                  ✅ Verify All ({pendingStartups.length})
+                </button>
+              )}
+            </div>
+
+            {verificationNotification && (
+              <div className={`mb-3 p-2 rounded text-xs ${verificationNotification.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                {verificationNotification.message}
+              </div>
+            )}
+
+            {loadingPendingStartups ? (
+              <p className="text-orange-600 text-sm">Loading pending startups...</p>
+            ) : pendingStartups.length === 0 ? (
+              <p className="text-orange-600 text-sm">No startups pending verification.</p>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-xs text-orange-700">
+                  <span className="font-semibold">{pendingStartups.length}</span> startup(s) awaiting verification
+                  {pendingStartups.length > 3 && (
+                    <span className="ml-2 text-orange-600">
+                      (Showing {Math.min(pendingDisplayCount, pendingStartups.length)} of {pendingStartups.length})
+                    </span>
+                  )}
+                </p>
+                {pendingStartups.slice(0, pendingDisplayCount).map(startup => (
+                  <div key={startup._id} className="border border-orange-200 rounded p-2 bg-white">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-sm">{startup.name}</h4>
+                        <div className="text-xs text-gray-600 space-y-1">
+                          <p>📍 {startup.country}</p>
+                          <p>🏢 {startup.sector}</p>
+                          <p>📅 Founded: {startup.foundedYear}</p>
+                          <p>📤 Added: {new Date(startup.addedAt).toLocaleDateString()}</p>
+                          {startup.addedBy && <p>👤 By: {startup.addedBy}</p>}
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleVerifyStartup(startup._id, 'approved')}
+                          className="px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-xs font-medium"
+                        >
+                          ✅ Approve
+                        </button>
+                        <button
+                          onClick={() => {
+                            const notes = prompt('Rejection reason (optional):');
+                            handleVerifyStartup(startup._id, 'rejected', notes || '');
+                          }}
+                          className="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-xs font-medium"
+                        >
+                          ❌ Reject
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                {/* Pagination Controls */}
+                <div className="flex gap-2 justify-center">
+                  {pendingStartups.length > pendingDisplayCount && (
+                    <button
+                      onClick={handleShowMorePending}
+                      className="px-3 py-1 bg-orange-600 text-white rounded hover:bg-orange-700 text-xs font-medium"
+                    >
+                      Show More ({pendingStartups.length - pendingDisplayCount} more)
+                    </button>
+                  )}
+                  {pendingDisplayCount > 3 && (
+                    <button
+                      onClick={() => setPendingDisplayCount(3)}
+                      className="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700 text-xs font-medium"
+                    >
+                      Show Less
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -436,54 +651,55 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 md:gap-6 w-full max-w-full min-w-0 overflow-hidden">
           {displayedStartups.map((startup, index) => (
               <div key={startup.id || `startup-${index}-${startup.name}`} className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow w-full max-w-full min-w-0 overflow-hidden bg-white">
-                <div className="flex items-start justify-between mb-2 sm:mb-3 w-full max-w-full min-w-0 overflow-hidden">
-                  <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 flex-1 min-w-0 mr-2 break-words leading-tight">{startup.name}</h3>
-                  <div className="flex flex-wrap gap-1 ml-2">
-                    {(() => {
-                      const sectors = parseSectors(startup.sector);
-                      
-                      // Log what sectors are being rendered for this startup
-                      console.log(`🔍 Rendering sectors for ${startup.name}:`, {
-                        originalSector: startup.sector,
-                        parsedSectors: sectors,
-                        sectorsCount: sectors.length,
-                        hasMultipleSectors: sectors.length > 1
-                      });
-                      
-                      // Color palette for different sectors
-                      const sectorColors = [
-                        'bg-blue-100 text-blue-800',
-                        'bg-green-100 text-green-800', 
-                        'bg-purple-100 text-purple-800',
-                        'bg-orange-100 text-orange-800',
-                        'bg-pink-100 text-pink-800',
-                        'bg-indigo-100 text-indigo-800',
-                        'bg-teal-100 text-teal-800',
-                        'bg-yellow-100 text-yellow-800'
-                      ];
-                      
-                      // If no sectors, show a placeholder
-                      if (sectors.length === 0) {
-                        return (
-                          <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full flex-shrink-0 font-medium">
-                            No Sector
-                          </span>
-                        );
-                      }
-                      
-                      return sectors.map((sector, index) => (
-                        <span 
-                          key={index} 
-                          className={`px-2 py-1 text-xs rounded-full flex-shrink-0 font-medium ${
-                            sectorColors[index % sectorColors.length]
-                          }`}
-                          title={sector}
-                        >
-                          {sector}
+                {/* Startup Name - Displayed above sectors */}
+                <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 mb-2 sm:mb-3 break-words leading-tight">{startup.name}</h3>
+                
+                {/* Sectors - Displayed below name */}
+                <div className="flex flex-wrap gap-1 mb-2 sm:mb-3">
+                  {(() => {
+                    const sectors = parseSectors(startup.sector);
+                    
+                    // Log what sectors are being rendered for this startup
+                    console.log(`🔍 Rendering sectors for ${startup.name}:`, {
+                      originalSector: startup.sector,
+                      parsedSectors: sectors,
+                      sectorsCount: sectors.length,
+                      hasMultipleSectors: sectors.length > 1
+                    });
+                    
+                    // Color palette for different sectors
+                    const sectorColors = [
+                      'bg-blue-100 text-blue-800',
+                      'bg-green-100 text-green-800', 
+                      'bg-purple-100 text-purple-800',
+                      'bg-orange-100 text-orange-800',
+                      'bg-pink-100 text-pink-800',
+                      'bg-indigo-100 text-indigo-800',
+                      'bg-teal-100 text-teal-800',
+                      'bg-yellow-100 text-yellow-800'
+                    ];
+                    
+                    // If no sectors, show a placeholder
+                    if (sectors.length === 0) {
+                      return (
+                        <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full flex-shrink-0 font-medium">
+                          No Sector
                         </span>
-                      ));
-                    })()}
-                  </div>
+                      );
+                    }
+                    
+                    return sectors.map((sector, index) => (
+                      <span 
+                        key={index} 
+                        className={`px-2 py-1 text-xs rounded-full flex-shrink-0 font-medium ${
+                          sectorColors[index % sectorColors.length]
+                        }`}
+                        title={sector}
+                      >
+                        {sector}
+                      </span>
+                    ));
+                  })()}
                 </div>
                 <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 line-clamp-3 break-words leading-relaxed">{startup.description}</p>
                 <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-500">
