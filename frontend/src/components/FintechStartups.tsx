@@ -334,8 +334,35 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
     setPendingDisplayCount(3);
   }, [pendingStartups.length]);
 
-  // Filtering is now handled by the backend API
-  const filteredStartups = startups;
+  // Apply filters and search
+  const filteredStartups = React.useMemo(() => {
+    const filtered = startups.filter(startup => {
+      // Search term filter (name, description, website)
+      const searchLower = searchTerm.toLowerCase();
+      const matchesSearch = !searchTerm || 
+        startup.name.toLowerCase().includes(searchLower) ||
+        (startup.description && startup.description.toLowerCase().includes(searchLower)) ||
+        (startup.website && startup.website.toLowerCase().includes(searchLower));
+
+      // Country filter
+      const matchesCountry = !selectedCountry || startup.country === selectedCountry;
+
+      // Sector filter (check if any sector matches)
+      const matchesSector = !selectedSector || 
+        parseSectors(startup.sector).some(sector => 
+          sector.toLowerCase().includes(selectedSector.toLowerCase())
+        );
+
+      return matchesSearch && matchesCountry && matchesSector;
+    });
+
+    // Sort by founded year in descending order (latest first)
+    return filtered.sort((a, b) => {
+      const yearA = parseInt(String(a.foundedYear)) || 0;
+      const yearB = parseInt(String(b.foundedYear)) || 0;
+      return yearB - yearA; // Descending order (newest first)
+    });
+  }, [startups, searchTerm, selectedCountry, selectedSector]);
 
   // Show startups in batches of 6
   const displayedStartups = filteredStartups.slice(0, displayCount);
@@ -351,7 +378,12 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
           <div className="min-w-0 flex-1">
             <h2 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 truncate">Fintech Startups</h2>
             <p className="text-xs sm:text-sm text-gray-600 truncate">
-              {filteredStartups.length} startups across Africa
+              {filteredStartups.length} of {startups.length} startups across Africa
+              {(searchTerm || selectedCountry || selectedSector) && (
+                <span className="text-blue-600 font-medium">
+                  {' '}(filtered)
+                </span>
+              )}
             </p>
           </div>
         </div>
@@ -495,6 +527,55 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
 
       {/* Filters */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-6">
+        {/* Active Filters Display */}
+        {(searchTerm || selectedCountry || selectedSector) && (
+          <div className="col-span-full flex flex-wrap items-center gap-2 mb-2">
+            <span className="text-xs text-gray-600 font-medium">Active filters:</span>
+            {searchTerm && (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                Search: "{searchTerm}"
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="ml-1 text-blue-600 hover:text-blue-800"
+                >
+                  ×
+                </button>
+              </span>
+            )}
+            {selectedCountry && (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                Country: {selectedCountry}
+                <button
+                  onClick={() => setSelectedCountry('')}
+                  className="ml-1 text-green-600 hover:text-green-800"
+                >
+                  ×
+                </button>
+              </span>
+            )}
+            {selectedSector && (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800">
+                Sector: {selectedSector}
+                <button
+                  onClick={() => setSelectedSector('')}
+                  className="ml-1 text-purple-600 hover:text-purple-800"
+                >
+                  ×
+                </button>
+              </span>
+            )}
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                setSelectedCountry('');
+                setSelectedSector('');
+              }}
+              className="text-xs text-gray-500 hover:text-gray-700 underline"
+            >
+              Clear all filters
+            </button>
+          </div>
+        )}
         <div className="relative">
           <Search className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
           <input
@@ -648,87 +729,114 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
         <div className="text-red-600 text-sm p-4 text-center">{error}</div>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 md:gap-6 w-full max-w-full min-w-0 overflow-hidden">
-          {displayedStartups.map((startup, index) => (
-              <div key={startup.id || `startup-${index}-${startup.name}`} className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow w-full max-w-full min-w-0 overflow-hidden bg-white">
-                {/* Startup Name - Displayed above sectors */}
-                <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 mb-2 sm:mb-3 break-words leading-tight">{startup.name}</h3>
-                
-                {/* Sectors - Displayed below name */}
-                <div className="flex flex-wrap gap-1 mb-2 sm:mb-3">
-                  {(() => {
-                    const sectors = parseSectors(startup.sector);
-                    
-                    // Log what sectors are being rendered for this startup
-                    console.log(`🔍 Rendering sectors for ${startup.name}:`, {
-                      originalSector: startup.sector,
-                      parsedSectors: sectors,
-                      sectorsCount: sectors.length,
-                      hasMultipleSectors: sectors.length > 1
-                    });
-                    
-                    // Color palette for different sectors
-                    const sectorColors = [
-                      'bg-blue-100 text-blue-800',
-                      'bg-green-100 text-green-800', 
-                      'bg-purple-100 text-purple-800',
-                      'bg-orange-100 text-orange-800',
-                      'bg-pink-100 text-pink-800',
-                      'bg-indigo-100 text-indigo-800',
-                      'bg-teal-100 text-teal-800',
-                      'bg-yellow-100 text-yellow-800'
-                    ];
-                    
-                    // If no sectors, show a placeholder
-                    if (sectors.length === 0) {
-                      return (
-                        <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full flex-shrink-0 font-medium">
-                          No Sector
-                        </span>
-                      );
-                    }
-                    
-                    return sectors.map((sector, index) => (
-                      <span 
-                        key={index} 
-                        className={`px-2 py-1 text-xs rounded-full flex-shrink-0 font-medium ${
-                          sectorColors[index % sectorColors.length]
-                        }`}
-                        title={sector}
-                      >
-                        {sector}
-                      </span>
-                    ));
-                  })()}
-                </div>
-                <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 line-clamp-3 break-words leading-relaxed">{startup.description}</p>
-                <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-500">
-                <div className="flex items-center space-x-1.5 sm:space-x-2">
-                    <Globe className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 text-gray-400" />
-                    <span className="truncate font-medium">{startup.country}</span>
-                </div>
-                <div className="flex items-center space-x-1.5 sm:space-x-2">
-                    <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 text-gray-400" />
-                  <span>Founded {startup.foundedYear}</span>
-                </div>
-                <div className="flex items-center space-x-1.5 sm:space-x-2">
-                    <User className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 text-gray-400" />
-                    <span className="truncate text-xs">Added by {startup.addedBy || 'Unknown'}</span>
-                  </div>
-                </div>
-              {startup.website && (
-                <a
-                  href={startup.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                    className="inline-block mt-3 sm:mt-4 text-green-600 hover:text-green-700 text-xs sm:text-sm font-medium truncate border-t border-gray-100 pt-2 sm:pt-3"
+          {filteredStartups.length === 0 ? (
+            <div className="col-span-full text-center py-12">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Search className="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No startups found</h3>
+              <p className="text-gray-600 mb-4">
+                {searchTerm || selectedCountry || selectedSector 
+                  ? 'Try adjusting your search terms or filters.'
+                  : 'No startups are currently available.'
+                }
+              </p>
+              {(searchTerm || selectedCountry || selectedSector) && (
+                <button
+                  onClick={() => {
+                    setSearchTerm('');
+                    setSelectedCountry('');
+                    setSelectedSector('');
+                  }}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                 >
-                  Visit Website →
-                </a>
+                  Clear all filters
+                </button>
               )}
             </div>
-          ))}
-        </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 md:gap-6 w-full max-w-full min-w-0 overflow-hidden">
+              {displayedStartups.map((startup, index) => (
+                <div key={startup.id || `startup-${index}-${startup.name}`} className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow w-full max-w-full min-w-0 overflow-hidden bg-white">
+                  {/* Startup Name - Displayed above sectors */}
+                  <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 mb-2 sm:mb-3 break-words leading-tight">{startup.name}</h3>
+                  
+                  {/* Sectors - Displayed below name */}
+                  <div className="flex flex-wrap gap-1 mb-2 sm:mb-3">
+                    {(() => {
+                      const sectors = parseSectors(startup.sector);
+                      
+                      // Log what sectors are being rendered for this startup
+                      console.log(`🔍 Rendering sectors for ${startup.name}:`, {
+                        originalSector: startup.sector,
+                        parsedSectors: sectors,
+                        sectorsCount: sectors.length,
+                        hasMultipleSectors: sectors.length > 1
+                      });
+                      
+                      // Color palette for different sectors
+                      const sectorColors = [
+                        'bg-blue-100 text-blue-800',
+                        'bg-green-100 text-green-800', 
+                        'bg-purple-100 text-purple-800',
+                        'bg-orange-100 text-orange-800',
+                        'bg-pink-100 text-pink-800',
+                        'bg-indigo-100 text-indigo-800',
+                        'bg-teal-100 text-teal-800',
+                        'bg-yellow-100 text-yellow-800'
+                      ];
+                      
+                      // If no sectors, show a placeholder
+                      if (sectors.length === 0) {
+                        return (
+                          <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full flex-shrink-0 font-medium">
+                            No Sector
+                          </span>
+                        );
+                      }
+                      
+                      return sectors.map((sector, index) => (
+                        <span 
+                          key={index} 
+                          className={`px-2 py-1 text-xs rounded-full flex-shrink-0 font-medium ${
+                            sectorColors[index % sectorColors.length]
+                          }`}
+                          title={sector}
+                        >
+                          {sector}
+                        </span>
+                      ));
+                    })()}
+                  </div>
+                  <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 line-clamp-3 break-words leading-relaxed">{startup.description}</p>
+                  <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-500">
+                    <div className="flex items-center space-x-1.5 sm:space-x-2">
+                      <Globe className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 text-gray-400" />
+                      <span className="truncate font-medium">{startup.country}</span>
+                    </div>
+                    <div className="flex items-center space-x-1.5 sm:space-x-2">
+                      <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 text-gray-400" />
+                      <span>Founded {startup.foundedYear}</span>
+                    </div>
+                    <div className="flex items-center space-x-1.5 sm:space-x-2">
+                      <User className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 text-gray-400" />
+                      <span className="truncate text-xs">Added by {startup.addedBy || 'Unknown'}</span>
+                    </div>
+                  </div>
+                  {startup.website && (
+                    <a
+                      href={startup.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block mt-3 sm:mt-4 text-green-600 hover:text-green-700 text-xs sm:text-sm font-medium truncate border-t border-gray-100 pt-2 sm:pt-3"
+                    >
+                      Visit Website →
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         
         {/* View More Button */}
         {hasMoreStartups && (
@@ -756,20 +864,7 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
         </>
       )}
 
-      {displayedStartups.length === 0 && !loading && (
-        <div className="text-center py-8 sm:py-12">
-          <Building2 className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-3 sm:mb-4" />
-          <p className="text-sm sm:text-base text-gray-600 mb-2">No startups found matching your criteria</p>
-          {currentUser && (
-            <button
-              onClick={() => setShowAddForm(true)}
-              className="text-green-600 hover:text-green-700 font-medium text-sm"
-            >
-              Add the first startup
-            </button>
-          )}
-        </div>
-      )}
+
 
       {/* Upload Guide Modal */}
       {showUploadGuide && (
