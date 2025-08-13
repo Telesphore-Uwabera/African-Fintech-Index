@@ -501,10 +501,14 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
       )}
       
       {chartType === 'distribution' && (
-        <div className="mt-2 sm:mt-3 md:mt-4 text-xs text-gray-500 text-center px-2">
+        <div className="mt-4 sm:mt-6 md:mt-8 text-center px-4">
           <div className="break-words">
-            Distribution of countries by fintech index score ranges for {selectedYear} • 
-            Zero-score countries excluded
+            <h3 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-800 mb-2">
+              Distribution of countries by fintech index score ranges for {selectedYear}
+            </h3>
+            <p className="text-sm sm:text-base md:text-lg text-gray-600">
+              Zero-score countries excluded
+            </p>
           </div>
         </div>
       )}
