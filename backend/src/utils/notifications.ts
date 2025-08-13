@@ -24,21 +24,54 @@ export async function sendEmail(to: string, subject: string, text: string) {
   }
 }
 
-// Phone notification utility function (placeholder for SMS service)
+// Phone notification utility function using Africa's Talking
 export async function sendPhoneNotification(phone: string, message: string) {
   try {
-    // TODO: Integrate with SMS service (Twilio, Africa's Talking, etc.)
-    // For now, log the notification
-    console.log(`📱 Phone notification to ${phone}: ${message}`);
+    // Check if Africa's Talking is configured
+    const username = process.env.AFRICASTALKING_USERNAME;
+    const apiKey = process.env.AFRICASTALKING_API_KEY;
     
-    // You can integrate with services like:
-    // - Twilio: https://www.twilio.com/
-    // - Africa's Talking: https://africastalking.com/
-    // - MessageBird: https://messagebird.com/
+    if (!username || !apiKey) {
+      // Fallback to console log if not configured
+      console.log(`📱 Phone notification to ${phone}: ${message}`);
+      console.log('💡 To enable real SMS, set AFRICASTALKING_USERNAME and AFRICASTALKING_API_KEY in .env');
+      return true;
+    }
+
+    // Format phone number for Africa's Talking (remove + and add country code)
+    const formattedPhone = phone.startsWith('+') ? phone.substring(1) : phone;
     
-    return true;
+    // Africa's Talking API endpoint
+    const url = 'https://api.africastalking.com/version1/messaging';
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'apiKey': apiKey,
+      },
+      body: new URLSearchParams({
+        username: username,
+        to: formattedPhone,
+        message: message,
+        from: 'AFRICAN-FINTECH' // Your sender ID (will show as "AFRICAN-FINTECH")
+      })
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      console.log(`✅ SMS sent to ${phone}: ${message}`);
+      console.log('📱 SMS Response:', result);
+      return true;
+    } else {
+      const errorText = await response.text();
+      console.error(`❌ SMS failed for ${phone}:`, errorText);
+      return false;
+    }
   } catch (error) {
     console.error('❌ Failed to send phone notification:', error);
+    // Fallback to console log
+    console.log(`📱 Phone notification to ${phone}: ${message}`);
     return false;
   }
 }
