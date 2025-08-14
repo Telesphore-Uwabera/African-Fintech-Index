@@ -40,7 +40,7 @@ function App() {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
     
-    fetch(`${apiUrl}/country-data/years`, {
+    fetch(`http://localhost:5000/api/country-data/years`, {
       signal: controller.signal
     })
       .then(res => {
@@ -58,7 +58,10 @@ function App() {
       })
       .catch((error) => {
         clearTimeout(timeoutId);
-        console.error('Failed to fetch years:', error);
+        // Only log if it's not an abort error
+        if (error.name !== 'AbortError') {
+          console.error('Failed to fetch years:', error);
+        }
         setAvailableYears([]);
         // Set a default year if fetch fails
         if (selectedYear === null) {
