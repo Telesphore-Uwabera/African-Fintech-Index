@@ -8,6 +8,7 @@ interface DataManagementProps {
   isAuthenticated: boolean;
   data?: CountryData[];
   updateData?: (newData: CountryData[]) => void;
+  currentUser?: any;
 }
 
 export const DataManagement: React.FC<DataManagementProps> = ({ 
@@ -15,7 +16,8 @@ export const DataManagement: React.FC<DataManagementProps> = ({
   clearData, 
   isAuthenticated,
   data = [],
-  updateData
+  updateData,
+  currentUser
 }) => {
   const [showDeleteOptions, setShowDeleteOptions] = useState(false);
   const [deleteMode, setDeleteMode] = useState<'all' | 'year' | 'country' | 'custom'>('all');
@@ -40,31 +42,140 @@ export const DataManagement: React.FC<DataManagementProps> = ({
     }
   };
 
-  const handleDeleteByYear = () => {
-    if (!updateData) return;
-    const filteredData = data.filter(item => item.year !== selectedYear);
-    if (window.confirm(`Are you sure you want to delete all data for year ${selectedYear}? This action cannot be undone.`)) {
-      updateData(filteredData);
+  const handleDeleteByYear = async () => {
+    if (!window.confirm(`Are you sure you want to delete all data for year ${selectedYear}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const apiUrl = 'http://localhost:5000/api';
+      console.log('🔍 Attempting to delete data by year:', selectedYear);
+      console.log('🔍 API URL:', `${apiUrl}/country-data/delete-by-year/${selectedYear}`);
+      console.log('🔍 User token exists:', !!currentUser?.token);
+      
+      const response = await fetch(`${apiUrl}/country-data/delete-by-year/${selectedYear}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${currentUser?.token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        console.error('❌ Delete by year request failed:', response.status, response.statusText);
+        let errorMessage = 'Failed to delete data by year';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorData.message || 'Failed to delete data by year';
+        } catch (e) {
+          errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      const result = await response.json();
+      alert(`Successfully deleted ${result.deletedCount} records for year ${selectedYear}`);
+      
+      // Refresh the data by calling the parent's update function
+      if (updateData) {
+        const remainingData = data.filter(item => item.year !== selectedYear);
+        updateData(remainingData);
+      }
+      
       setShowDeleteOptions(false);
+    } catch (error) {
+      console.error('Error deleting data by year:', error);
+      alert(`Failed to delete data by year: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
-  const handleDeleteByCountry = () => {
-    if (!updateData) return;
-    const filteredData = data.filter(item => item.name !== selectedCountry);
-    if (window.confirm(`Are you sure you want to delete all data for ${selectedCountry}? This action cannot be undone.`)) {
-      updateData(filteredData);
+  const handleDeleteByCountry = async () => {
+    if (!selectedCountry) return;
+    
+    if (!window.confirm(`Are you sure you want to delete all data for ${selectedCountry}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const apiUrl = 'http://localhost:5000/api';
+      const response = await fetch(`${apiUrl}/country-data/delete-by-country/${encodeURIComponent(selectedCountry)}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${currentUser?.token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete data by country');
+      }
+
+      const result = await response.json();
+      alert(`Successfully deleted ${result.deletedCount} records for ${selectedCountry}`);
+      
+      // Refresh the data by calling the parent's update function
+      if (updateData) {
+        const remainingData = data.filter(item => item.name !== selectedCountry);
+        updateData(remainingData);
+      }
+      
       setShowDeleteOptions(false);
+    } catch (error) {
+      console.error('Error deleting data by country:', error);
+      alert(`Failed to delete data by country: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
-  const handleDeleteSelected = () => {
-    if (!updateData || selectedRecords.length === 0) return;
-    const filteredData = data.filter(item => !selectedRecords.includes(`${item.name}-${item.year}`));
-    if (window.confirm(`Are you sure you want to delete ${selectedRecords.length} selected records? This action cannot be undone.`)) {
-      updateData(filteredData);
+  const handleDeleteSelected = async () => {
+    if (selectedRecords.length === 0) return;
+    
+    if (!window.confirm(`Are you sure you want to delete ${selectedRecords.length} selected records? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      // Extract IDs from selected records
+      const recordIds = selectedRecords.map(recordId => {
+        const [name, year] = recordId.split('-');
+        const record = data.find(item => item.name === name && item.year === parseInt(year));
+        return record?._id;
+      }).filter(id => id);
+
+      if (recordIds.length === 0) {
+        alert('No valid records found to delete');
+        return;
+      }
+
+      const apiUrl = 'http://localhost:5000/api';
+      const response = await fetch(`${apiUrl}/country-data/delete-selective`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${currentUser?.token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ ids: recordIds })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete selected records');
+      }
+
+      const result = await response.json();
+      alert(`Successfully deleted ${result.deletedCount} selected records`);
+      
+      // Refresh the data by calling the parent's update function
+      if (updateData) {
+        const remainingData = data.filter(item => !selectedRecords.includes(`${item.name}-${item.year}`));
+        updateData(remainingData);
+      }
+      
       setSelectedRecords([]);
       setShowDeleteOptions(false);
+    } catch (error) {
+      console.error('Error deleting selected records:', error);
+      alert(`Failed to delete selected records: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 

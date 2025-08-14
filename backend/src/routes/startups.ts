@@ -1,6 +1,6 @@
 import express from 'express';
 import Startup from '../models/Startup';
-import { requireRole } from '../middleware/role';
+import { requireRole, requireAnyRole } from '../middleware/role';
 import { sendEmail, sendPhoneNotification } from '../utils/notifications';
 import { authMiddleware } from '../routes/auth';
 import jwt from 'jsonwebtoken';
@@ -464,6 +464,65 @@ African Fintech Index Admin Panel
   } catch (err) {
     console.error('Error bulk verifying startups:', err);
     res.status(500).json({ error: 'Failed to bulk verify startups' });
+  }
+});
+
+// DELETE /api/startups/:id - Delete a startup (admin and editor only)
+router.delete('/:id', authMiddleware, requireAnyRole(['admin', 'editor']), async (req: any, res) => {
+  try {
+    const startup = await Startup.findById(req.params.id);
+    if (!startup) {
+      return res.status(404).json({ error: 'Startup not found' });
+    }
+
+    // Store startup details for notification before deletion
+    const startupDetails = {
+      name: startup.name,
+      country: startup.country,
+      sector: startup.sector,
+      foundedYear: startup.foundedYear
+    };
+
+    // Delete the startup
+    await Startup.findByIdAndDelete(req.params.id);
+    
+    // Send notification about deletion
+    const notificationSubject = 'Startup Deleted from Database';
+    const notificationText = `
+Startup has been permanently deleted:
+
+Startup Details:
+- Name: ${startupDetails.name}
+- Country: ${startupDetails.country}
+- Sector: ${startupDetails.sector}
+- Founded Year: ${startupDetails.foundedYear || 'Unknown'}
+- Deleted By: ${req.user?.email || 'admin'}
+- Deletion Date: ${new Date().toLocaleString()}
+- User Role: ${req.user?.role || 'unknown'}
+
+⚠️ This action cannot be undone. The startup has been permanently removed from the database.
+
+African Fintech Index Admin Panel
+    `.trim();
+    
+    // Send email notification
+    await sendEmail(ADMIN_CONTACT.email, notificationSubject, notificationText);
+    
+    // Send phone notification
+    const phoneMessage = `Startup ${startupDetails.name} (${startupDetails.country}) permanently deleted by ${req.user?.role}.`;
+    await sendPhoneNotification(ADMIN_CONTACT.phone, phoneMessage);
+    
+    console.log(`✅ Startup deleted and notifications sent: ${startupDetails.name} by ${req.user?.email} (${req.user?.role})`);
+    
+    res.json({ 
+      message: 'Startup deleted successfully', 
+      deletedStartup: startupDetails,
+      deletedBy: req.user?.email,
+      userRole: req.user?.role
+    });
+  } catch (err) {
+    console.error('Error deleting startup:', err);
+    res.status(500).json({ error: 'Failed to delete startup' });
   }
 });
 

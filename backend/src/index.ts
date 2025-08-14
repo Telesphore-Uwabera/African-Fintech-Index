@@ -1,15 +1,15 @@
+// Load environment variables FIRST, before any other imports
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express, { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import authRoutes from './routes/auth';
 import usersRoutes from './routes/users';
 import startupsRoutes from './routes/startups';
 import countryDataRoutes from './routes/countryData';
 import newsRoutes from './routes/news';
-
-// Load environment variables first
-dotenv.config();
 
 // Add startup log to verify deployment
 console.log('🚀 African Fintech Backend Starting...');
@@ -24,6 +24,8 @@ console.log('📊 NODE_ENV:', process.env.NODE_ENV);
 console.log('🔌 PORT:', process.env.PORT);
 console.log('🗄️ MONGO_URI exists:', !!process.env.MONGO_URI);
 console.log('🔐 JWT_SECRET exists:', !!process.env.JWT_SECRET);
+console.log('🔐 JWT_SECRET value:', process.env.JWT_SECRET ? `${process.env.JWT_SECRET.substring(0, 20)}...` : 'NOT_SET');
+console.log('🔐 JWT_SECRET length:', process.env.JWT_SECRET?.length || 0);
 
 const app = express();
 const PORT = process.env.PORT || 5000;

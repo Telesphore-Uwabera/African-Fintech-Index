@@ -7,6 +7,11 @@ import { sendEmail, sendPhoneNotification } from '../utils/notifications';
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'changeme';
 
+// Debug JWT_SECRET loading
+console.log('🔍 Auth.ts - process.env.JWT_SECRET exists:', !!process.env.JWT_SECRET);
+console.log('🔍 Auth.ts - process.env.JWT_SECRET value:', process.env.JWT_SECRET ? `${process.env.JWT_SECRET.substring(0, 20)}...` : 'NOT_SET');
+console.log('🔍 Auth.ts - Final JWT_SECRET being used:', JWT_SECRET.substring(0, 20) + '...');
+
 // Admin contact information
 const ADMIN_CONTACT = {
   email: 'ntakirpetero@gmail.com',
@@ -129,13 +134,26 @@ router.post('/login', async (req, res) => {
 
 // Middleware to verify JWT
 export function authMiddleware(req: any, res: any, next: any) {
+  console.log('🔍 Auth middleware called for:', req.method, req.path);
+  console.log('🔍 Authorization header:', req.headers.authorization ? 'Present' : 'Missing');
+  
   const auth = req.headers.authorization;
-  if (!auth || !auth.startsWith('Bearer ')) return res.status(401).json({ message: 'No token' });
+  if (!auth || !auth.startsWith('Bearer ')) {
+    console.log('❌ No valid authorization header');
+    return res.status(401).json({ message: 'No token' });
+  }
+  
+  const token = auth.split(' ')[1];
+  console.log('🔍 Token received:', token.substring(0, 20) + '...');
+  console.log('🔍 JWT_SECRET being used:', JWT_SECRET.substring(0, 10) + '...');
+  
   try {
-    const decoded = jwt.verify(auth.split(' ')[1], JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET);
+    console.log('✅ Token verified successfully:', decoded);
     req.user = decoded;
     next();
-  } catch {
+  } catch (error) {
+    console.log('❌ Token verification failed:', error instanceof Error ? error.message : 'Unknown error');
     res.status(401).json({ message: 'Invalid token' });
   }
 }

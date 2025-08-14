@@ -16,16 +16,20 @@ const DataManagementPage: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || '/api';
+        const apiUrl = 'http://localhost:5000/api';
         const response = await fetch(`${apiUrl}/country-data`);
         if (response.ok) {
           const data = await response.json();
           setCountryData(data);
         } else {
-          console.error('Failed to fetch country data');
+          console.error('Failed to fetch country data:', response.status, response.statusText);
+          // Set empty array to prevent errors
+          setCountryData([]);
         }
       } catch (error) {
         console.error('Error fetching country data:', error);
+        // Set empty array to prevent errors
+        setCountryData([]);
       } finally {
         setLoading(false);
       }
@@ -60,7 +64,14 @@ const DataManagementPage: React.FC = () => {
   const clearData = async () => {
     if (window.confirm('Are you sure you want to clear all data from the database? This action cannot be undone.')) {
       try {
-        const apiUrl = import.meta.env.VITE_API_URL || '/api';
+        const apiUrl = 'http://localhost:5000/api';
+        console.log('🔍 Attempting to clear all data');
+        console.log('🔍 API URL:', `${apiUrl}/country-data`);
+        console.log('🔍 User token exists:', !!currentUser?.token);
+        console.log('🔍 User role:', currentUser?.role);
+        console.log('🔍 Token preview:', currentUser?.token ? `${currentUser.token.substring(0, 20)}...` : 'No token');
+        console.log('🔍 Full user object:', currentUser);
+        
         const response = await fetch(`${apiUrl}/country-data`, {
           method: 'DELETE',
           headers: {
@@ -69,14 +80,30 @@ const DataManagementPage: React.FC = () => {
         });
         
         if (response.ok) {
+          const result = await response.json();
+          console.log('✅ Delete response from backend:', result);
           setCountryData([]);
-          alert('All data has been cleared from the database.');
+          alert(`All data has been cleared from the database. ${result.deletedCount} records deleted. Before: ${result.beforeCount}, After: ${result.afterCount}`);
         } else {
-          alert('Failed to clear data from the database.');
+          console.error('❌ Delete request failed:', response.status, response.statusText);
+          let errorMessage = 'Unknown error';
+          try {
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorData.message || 'Unknown error';
+          } catch (e) {
+            errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+          }
+          
+          if (response.status === 401) {
+            console.error('❌ 401 Unauthorized - Authentication issue');
+            errorMessage = 'Authentication failed. Please try refreshing the page and signing in again.';
+          }
+          
+          alert(`Failed to clear data from the database: ${errorMessage}`);
         }
       } catch (error) {
         console.error('Error clearing data:', error);
-        alert('Error clearing data from the database.');
+        alert(`Error clearing data from the database: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
   };
@@ -112,6 +139,7 @@ const DataManagementPage: React.FC = () => {
             isAuthenticated={true}
             data={countryData}
             updateData={updateData}
+            currentUser={currentUser}
           />
           <FileUpload onDataUpdate={updateData} currentYear={selectedYear} />
         </div>

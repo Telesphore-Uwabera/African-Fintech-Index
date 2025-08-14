@@ -176,8 +176,8 @@ router.put('/:id/:year', requireRole('admin'), async (req: AuthRequest, res: Res
   }
 });
 
-// DELETE /api/country-data/:id/:year - Delete specific country data (admin only)
-router.delete('/:id/:year', requireRole('admin'), async (req: Request, res: Response) => {
+// DELETE /api/country-data/:id/:year - Delete specific country data (admin and editor)
+router.delete('/:id/:year', authMiddleware, requireAnyRole(['admin', 'editor']), async (req: AuthRequest, res: Response) => {
   try {
     const { id, year } = req.params;
     const yearNum = parseInt(year);
@@ -195,8 +195,8 @@ router.delete('/:id/:year', requireRole('admin'), async (req: Request, res: Resp
   }
 });
 
-// DELETE /api/country-data/delete-by-year/:year - Delete all data for a specific year (admin only)
-router.delete('/delete-by-year/:year', requireRole('admin'), async (req: Request, res: Response) => {
+// DELETE /api/country-data/delete-by-year/:year - Delete all data for a specific year (admin and editor)
+router.delete('/delete-by-year/:year', authMiddleware, requireAnyRole(['admin', 'editor']), async (req: AuthRequest, res: Response) => {
   try {
     const { year } = req.params;
     const yearNum = parseInt(year);
@@ -217,8 +217,8 @@ router.delete('/delete-by-year/:year', requireRole('admin'), async (req: Request
   }
 });
 
-// DELETE /api/country-data/delete-by-country/:country - Delete all data for a specific country (admin only)
-router.delete('/delete-by-country/:country', requireRole('admin'), async (req: Request, res: Response) => {
+// DELETE /api/country-data/delete-by-country/:country - Delete all data for a specific country (admin and editor)
+router.delete('/delete-by-country/:country', authMiddleware, requireAnyRole(['admin', 'editor']), async (req: AuthRequest, res: Response) => {
   try {
     const { country } = req.params;
     
@@ -243,8 +243,8 @@ router.delete('/delete-by-country/:country', requireRole('admin'), async (req: R
   }
 });
 
-// DELETE /api/country-data/delete-selective - Delete multiple records by IDs (admin only)
-router.delete('/delete-selective', requireRole('admin'), async (req: Request, res: Response) => {
+// DELETE /api/country-data/delete-selective - Delete multiple records by IDs (admin and editor)
+router.delete('/delete-selective', authMiddleware, requireAnyRole(['admin', 'editor']), async (req: AuthRequest, res: Response) => {
   try {
     const { ids } = req.body;
     
@@ -268,14 +268,42 @@ router.delete('/delete-selective', requireRole('admin'), async (req: Request, re
   }
 });
 
-// DELETE /api/country-data/delete-all - Delete all country data (admin only)
-router.delete('/delete-all', requireRole('admin'), async (req: Request, res: Response) => {
+// DELETE /api/country-data/delete-all - Delete all country data (admin and editor)
+router.delete('/delete-all', authMiddleware, requireAnyRole(['admin', 'editor']), async (req: AuthRequest, res: Response) => {
   try {
     const result = await CountryData.deleteMany({});
     
+    // Send admin notification about data deletion
+    const notificationSubject = 'All Country Data Deleted';
+    const notificationText = `
+All country data has been deleted from the database:
+
+Deletion Details:
+- User: ${req.user?.email || 'Unknown'}
+- User Role: ${req.user?.role || 'Unknown'}
+- Records Deleted: ${result.deletedCount}
+- Deletion Date: ${new Date().toLocaleString()}
+- Operation: Delete All Data
+
+⚠️ This action cannot be undone. All data has been permanently removed.
+
+African Fintech Index Admin Panel
+    `.trim();
+    
+    // Send email notification
+    await sendEmail(ADMIN_CONTACT.email, notificationSubject, notificationText);
+    
+    // Send phone notification
+    const phoneMessage = `All country data deleted: ${result.deletedCount} records by ${req.user?.email} (${req.user?.role}).`;
+    await sendPhoneNotification(ADMIN_CONTACT.phone, phoneMessage);
+    
+    console.log(`✅ Admin notifications sent for data deletion: ${result.deletedCount} records by ${req.user?.email} (${req.user?.role})`);
+    
     res.json({ 
       message: `Deleted all ${result.deletedCount} records`,
-      deletedCount: result.deletedCount
+      deletedCount: result.deletedCount,
+      deletedBy: req.user?.email,
+      userRole: req.user?.role
     });
   } catch (err) {
     console.error('Error deleting all data:', err);
@@ -283,17 +311,32 @@ router.delete('/delete-all', requireRole('admin'), async (req: Request, res: Res
   }
 });
 
-// DELETE /api/country-data - Delete all country data (admin only) - Alternative endpoint
-router.delete('/', requireRole('admin'), async (req: Request, res: Response) => {
+// DELETE /api/country-data - Delete all country data (admin and editor) - Alternative endpoint
+router.delete('/', authMiddleware, requireAnyRole(['admin', 'editor']), async (req: AuthRequest, res: Response) => {
   try {
+    console.log('🔍 DELETE /api/country-data called by:', req.user?.email, 'Role:', req.user?.role);
+    
+    // Count records before deletion
+    const beforeCount = await CountryData.countDocuments({});
+    console.log('🔍 Records before deletion:', beforeCount);
+    
     const result = await CountryData.deleteMany({});
+    console.log('🔍 Delete result:', result);
+    
+    // Count records after deletion
+    const afterCount = await CountryData.countDocuments({});
+    console.log('🔍 Records after deletion:', afterCount);
+    
+    console.log('✅ Delete operation completed successfully');
     
     res.json({ 
       message: `Deleted all ${result.deletedCount} records`,
-      deletedCount: result.deletedCount
+      deletedCount: result.deletedCount,
+      beforeCount,
+      afterCount
     });
   } catch (err) {
-    console.error('Error deleting all data:', err);
+    console.error('❌ Error deleting all data:', err);
     res.status(500).json({ error: 'Failed to delete all data' });
   }
 });
