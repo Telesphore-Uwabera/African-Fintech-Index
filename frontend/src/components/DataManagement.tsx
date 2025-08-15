@@ -27,6 +27,8 @@ export const DataManagement: React.FC<DataManagementProps> = ({
   
   const dataInfo = getDataInfo();
 
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
   if (!isAuthenticated) {
     return null;
   }
@@ -48,7 +50,6 @@ export const DataManagement: React.FC<DataManagementProps> = ({
     }
 
     try {
-      const apiUrl = 'http://localhost:5000/api';
       console.log('🔍 Attempting to delete data by year:', selectedYear);
       console.log('🔍 API URL:', `${apiUrl}/country-data/delete-by-year/${selectedYear}`);
       console.log('🔍 User token exists:', !!currentUser?.token);
@@ -97,7 +98,6 @@ export const DataManagement: React.FC<DataManagementProps> = ({
     }
 
     try {
-      const apiUrl = 'http://localhost:5000/api';
       const response = await fetch(`${apiUrl}/country-data/delete-by-country/${encodeURIComponent(selectedCountry)}`, {
         method: 'DELETE',
         headers: {
@@ -147,7 +147,6 @@ export const DataManagement: React.FC<DataManagementProps> = ({
         return;
       }
 
-      const apiUrl = 'http://localhost:5000/api';
       const response = await fetch(`${apiUrl}/country-data/delete-selective`, {
         method: 'DELETE',
         headers: {
