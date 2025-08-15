@@ -28,18 +28,29 @@ function App() {
   const [availableYears, setAvailableYears] = useState<number[]>([]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
+  // Load persisted user and selected year on mount
   useEffect(() => {
-    const stored = localStorage.getItem('fintechUser');
-    if (stored) setCurrentUser(JSON.parse(stored));
+    const storedUser = localStorage.getItem('fintechUser');
+    if (storedUser) setCurrentUser(JSON.parse(storedUser));
+
+    const storedYear = localStorage.getItem('selectedYear');
+    if (storedYear) setSelectedYear(Number(storedYear));
   }, []);
 
+  // Persist selected year
+  useEffect(() => {
+    if (selectedYear !== null) {
+      localStorage.setItem('selectedYear', String(selectedYear));
+    }
+  }, [selectedYear]);
+
+  // Fetch available years once and sort descending
   useEffect(() => {
     const apiUrl = import.meta.env.VITE_API_URL || '/api';
-    
-    // Add timeout to prevent hanging requests
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
-    
+
     fetch(`http://localhost:5000/api/country-data/years`, {
       signal: controller.signal
     })
@@ -50,30 +61,35 @@ function App() {
         }
         return res.json();
       })
-      .then(years => {
-        setAvailableYears(years);
-        if (years.length > 0 && selectedYear === null) {
-          setSelectedYear(years[0]); // Default to latest year
+      .then((years: any[]) => {
+        // Normalize to numbers, unique, sort desc
+        const normalized = Array.from(new Set(years.map((y: any) => Number(y))))
+          .filter((y) => !Number.isNaN(y))
+          .sort((a, b) => b - a);
+        setAvailableYears(normalized);
+        // Initialize selectedYear if not set or invalid
+        if (normalized.length > 0 && (selectedYear === null || !normalized.includes(selectedYear))) {
+          setSelectedYear(normalized[0]);
         }
       })
       .catch((error) => {
         clearTimeout(timeoutId);
-        // Only log if it's not an abort error
         if (error.name !== 'AbortError') {
           console.error('Failed to fetch years:', error);
         }
-        setAvailableYears([]);
-        // Set a default year if fetch fails
+        // Fallback default list if fetch fails
+        const fallback = [2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015, 2014];
+        setAvailableYears(fallback);
         if (selectedYear === null) {
           setSelectedYear(2024);
         }
       });
-      
+
     return () => {
       clearTimeout(timeoutId);
       controller.abort();
     };
-  }, [selectedYear]);
+  }, []);
 
   const handleSidebarToggle = (collapsed: boolean) => {
     setSidebarCollapsed(collapsed);
