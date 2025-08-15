@@ -51,7 +51,7 @@ function App() {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-    fetch(`http://localhost:5000/api/country-data/years`, {
+    fetch(`${apiUrl}/country-data/years`, {
       signal: controller.signal
     })
       .then(res => {
