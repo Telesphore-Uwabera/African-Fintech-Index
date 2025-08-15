@@ -50,14 +50,30 @@ router.get('/', async (req: Request, res: Response) => {
     
     const limitNum = limit ? parseInt(limit as string) : 1000;
     
-    // Add timeout to prevent long-running queries
+    // Projection to reduce payload size
+    const projection = {
+      _id: 1,
+      id: 1,
+      name: 1,
+      year: 1,
+      finalScore: 1,
+      literacyRate: 1,
+      digitalInfrastructure: 1,
+      investment: 1,
+      population: 1,
+      gdp: 1,
+    };
+    
+    // Increased timeout for slower networks/backends
+    const TIMEOUT_MS = 25000;
     const data = await Promise.race([
       CountryData.find(query)
+        .select('id name year finalScore literacyRate digitalInfrastructure investment population gdp')
         .sort(sortOption)
         .limit(limitNum)
-        .lean(), // Use lean() for better performance
+        .lean(),
       new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Query timeout')), 10000)
+        setTimeout(() => reject(new Error('Query timeout')), TIMEOUT_MS)
       )
     ]);
     
