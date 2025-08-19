@@ -115,6 +115,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
             email: formData.email,
             password: formData.password,
             name: formData.firstName + ' ' + formData.lastName,
+            phoneNumber: formData.phoneNumber,
             role: registerRole,
             isVerified: false,
           }),

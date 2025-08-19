@@ -67,6 +67,21 @@ router.post('/register', async (req, res) => {
     });
     await user.save();
     
+    // Notify the user their application was received (non-blocking)
+    setImmediate(async () => {
+      try {
+        const userSubject = 'African Fintech Index: Application received';
+        const userText = `Hello ${name},\n\nThank you for registering. Your application (role: ${role}) has been received and is pending admin verification. You will be notified once approved.\n\nRegards,\nAfrican Fintech Index`;
+        await sendEmail(email, userSubject, userText);
+        if (phoneNumber) {
+          const sms = `[African Fintech Index] Thanks for registering. Your ${role} access is pending admin verification. We will notify you once approved.`;
+          await sendPhoneNotification(phoneNumber, sms);
+        }
+      } catch (err) {
+        console.error('❌ Failed to send user acknowledgment:', err);
+      }
+    });
+
     // Send admin notification email and phone (non-blocking)
     setImmediate(async () => {
       try {
