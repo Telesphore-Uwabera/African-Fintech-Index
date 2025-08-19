@@ -12,11 +12,12 @@ const DataManagementPage: React.FC = () => {
   const [countryData, setCountryData] = useState<CountryData[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const apiUrl = import.meta.env.VITE_API_URL || '/api';
+
   // Fetch data from MongoDB database
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const apiUrl = 'http://localhost:5000/api';
         const response = await fetch(`${apiUrl}/country-data`);
         if (response.ok) {
           const data = await response.json();
@@ -36,7 +37,7 @@ const DataManagementPage: React.FC = () => {
     };
 
     fetchData();
-  }, []);
+  }, [apiUrl]);
 
   // Create getDataInfo function that works with MongoDB data
   const getDataInfo = () => {
@@ -64,7 +65,6 @@ const DataManagementPage: React.FC = () => {
   const clearData = async () => {
     if (window.confirm('Are you sure you want to clear all data from the database? This action cannot be undone.')) {
       try {
-        const apiUrl = 'http://localhost:5000/api';
         console.log('🔍 Attempting to clear all data');
         console.log('🔍 API URL:', `${apiUrl}/country-data`);
         console.log('🔍 User token exists:', !!currentUser?.token);
