@@ -60,8 +60,11 @@ router.get('/unverified', authMiddleware, requireRole('admin'), async (req: Auth
 router.patch('/:id/verify', authMiddleware, requireRole('admin'), async (req: AuthRequest, res: Response) => {
   const user = await User.findByIdAndUpdate(req.params.id, { isVerified: true }, { new: true }).select('-password');
   if (!user) return res.status(404).json({ message: 'User not found' });
-  // Send verification email
-  await sendEmail(user.email, 'Your account has been verified', 'You can now log in to the African Fintech Index platform.');
+  // Send verification email with assigned role and instructions
+  const loginUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const subject = 'Your African Fintech Index account has been verified';
+  const body = `Hello ${user.name || ''},\n\nYour account has been verified by the administrator.\n\nAssigned role: ${user.role}\nAccess portal: ${loginUrl}\n\nIf you did not request this, please contact support.\n\nAfrican Fintech Index`;
+  await sendEmail(user.email, subject, body);
   res.json({ message: 'User verified', user });
 });
 
