@@ -11,11 +11,7 @@ interface AuthRequest extends Request {
 
 const router = express.Router();
 
-// Admin contact information
-const ADMIN_CONTACT = {
-  email: 'ntakirpetero@gmail.com',
-  phone: '+250 781 712 615'
-};
+import { ADMIN_CONTACT } from '../config/adminContact';
 
 // GET /api/country-data - Get all country data with optional filters
 router.get('/', async (req: Request, res: Response) => {

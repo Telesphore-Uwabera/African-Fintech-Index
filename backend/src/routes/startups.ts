@@ -5,14 +5,11 @@ import { sendEmail, sendPhoneNotification } from '../utils/notifications';
 import { authMiddleware } from '../routes/auth';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/User';
+import { ADMIN_CONTACT } from '../config/adminContact';
 
 const router = express.Router();
 
-// Admin contact information
-const ADMIN_CONTACT = {
-  email: 'ntakirpetero@gmail.com',
-  phone: '+250 781 712 615'
-};
+// Admin contact information comes from env via config
 
 // GET /api/startups - list all verified startups with search and filtering (public)
 router.get('/', async (req, res) => {

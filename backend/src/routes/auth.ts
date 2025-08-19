@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { User, IUser } from '../models/User';
 import { sendEmail, sendPhoneNotification } from '../utils/notifications';
+import { ADMIN_CONTACT } from '../config/adminContact';
 import { checkEmailDeliverability } from '../utils/emailValidation';
 
 const router = express.Router();
@@ -13,11 +14,24 @@ console.log('🔍 Auth.ts - process.env.JWT_SECRET exists:', !!process.env.JWT_S
 console.log('🔍 Auth.ts - process.env.JWT_SECRET value:', process.env.JWT_SECRET ? `${process.env.JWT_SECRET.substring(0, 20)}...` : 'NOT_SET');
 console.log('🔍 Auth.ts - Final JWT_SECRET being used:', JWT_SECRET.substring(0, 20) + '...');
 
-// Admin contact information
-const ADMIN_CONTACT = {
-  email: 'ntakirpetero@gmail.com',
-  phone: '+250 781 712 615'
-};
+// Admin contact information comes from env via config
+
+// Public: validate email deliverability (format + DNS MX/A)
+router.get('/validate-email', async (req, res) => {
+  try {
+    const email = String(req.query.email || '').trim();
+    if (!email) {
+      return res.status(400).json({ valid: false, reason: 'Email is required' });
+    }
+    const result = await checkEmailDeliverability(email);
+    if (!result.isValid) {
+      return res.status(400).json({ valid: false, reason: result.reason || 'Email not deliverable' });
+    }
+    return res.json({ valid: true });
+  } catch (err) {
+    return res.status(500).json({ valid: false, reason: 'Server error' });
+  }
+});
 
 // Register
 router.post('/register', async (req, res) => {
