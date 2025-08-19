@@ -23,6 +23,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [emailCheck, setEmailCheck] = useState<{status: 'idle' | 'checking' | 'valid' | 'invalid'; reason?: string}>({ status: 'idle' });
   const [registerRole, setRegisterRole] = useState<'editor' | 'viewer'>('viewer');
 
   const countries = [
@@ -62,7 +63,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
     e.preventDefault();
     setLoading(true);
     setMessage({ type: '', text: '' });
-    const apiUrl = import.meta.env.VITE_API_URL || '/api';
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
     try {
       if (mode === 'register') {
@@ -133,7 +134,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-50 p-4 pt-24">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-4 border-b sticky top-0 bg-white rounded-t-xl">
           <h2 className="text-lg font-semibold">
@@ -152,17 +153,49 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Email Address <span className="text-red-500">*</span>
             </label>
-            <div className="relative">
+            <div className="relative flex gap-2">
               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="email"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white bg-gray-900 placeholder-gray-300"
+                onChange={(e) => { setFormData({ ...formData, email: e.target.value }); setEmailCheck({ status: 'idle' }); }}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Enter your email"
                 required
               />
+              {(mode === 'register' || mode === 'admin-create') && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+                    setEmailCheck({ status: 'checking' });
+                    try {
+                      const res = await fetch(`${apiUrl}/auth/validate-email?email=${encodeURIComponent(formData.email)}`);
+                      if (!res.ok) {
+                        const data = await res.json().catch(() => ({} as any));
+                        setEmailCheck({ status: 'invalid', reason: (data as any).reason || 'Email not deliverable' });
+                        setMessage({ type: 'error', text: (data as any).reason || 'Email not deliverable' });
+                        return;
+                      }
+                      setEmailCheck({ status: 'valid' });
+                      setMessage({ type: 'success', text: 'Email looks deliverable.' });
+                    } catch (e) {
+                      setEmailCheck({ status: 'invalid', reason: 'Validation failed' });
+                      setMessage({ type: 'error', text: 'Email validation failed' });
+                    }
+                  }}
+                  className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm whitespace-nowrap"
+                >
+                  {emailCheck.status === 'checking' ? 'Checking...' : 'Validate'}
+                </button>
+              )}
             </div>
+            {emailCheck.status === 'invalid' && (
+              <p className="text-xs text-red-600 mt-1">{emailCheck.reason}</p>
+            )}
+            {emailCheck.status === 'valid' && (
+              <p className="text-xs text-green-600 mt-1">Email looks deliverable.</p>
+            )}
           </div>
 
           {/* Name fields for registration */}
