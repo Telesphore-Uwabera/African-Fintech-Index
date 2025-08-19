@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { X, Mail, Lock, User, Shield, CheckCircle, AlertCircle, Building, MapPin, Phone, ChevronDown } from 'lucide-react';
 
 interface AuthModalProps {
@@ -59,6 +59,47 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
     setMessage({ type: '', text: '' });
   };
 
+  // Debounced auto-validation of email on change (register/admin-create modes)
+  const emailDebounceId = useRef<number | null>(null);
+  useEffect(() => {
+    if (!isOpen) return;
+    if (!(mode === 'register' || mode === 'admin-create')) return;
+
+    const email = formData.email.trim();
+    if (!email) {
+      setEmailCheck({ status: 'idle' });
+      return;
+    }
+
+    // Simple format pre-check to avoid network calls on obvious typos
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setEmailCheck({ status: 'invalid', reason: 'Invalid email format' });
+      return;
+    }
+
+    if (emailDebounceId.current) window.clearTimeout(emailDebounceId.current);
+    emailDebounceId.current = window.setTimeout(async () => {
+      setEmailCheck({ status: 'checking' });
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      try {
+        const res = await fetch(`${apiUrl}/auth/validate-email?email=${encodeURIComponent(email)}`);
+        if (res.ok) {
+          setEmailCheck({ status: 'valid' });
+        } else {
+          const data = await res.json().catch(() => ({} as any));
+          setEmailCheck({ status: 'invalid', reason: (data as any).reason || 'Email not deliverable' });
+        }
+      } catch (e) {
+        setEmailCheck({ status: 'invalid', reason: 'Validation failed' });
+      }
+    }, 600);
+
+    return () => {
+      if (emailDebounceId.current) window.clearTimeout(emailDebounceId.current);
+    };
+  }, [formData.email, mode, isOpen]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -75,6 +116,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
         }
         if (formData.password !== formData.confirmPassword) {
           setMessage({ type: 'error', text: 'Passwords do not match' });
+          setLoading(false);
+          return;
+        }
+        // Block submit if email not deliverable yet
+        if (emailCheck.status !== 'valid') {
+          setMessage({ type: 'error', text: emailCheck.reason ? `Email not deliverable: ${emailCheck.reason}` : 'Please provide a deliverable email' });
           setLoading(false);
           return;
         }
@@ -153,42 +200,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Email Address <span className="text-red-500">*</span>
             </label>
-            <div className="relative flex gap-2">
+            <div className="relative">
               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="email"
                 value={formData.email}
-                onChange={(e) => { setFormData({ ...formData, email: e.target.value }); setEmailCheck({ status: 'idle' }); }}
+                onChange={(e) => { setFormData({ ...formData, email: e.target.value }); /* emailCheck handled by effect */ }}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Enter your email"
                 required
               />
-              {(mode === 'register' || mode === 'admin-create') && (
-                <button
-                  type="button"
-                  onClick={async () => {
-                    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-                    setEmailCheck({ status: 'checking' });
-                    try {
-                      const res = await fetch(`${apiUrl}/auth/validate-email?email=${encodeURIComponent(formData.email)}`);
-                      if (!res.ok) {
-                        const data = await res.json().catch(() => ({} as any));
-                        setEmailCheck({ status: 'invalid', reason: (data as any).reason || 'Email not deliverable' });
-                        setMessage({ type: 'error', text: (data as any).reason || 'Email not deliverable' });
-                        return;
-                      }
-                      setEmailCheck({ status: 'valid' });
-                      setMessage({ type: 'success', text: 'Email looks deliverable.' });
-                    } catch (e) {
-                      setEmailCheck({ status: 'invalid', reason: 'Validation failed' });
-                      setMessage({ type: 'error', text: 'Email validation failed' });
-                    }
-                  }}
-                  className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm whitespace-nowrap"
-                >
-                  {emailCheck.status === 'checking' ? 'Checking...' : 'Validate'}
-                </button>
-              )}
             </div>
             {emailCheck.status === 'invalid' && (
               <p className="text-xs text-red-600 mt-1">{emailCheck.reason}</p>
@@ -393,8 +414,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
 
           <button
             type="submit"
-            className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
-            disabled={loading}
+            className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+            disabled={loading || (mode === 'register' && (emailCheck.status === 'checking' || emailCheck.status === 'invalid'))}
           >
             {loading ? 'Processing...' : 
               mode === 'login' ? 'Sign In' : 
