@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { User, IUser } from '../models/User';
 import { sendEmail, sendPhoneNotification } from '../utils/notifications';
+import { checkEmailDeliverability } from '../utils/emailValidation';
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'changeme';
@@ -31,6 +32,12 @@ router.post('/register', async (req, res) => {
     if (!['editor', 'viewer'].includes(role)) {
       return res.status(400).json({ message: 'Invalid role' });
     }
+    // Validate email format + deliverability (MX/A)
+    const deliverability = await checkEmailDeliverability(email);
+    if (!deliverability.isValid) {
+      return res.status(400).json({ message: `Email not deliverable: ${deliverability.reason || 'unknown reason'}` });
+    }
+
     const existing = await User.findOne({ email });
     if (existing) {
       return res.status(409).json({ message: 'Email already in use' });
