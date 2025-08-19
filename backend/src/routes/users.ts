@@ -3,6 +3,7 @@ import { User } from '../models/User';
 import { requireRole } from '../middleware/role';
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
+import { sendPhoneNotification } from '../utils/notifications';
 
 // AuthRequest interface for req.user
 interface AuthRequest extends Request {
@@ -65,6 +66,11 @@ router.patch('/:id/verify', authMiddleware, requireRole('admin'), async (req: Au
   const subject = 'Your African Fintech Index account has been verified';
   const body = `Hello ${user.name || ''},\n\nYour account has been verified by the administrator.\n\nAssigned role: ${user.role}\nAccess portal: ${loginUrl}\n\nIf you did not request this, please contact support.\n\nAfrican Fintech Index`;
   await sendEmail(user.email, subject, body);
+  // SMS notify the user if phone number present
+  if (user.phoneNumber) {
+    const sms = `Your African Fintech Index account has been verified. Role: ${user.role}. You can now sign in.`;
+    try { await sendPhoneNotification(user.phoneNumber, sms); } catch {}
+  }
   res.json({ message: 'User verified', user });
 });
 
