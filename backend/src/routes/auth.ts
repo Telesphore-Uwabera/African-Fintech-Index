@@ -36,7 +36,7 @@ router.get('/validate-email', async (req, res) => {
 // Register
 router.post('/register', async (req, res) => {
   try {
-    const { email, password, name, role, phoneNumber } = req.body;
+    const { email, password, name, role, phoneNumber, country, organization, jobTitle } = req.body;
     if (!email || !password || !name) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
@@ -62,6 +62,9 @@ router.post('/register', async (req, res) => {
       password: hash,
       name,
       phoneNumber,
+      country,
+      organization,
+      jobTitle,
       role,
       isVerified: false,
     });

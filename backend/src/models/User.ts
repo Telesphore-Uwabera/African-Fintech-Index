@@ -8,6 +8,9 @@ export interface IUser extends Document {
   role: UserRole;
   name: string;
   phoneNumber?: string;
+  country?: string;
+  organization?: string;
+  jobTitle?: string;
   createdAt: Date;
   isVerified: boolean;
 }
@@ -18,6 +21,9 @@ const UserSchema = new Schema<IUser>({
   role: { type: String, enum: ['admin', 'editor', 'viewer'], default: 'viewer' },
   name: { type: String, required: true },
   phoneNumber: { type: String },
+  country: { type: String },
+  organization: { type: String },
+  jobTitle: { type: String },
   createdAt: { type: Date, default: Date.now },
   isVerified: { type: Boolean, default: false },
 });
