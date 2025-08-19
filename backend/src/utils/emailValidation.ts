@@ -20,7 +20,15 @@ export async function checkEmailDeliverability(email: string): Promise<{ isValid
   }
 
   // Cap DNS checks with a short timeout to avoid hanging requests
-  const TIMEOUT_MS = 4000;
+  const TIMEOUT_MS = 8000;
+  const KNOWN_PROVIDER_DOMAINS = new Set([
+    'gmail.com', 'googlemail.com', 'outlook.com', 'hotmail.com', 'live.com', 'msn.com',
+    'yahoo.com', 'ymail.com', 'rocketmail.com', 'icloud.com', 'me.com', 'mac.com',
+    'proton.me', 'protonmail.com', 'zoho.com', 'aol.com'
+  ]);
+  if (KNOWN_PROVIDER_DOMAINS.has(domain)) {
+    return { isValid: true };
+  }
   function withTimeout<T>(p: Promise<T>): Promise<T> {
     return new Promise<T>((resolve, reject) => {
       const t = setTimeout(() => reject(new Error('DNS timeout')), TIMEOUT_MS);
@@ -29,23 +37,35 @@ export async function checkEmailDeliverability(email: string): Promise<{ isValid
   }
 
   try {
+    // Prefer MX records
     const mxRecords = await withTimeout(dns.resolveMx(domain));
     if (Array.isArray(mxRecords) && mxRecords.length > 0) {
       return { isValid: true };
     }
-    // If no MX, some domains still accept mail on A record. Fall back to A/AAAA resolution.
-    try {
-      const aOrAaaa = await withTimeout(dns.resolve(domain));
-      if (Array.isArray(aOrAaaa) && aOrAaaa.length > 0) {
-        return { isValid: true };
-      }
-    } catch {
-      // ignore and fail below
-    }
-    return { isValid: false, reason: 'Domain has no MX records' };
-  } catch (err) {
-    return { isValid: false, reason: err instanceof Error ? err.message : 'DNS resolution failed' };
+  } catch (e) {
+    // Continue to fallbacks
   }
+
+  // If no MX or MX failed, try resolving A/AAAA via dns.lookup (OS resolver) first
+  try {
+    const lookedUp = await withTimeout(dns.lookup(domain, { all: true } as any));
+    if (Array.isArray(lookedUp) && lookedUp.length > 0) {
+      return { isValid: true };
+    }
+  } catch (e) {
+    // Continue to next fallback
+  }
+
+  try {
+    const aOrAaaa = await withTimeout(dns.resolve(domain));
+    if (Array.isArray(aOrAaaa) && aOrAaaa.length > 0) {
+      return { isValid: true };
+    }
+  } catch (e) {
+    // ignore
+  }
+
+  return { isValid: false, reason: 'Domain could not be verified (no MX/A records or DNS blocked)' };
 }
 
 
