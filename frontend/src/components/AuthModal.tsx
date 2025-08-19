@@ -42,8 +42,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
   const sortedCountries = countries.slice().sort((a, b) => a.localeCompare(b));
   const filteredCountries = sortedCountries.filter(country => country.toLowerCase().includes(countrySearch.toLowerCase()));
 
-  if (!isOpen) return null;
-
   const resetForm = () => {
     setFormData({
       email: '',
@@ -81,6 +79,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
       if (emailDebounceId.current) window.clearTimeout(emailDebounceId.current);
     };
   }, [formData.email, isOpen]);
+
+  if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
