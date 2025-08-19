@@ -89,6 +89,7 @@ const UserManagementPage: React.FC = () => {
 
   const handleEditUser = (user: any) => {
     setEditingUser(user);
+    // Admin can only change role and verification; applicant profile fields are read-only
     setEditForm({ name: user.name, role: user.role, isVerified: user.isVerified });
   };
 
@@ -568,14 +569,10 @@ const UserManagementPage: React.FC = () => {
             <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
               <div className="bg-white rounded-lg p-6 w-96">
                 <h4 className="text-lg font-semibold mb-4">Edit User</h4>
-                <label className="block mb-2">Name
-                  <input
-                    className="w-full border border-gray-300 rounded px-2 py-1"
-                    name="name"
-                    value={editForm.name}
-                    onChange={handleEditFormChange}
-                  />
-                </label>
+                {/* Name is applicant-provided; keep read-only */}
+                <div className="mb-2 text-sm text-gray-700">
+                  <span className="font-medium">Name:</span> {editingUser?.name || 'N/A'}
+                </div>
                 <label className="block mb-2">Role
                   <select
                     className="w-full border border-gray-300 rounded px-2 py-1"
@@ -650,25 +647,33 @@ const UserManagementPage: React.FC = () => {
                   {/* User Details */}
                   <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-500 mb-1">Country</label>
-                        <p className="text-sm text-gray-900">{viewingUser.country || 'Not specified'}</p>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-500 mb-1">Organization</label>
-                        <p className="text-sm text-gray-900">{viewingUser.organization || 'Not specified'}</p>
-                      </div>
+                      {viewingUser.country && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500 mb-1">Country</label>
+                          <p className="text-sm text-gray-900">{viewingUser.country}</p>
+                        </div>
+                      )}
+                      {viewingUser.organization && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500 mb-1">Organization</label>
+                          <p className="text-sm text-gray-900">{viewingUser.organization}</p>
+                        </div>
+                      )}
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-500 mb-1">Job Title</label>
-                        <p className="text-sm text-gray-900">{viewingUser.jobTitle || 'Not specified'}</p>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-500 mb-1">Phone Number</label>
-                        <p className="text-sm text-gray-900">{viewingUser.phoneNumber || 'Not specified'}</p>
-                      </div>
+                      {viewingUser.jobTitle && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500 mb-1">Job Title</label>
+                          <p className="text-sm text-gray-900">{viewingUser.jobTitle}</p>
+                        </div>
+                      )}
+                      {viewingUser.phoneNumber && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500 mb-1">Phone Number</label>
+                          <p className="text-sm text-gray-900">{viewingUser.phoneNumber}</p>
+                        </div>
+                      )}
                     </div>
 
                     <div>
