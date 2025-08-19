@@ -59,46 +59,28 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
     setMessage({ type: '', text: '' });
   };
 
-  // Debounced auto-validation of email on change (register/admin-create modes)
+  // Auto-validate email format only (no network calls)
   const emailDebounceId = useRef<number | null>(null);
   useEffect(() => {
     if (!isOpen) return;
-    if (!(mode === 'register' || mode === 'admin-create')) return;
-
     const email = formData.email.trim();
-    if (!email) {
-      setEmailCheck({ status: 'idle' });
-      return;
-    }
-
-    // Simple format pre-check to avoid network calls on obvious typos
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setEmailCheck({ status: 'invalid', reason: 'Invalid email format' });
-      return;
-    }
-
     if (emailDebounceId.current) window.clearTimeout(emailDebounceId.current);
-    emailDebounceId.current = window.setTimeout(async () => {
-      setEmailCheck({ status: 'checking' });
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-      try {
-        const res = await fetch(`${apiUrl}/auth/validate-email?email=${encodeURIComponent(email)}`);
-        if (res.ok) {
-          setEmailCheck({ status: 'valid' });
-        } else {
-          const data = await res.json().catch(() => ({} as any));
-          setEmailCheck({ status: 'invalid', reason: (data as any).reason || 'Email not deliverable' });
-        }
-      } catch (e) {
-        setEmailCheck({ status: 'invalid', reason: 'Validation failed' });
+    emailDebounceId.current = window.setTimeout(() => {
+      if (!email) {
+        setEmailCheck({ status: 'idle' });
+        return;
       }
-    }, 600);
-
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (emailRegex.test(email)) {
+        setEmailCheck({ status: 'valid' });
+      } else {
+        setEmailCheck({ status: 'invalid', reason: 'Please enter a valid email address' });
+      }
+    }, 250);
     return () => {
       if (emailDebounceId.current) window.clearTimeout(emailDebounceId.current);
     };
-  }, [formData.email, mode, isOpen]);
+  }, [formData.email, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,9 +101,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onAuthSuc
           setLoading(false);
           return;
         }
-        // Block submit if email not deliverable yet
+        // Block submit if email format is invalid
         if (emailCheck.status !== 'valid') {
-          setMessage({ type: 'error', text: emailCheck.reason ? `Email not deliverable: ${emailCheck.reason}` : 'Please provide a deliverable email' });
+          setMessage({ type: 'error', text: 'Please enter a valid email address' });
           setLoading(false);
           return;
         }
