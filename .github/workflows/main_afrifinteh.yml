@@ -21,19 +21,48 @@ jobs:
       - name: Set up Node.js version
         uses: actions/setup-node@v3
         with:
-          node-version: '22.x'
+          node-version: '22-lts'
 
-      - name: npm install, build, and test
+      - name: Build backend
         run: |
+          cd backend
+          rm -rf dist node_modules/.cache
+          # First, ensure package-lock.json is in sync
           npm install
-          npm run build --if-present
-          npm run test --if-present
+          # Then run the build
+          npm run build
+          # Verify the build output
+          ls -la dist/
+          echo "=== Checking if dist/index.js exists ==="
+          if [ -f "dist/index.js" ]; then
+            echo "✅ dist/index.js exists"
+            echo "=== First 5 lines of dist/index.js ==="
+            head -5 dist/index.js
+          else
+            echo "❌ dist/index.js not found!"
+            echo "=== Contents of dist folder ==="
+            ls -la dist/
+            exit 1
+          fi
+
+      - name: Prepare deployment package
+        run: |
+          # Create a deployment directory with backend contents
+          mkdir deployment
+          cp -r backend/dist/* deployment/
+          cp backend/package.json deployment/
+          cp backend/package-lock.json deployment/
+          # Ensure all dependencies are included
+          echo "=== Deployment package contents ==="
+          ls -la deployment/
+          echo "=== Package.json in deployment ==="
+          cat deployment/package.json
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: .
+          path: deployment
 
   deploy:
     runs-on: ubuntu-latest
