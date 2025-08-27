@@ -16,7 +16,7 @@ jobs:
       contents: read #This is required for actions/checkout
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
 
       - name: Set up Node.js version
         uses: actions/setup-node@v3
@@ -27,19 +27,34 @@ jobs:
         run: |
           cd backend
           rm -rf dist node_modules/.cache
-          npm install
+          npm ci  # Use ci instead of install for production builds
           npm run build
+          # Verify the build output
           ls -la dist/
+          echo "=== Checking if dist/index.js exists ==="
+          if [ -f "dist/index.js" ]; then
+            echo "✅ dist/index.js exists"
+            echo "=== First 5 lines of dist/index.js ==="
+            head -5 dist/index.js
+          else
+            echo "❌ dist/index.js not found!"
+            echo "=== Contents of dist folder ==="
+            ls -la dist/
+            exit 1
+          fi
 
       - name: Prepare deployment package
         run: |
           # Create a deployment directory with backend contents
           mkdir deployment
-          cp -r backend/* deployment/
-          # Ensure package.json is in root
+          cp -r backend/dist/* deployment/
           cp backend/package.json deployment/
-          # List contents to verify
+          cp backend/package-lock.json deployment/
+          # Ensure all dependencies are included
+          echo "=== Deployment package contents ==="
           ls -la deployment/
+          echo "=== Package.json in deployment ==="
+          cat deployment/package.json
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4

@@ -6,7 +6,7 @@
     "prestart": "echo 'Starting African Fintech Backend...' && node -v && npm -v && ls -la && echo 'Checking dist folder:' && ls -la dist/ || echo 'dist folder not found'",
     "start": "node dist/index.js",
     "dev": "nodemon --watch src --ext ts --exec ts-node src/index.ts",
-    "build": "tsc -b",
+    "build": "tsc -b && echo 'Build completed' && ls -la dist/",
     "postinstall": "npm run build",
     "lint": "eslint ."
   },
