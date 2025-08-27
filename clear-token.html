@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Expired Token</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 10px; }
+        .button:hover { background: #0056b3; }
+        .status { margin: 20px 0; padding: 10px; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    </style>
+</head>
+<body>
+    <h1>🔑 Clear Expired Token</h1>
+    
+    <div id="status" class="status info">
+        Click the button below to clear the expired token from localStorage
+    </div>
+    
+    <button class="button" onclick="clearToken()">🗑️ Clear Expired Token</button>
+    <button class="button" onclick="checkToken()">🔍 Check Current Token</button>
+    <button class="button" onclick="goToApp()">🚀 Go to App</button>
+    
+    <script>
+        function clearToken() {
+            try {
+                localStorage.removeItem('fintechUser');
+                document.getElementById('status').innerHTML = '✅ Token cleared successfully! You can now go back to the app and sign in again.';
+                document.getElementById('status').className = 'status success';
+            } catch (error) {
+                document.getElementById('status').innerHTML = '❌ Error clearing token: ' + error.message;
+                document.getElementById('status').className = 'status info';
+            }
+        }
+        
+        function checkToken() {
+            try {
+                const token = localStorage.getItem('fintechUser');
+                if (token) {
+                    const user = JSON.parse(token);
+                    document.getElementById('status').innerHTML = 
+                        '🔍 Current token found:<br>' +
+                        'User: ' + (user.name || user.email || 'Unknown') + '<br>' +
+                        'Role: ' + (user.role || 'Unknown') + '<br>' +
+                        'Token: ' + (user.token ? user.token.substring(0, 20) + '...' : 'None');
+                } else {
+                    document.getElementById('status').innerHTML = 'ℹ️ No token found in localStorage';
+                }
+                document.getElementById('status').className = 'status info';
+            } catch (error) {
+                document.getElementById('status').innerHTML = '❌ Error checking token: ' + error.message;
+                document.getElementById('status').className = 'status info';
+            }
+        }
+        
+        function goToApp() {
+            window.open('http://localhost:5173', '_blank');
+        }
+        
+        // Check token on page load
+        checkToken();
+    </script>
+</body>
+</html>

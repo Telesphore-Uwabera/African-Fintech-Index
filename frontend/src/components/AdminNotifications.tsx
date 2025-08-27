@@ -29,11 +29,20 @@ export const AdminNotifications: React.FC<AdminNotificationsProps> = ({ currentU
         })
           .then(res => {
             if (!res.ok) {
+              if (res.status === 401) {
+                // Token expired or invalid - clear user data
+                console.warn('Token expired, clearing user data');
+                localStorage.removeItem('fintechUser');
+                // Trigger page reload to clear state
+                window.location.reload();
+                return null;
+              }
               throw new Error(`HTTP error! status: ${res.status}`);
             }
             return res.json();
           })
           .then(users => {
+            if (users === null) return; // Token was expired
             // Ensure users is an array before calling map
             if (!Array.isArray(users)) {
               console.warn('Expected users array, got:', users);

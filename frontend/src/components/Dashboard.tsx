@@ -51,11 +51,19 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange, avail
       })
         .then(res => {
           if (!res.ok) {
+            if (res.status === 401) {
+              // Token expired or invalid - clear user data
+              console.warn('Token expired, clearing user data');
+              localStorage.removeItem('fintechUser');
+              setCurrentUser(null);
+              return null;
+            }
             throw new Error(`HTTP error! status: ${res.status}`);
           }
           return res.json();
         })
         .then(data => {
+          if (data === null) return; // Token was expired
           // Ensure data is an array before setting state
           if (Array.isArray(data)) {
             setUnverifiedUsers(data);
@@ -82,11 +90,19 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange, avail
       })
         .then(res => {
           if (!res.ok) {
+            if (res.status === 401) {
+              // Token expired or invalid - clear user data
+              console.warn('Token expired, clearing user data');
+              localStorage.removeItem('fintechUser');
+              setCurrentUser(null);
+              return null;
+            }
             throw new Error(`HTTP error! status: ${res.status}`);
           }
           return res.json();
         })
         .then(data => {
+          if (data === null) return; // Token was expired
           // Ensure data is an array before setting state
           if (Array.isArray(data)) {
             setAllUsers(data);
@@ -111,8 +127,21 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange, avail
       fetch(`${apiUrl}/startups/all`, {
         headers: { Authorization: `Bearer ${currentUser.token}` }
       })
-        .then(res => res.json())
+        .then(res => {
+          if (!res.ok) {
+            if (res.status === 401) {
+              // Token expired or invalid - clear user data
+              console.warn('Token expired, clearing user data');
+              localStorage.removeItem('fintechUser');
+              setCurrentUser(null);
+              return null;
+            }
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+          return res.json();
+        })
         .then(data => {
+          if (data === null) return; // Token was expired
           setStartups(data.startups || data || []);
         })
         .catch(() => {
