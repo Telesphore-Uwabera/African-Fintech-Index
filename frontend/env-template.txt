@@ -1,0 +1,14 @@
+# Environment Variables Template
+# Copy this file to .env.local and fill in the values
+
+# Production Azure Backend API URL
+VITE_API_URL=https://afrifinitech-ebgaarajb9e6awd0.westcentralus-01.azurewebsites.net/api
+
+# Environment
+NODE_ENV=production
+
+# Instructions:
+# 1. Create a file named .env.local in this directory
+# 2. Copy the content above into .env.local
+# 3. Save the file
+# 4. Netlify will use these variables during build
