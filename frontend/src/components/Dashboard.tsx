@@ -49,12 +49,27 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange, avail
       fetch(`${apiUrl}/users/unverified`, {
         headers: { Authorization: `Bearer ${currentUser.token}` },
       })
-        .then(res => res.json())
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+          return res.json();
+        })
         .then(data => {
-          setUnverifiedUsers(data);
+          // Ensure data is an array before setting state
+          if (Array.isArray(data)) {
+            setUnverifiedUsers(data);
+          } else {
+            console.warn('Expected unverified users array, got:', data);
+            setUnverifiedUsers([]);
+          }
           setLoadingUnverified(false);
         })
-        .catch(() => setLoadingUnverified(false));
+        .catch((error) => {
+          console.error('Failed to fetch unverified users:', error);
+          setUnverifiedUsers([]);
+          setLoadingUnverified(false);
+        });
     }
   }, [currentUser]);
 
@@ -65,12 +80,27 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedYear, onYearChange, avail
       fetch(`${apiUrl}/users`, {
         headers: { Authorization: `Bearer ${currentUser.token}` },
       })
-        .then(res => res.json())
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
+          return res.json();
+        })
         .then(data => {
-          setAllUsers(data);
+          // Ensure data is an array before setting state
+          if (Array.isArray(data)) {
+            setAllUsers(data);
+          } else {
+            console.warn('Expected users array, got:', data);
+            setAllUsers([]);
+          }
           setLoadingUsers(false);
         })
-        .catch(() => setLoadingUsers(false));
+        .catch((error) => {
+          console.error('Failed to fetch all users:', error);
+          setAllUsers([]);
+          setLoadingUsers(false);
+        });
     }
   }, [currentUser]);
 

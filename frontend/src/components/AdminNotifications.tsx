@@ -34,6 +34,14 @@ export const AdminNotifications: React.FC<AdminNotificationsProps> = ({ currentU
             return res.json();
           })
           .then(users => {
+            // Ensure users is an array before calling map
+            if (!Array.isArray(users)) {
+              console.warn('Expected users array, got:', users);
+              setNotifications([]);
+              setUnreadCount(0);
+              return;
+            }
+            
             const userNotifications: Notification[] = users.map((user: any) => ({
               id: user._id,
               type: 'verification_required',
