@@ -1029,10 +1029,16 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
     setShowAddForm(false);
   };
 
-  // Delete startup handler
+  // Delete startup handler - Only for Admin and Editor
   const handleDeleteStartup = async (startupId: string) => {
     if (!currentUser?.token) {
       alert('Please sign in to delete startups');
+      return;
+    }
+
+    // Check if user has permission to delete (admin or editor only)
+    if (!currentUser.role || !['admin', 'editor'].includes(currentUser.role)) {
+      alert('Access denied. Only administrators and editors can delete startups.');
       return;
     }
 
@@ -1420,13 +1426,16 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
                         >
                           ❌ Reject
                         </button>
-                        <button
-                          onClick={() => handleDeleteStartup(startup._id)}
-                          className="px-2 py-1 bg-red-800 text-white rounded hover:bg-red-900 text-xs font-medium"
-                          title="Delete this startup permanently"
-                        >
-                          🗑️ Delete
-                        </button>
+                        {/* Delete Button - Only for Admin and Editor */}
+                        {(currentUser?.role === 'admin' || currentUser?.role === 'editor') && (
+                          <button
+                            onClick={() => handleDeleteStartup(startup._id)}
+                            className="px-2 py-1 bg-red-800 text-white rounded hover:bg-red-900 text-xs font-medium"
+                            title="Delete this startup permanently"
+                          >
+                            🗑️ Delete
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1784,8 +1793,8 @@ export const FintechStartups: React.FC<FintechStartupsProps> = ({ currentUser, s
                           <div className="flex-1 h-10"></div>
                         )}
                         
-                        {/* Delete Button - Right Side */}
-                        {(currentUser?.role === 'admin' || currentUser?.role === 'editor') && (
+                        {/* Delete Button - Right Side - Only for Admin and Editor */}
+                        {currentUser && (currentUser.role === 'admin' || currentUser.role === 'editor') && (
                           <button
                             onClick={() => handleDeleteStartup(startup.id)}
                             className={`px-3 py-3 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center space-x-2 h-10 ${startup.website ? 'flex-1' : 'w-full'}`}
