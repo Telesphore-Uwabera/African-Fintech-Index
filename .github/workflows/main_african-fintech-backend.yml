@@ -27,7 +27,9 @@ jobs:
         run: |
           cd backend
           rm -rf dist node_modules/.cache
-          npm ci  # Use ci instead of install for production builds
+          # First, ensure package-lock.json is in sync
+          npm install
+          # Then run the build
           npm run build
           # Verify the build output
           ls -la dist/

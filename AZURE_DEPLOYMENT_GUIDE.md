@@ -95,7 +95,7 @@ GET https://your-app-name.azurewebsites.net/health
 ### **1. Build Locally**
 ```bash
 cd backend
-npm ci
+npm install
 npm run build
 ```
 

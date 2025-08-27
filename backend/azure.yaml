@@ -47,6 +47,6 @@ startupCommand: "npm start"
 
 # Build Configuration
 buildConfiguration:
-  - command: "npm ci"
+  - command: "npm install"
   - command: "npm run build"
   - command: "npm start" 
