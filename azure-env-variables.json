@@ -1,0 +1,98 @@
+{
+  "environmentVariables": [
+    {
+      "name": "PORT",
+      "value": "5000",
+      "description": "Port for the Node.js application to listen on"
+    },
+    {
+      "name": "NODE_ENV",
+      "value": "production",
+      "description": "Node.js environment (production for Azure deployment)"
+    },
+    {
+      "name": "MONGO_URI",
+      "value": "mongodb+srv://FinTech:91073Tecy@cluster0.sybcb.mongodb.net/FinTech?retryWrites=true&w=majority&appName=Cluster0",
+      "description": "MongoDB connection string"
+    },
+    {
+      "name": "JWT_SECRET",
+      "value": "african-fintech-index-2024-secret-key-change-in-production",
+      "description": "Secret key for JWT token generation and verification"
+    },
+    {
+      "name": "SMTP_HOST",
+      "value": "smtp.gmail.com",
+      "description": "SMTP server host for sending emails"
+    },
+    {
+      "name": "SMTP_PORT",
+      "value": "587",
+      "description": "SMTP server port"
+    },
+    {
+      "name": "SMTP_USER",
+      "value": "ntakirpetero@gmail.com",
+      "description": "SMTP username/email"
+    },
+    {
+      "name": "SMTP_PASS",
+      "value": "dqdv dwjo iryp ywxj",
+      "description": "SMTP password/app password"
+    },
+    {
+      "name": "SMTP_FROM",
+      "value": "ntakirpetero@gmail.com",
+      "description": "From email address for outgoing emails"
+    },
+    {
+      "name": "TWILIO_ACCOUNT_SID",
+      "value": "AC4f44480df2189a3722ad6cd4b1ebfc20",
+      "description": "Twilio account SID for SMS notifications"
+    },
+    {
+      "name": "TWILIO_AUTH_TOKEN",
+      "value": "6e132d1524cfb12fe553138d260c5257",
+      "description": "Twilio authentication token"
+    },
+    {
+      "name": "TWILIO_PHONE_NUMBER",
+      "value": "+17542543653",
+      "description": "Twilio phone number for sending SMS"
+    },
+    {
+      "name": "TWILIO_SENDER_NAME",
+      "value": "African Fintech Index",
+      "description": "Sender name for SMS messages"
+    },
+    {
+      "name": "ADMIN_EMAIL",
+      "value": "ntakirpetero@gmail.com",
+      "description": "Admin contact email address"
+    },
+    {
+      "name": "ADMIN_PHONE",
+      "value": "+250781712615",
+      "description": "Admin contact phone number"
+    },
+    {
+      "name": "FRONTEND_URL",
+      "value": "https://africanfintechindex.netlify.app/",
+      "description": "Frontend application URL for CORS configuration"
+    }
+  ],
+  "deploymentNotes": {
+    "webAppName": "african-fintech-index",
+    "region": "West Central US",
+    "runtime": "Node.js 22 LTS",
+    "os": "Linux",
+    "instructions": [
+      "1. Go to Azure Portal → Your Web App → Configuration → Application settings",
+      "2. Click 'New application setting' for each variable above",
+      "3. Copy the name and value exactly as shown",
+      "4. Click 'Save' after adding all variables",
+      "5. Restart the Web App",
+      "6. Deploy your backend code via GitHub Actions"
+    ]
+  }
+}

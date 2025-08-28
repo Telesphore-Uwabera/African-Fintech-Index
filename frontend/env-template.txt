@@ -2,7 +2,7 @@
 # Copy this file to .env.local and fill in the values
 
 # Production Azure Backend API URL
-VITE_API_URL=https://afrifinitech-ebgaarajb9e6awd0.westcentralus-01.azurewebsites.net/api
+VITE_API_URL=https://african-fintech-index-ezbxakeecxcqdufu.westcentralus-01.azurewebsites.net/api
 
 # Environment
 NODE_ENV=production

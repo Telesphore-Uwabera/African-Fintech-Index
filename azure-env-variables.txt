@@ -1,0 +1,26 @@
+AZURE ENVIRONMENT VARIABLES - COPY AND PASTE
+
+PORT=5000
+NODE_ENV=production
+MONGO_URI=mongodb+srv://FinTech:91073Tecy@cluster0.sybcb.mongodb.net/FinTech?retryWrites=true&w=majority&appName=Cluster0
+JWT_SECRET=african-fintech-index-2024-secret-key-change-in-production
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=ntakirpetero@gmail.com
+SMTP_PASS=dqdv dwjo iryp ywxj
+SMTP_FROM=ntakirpetero@gmail.com
+TWILIO_ACCOUNT_SID=AC4f44480df2189a3722ad6cd4b1ebfc20
+TWILIO_AUTH_TOKEN=6e132d1524cfb12fe553138d260c5257
+TWILIO_PHONE_NUMBER=+17542543653
+TWILIO_SENDER_NAME=African Fintech Index
+ADMIN_EMAIL=ntakirpetero@gmail.com
+ADMIN_PHONE=+250781712615
+FRONTEND_URL=https://africanfintechindex.netlify.app/
+
+INSTRUCTIONS:
+1. Go to Azure Portal → Your Web App (african-fintech-index) → Configuration → Application settings
+2. Click "New application setting" for each variable above
+3. Copy the name (left side of =) and value (right side of =)
+4. Click "Save" after adding all variables
+5. Restart the Web App
+6. Deploy your backend code via GitHub Actions

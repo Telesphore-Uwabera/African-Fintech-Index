@@ -50,7 +50,7 @@ FRONTEND_URL=https://africanfintechindex.netlify.app/
 
 1. **Save** the configuration in Azure
 2. **Restart** your Azure Web App
-3. **Test** the health endpoint: `https://afrifinitech-ebgaarajb9e6awd0.westcentralus-01.azurewebsites.net/health`
+3. **Test** the health endpoint: `https://african-fintech-index-ezbxakeecxcqdufu.westcentralus-01.azurewebsites.net/health`
 
 ## ✅ **Expected Result:**
 
