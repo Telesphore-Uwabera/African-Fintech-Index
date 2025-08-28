@@ -99,7 +99,7 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'african-fintech-index'
+          app-name: 'african-fintech-index-ezbxakeecxcqdufu'
           slot-name: 'Production'
           package: .
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_5F5035005A744F81879BD819CB24B7D3 }}
