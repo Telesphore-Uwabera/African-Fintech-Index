@@ -305,10 +305,7 @@ export const InteractiveChart: React.FC<InteractiveChartProps> = ({ data, allYea
             ))}
           </div>
 
-          {/* Currently Showing Info */}
-          <div className="text-xs sm:text-sm font-bold text-gray-800 ml-auto">
-            Currently showing: {startYear} - {endYear} ({totalYearsShown} year{totalYearsShown > 1 ? 's' : ''})
-          </div>
+
         </div>
       </div>
 

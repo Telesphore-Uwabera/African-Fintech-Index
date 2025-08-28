@@ -41,7 +41,7 @@ buildConfiguration:
 
 # Runtime Configuration
 runtime:
-  nodeVersion: "18.x"
+  nodeVersion: "22.x"
   startupCommand: "node dist/index.js"
 
 # Health Check
