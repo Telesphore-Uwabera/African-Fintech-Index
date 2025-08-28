@@ -1,52 +1,48 @@
 # Azure App Service Configuration
-# This file contains recommended settings for the African Fintech Backend
+# This file configures the Azure Web App deployment
 
-# Health Check Configuration
-healthCheckPath: /health
-healthCheckEvictionTime: 10m
-
-# Scaling Configuration
-minInstances: 1
-maxInstances: 3
-
-# Environment Variables (set these in Azure Portal)
-environmentVariables:
-  - name: NODE_ENV
-    value: production
-  - name: PORT
-    value: 5000  # Fixed: Changed from 8080 to match your app
-  - name: MONGO_URI
+# Application Settings
+appSettings:
+  - name: "PORT"
+    value: "5000"
+  - name: "NODE_ENV"
+    value: "production"
+  - name: "MONGO_URI"
     value: "mongodb+srv://FinTech:91073Tecy@cluster0.sybcb.mongodb.net/FinTech?retryWrites=true&w=majority&appName=Cluster0"
-  - name: JWT_SECRET
+  - name: "JWT_SECRET"
     value: "african-fintech-index-2024-secret-key-change-in-production"
-  - name: SMTP_HOST
+  - name: "SMTP_HOST"
     value: "smtp.gmail.com"
-  - name: SMTP_PORT
+  - name: "SMTP_PORT"
     value: "587"
-  - name: SMTP_USER
+  - name: "SMTP_USER"
     value: "ntakirpetero@gmail.com"
-  - name: SMTP_PASS
+  - name: "SMTP_PASS"
     value: "dqdv dwjo iryp ywxj"
-  - name: SMTP_FROM
+  - name: "SMTP_FROM"
     value: "ntakirpetero@gmail.com"
-  - name: ADMIN_EMAIL
+  - name: "ADMIN_EMAIL"
     value: "ntakirpetero@gmail.com"
-  - name: ADMIN_PHONE
+  - name: "ADMIN_PHONE"
     value: "+250781712615"
-  - name: TWILIO_ACCOUNT_SID
+  - name: "TWILIO_ACCOUNT_SID"
     value: "AC4f44480df2189a3722ad6cd4b1ebfc20"
-  - name: TWILIO_AUTH_TOKEN
+  - name: "TWILIO_AUTH_TOKEN"
     value: "6e132d1524cfb12fe553138d260c5257"
-  - name: TWILIO_PHONE_NUMBER
+  - name: "TWILIO_PHONE_NUMBER"
     value: "+17542543653"
-  - name: TWILIO_SENDER_NAME
+  - name: "TWILIO_SENDER_NAME"
     value: "African Fintech Index"
-
-# Startup Command
-startupCommand: "npm start"
 
 # Build Configuration
 buildConfiguration:
-  - command: "npm install"
-  - command: "npm run build"
-  - command: "npm start" 
+  command: "npm install"
+  outputDirectory: "dist"
+
+# Runtime Configuration
+runtime:
+  nodeVersion: "18.x"
+  startupCommand: "node dist/index.js"
+
+# Health Check
+healthCheckPath: "/health" 
