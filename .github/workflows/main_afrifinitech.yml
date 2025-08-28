@@ -32,16 +32,20 @@ jobs:
           # Then run the build
           npm run build
           # Verify the build output
+          echo "=== Build verification ==="
           ls -la dist/
           echo "=== Checking if dist/index.js exists ==="
           if [ -f "dist/index.js" ]; then
             echo "✅ dist/index.js exists"
+            echo "=== File size: $(wc -c < dist/index.js) bytes ==="
             echo "=== First 5 lines of dist/index.js ==="
             head -5 dist/index.js
           else
             echo "❌ dist/index.js not found!"
             echo "=== Contents of dist folder ==="
             ls -la dist/
+            echo "=== Backend directory contents ==="
+            ls -la
             exit 1
           fi
 
@@ -49,9 +53,25 @@ jobs:
         run: |
           # Create a deployment directory with backend contents
           mkdir deployment
-          cp -r backend/dist/* deployment/
+          
+          # Verify dist folder exists and has content
+          echo "=== Checking backend/dist contents ==="
+          ls -la backend/dist/
+          
+          # Copy dist contents (with error handling)
+          if [ -d "backend/dist" ] && [ "$(ls -A backend/dist)" ]; then
+            echo "✅ dist folder exists and has content"
+            cp -r backend/dist/* deployment/
+          else
+            echo "❌ dist folder is missing or empty!"
+            echo "=== Backend directory contents ==="
+            ls -la backend/
+            exit 1
+          fi
+          
           cp backend/package.json deployment/
           cp backend/package-lock.json deployment/
+          
           # Ensure all dependencies are included
           echo "=== Deployment package contents ==="
           ls -la deployment/
