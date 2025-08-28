@@ -2,7 +2,7 @@
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 # FORCE NEW DEPLOYMENT - Triggered manually to resolve Azure backend issues
 
-name: Build and deploy Node.js app to Azure Web App - afrifinitech
+name: Build and deploy Node.js app to Azure Web App - african-fintech-index
 
 on:
   push:
@@ -99,7 +99,7 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'afrifinitech'
+          app-name: 'african-fintech-index'
           slot-name: 'Production'
           package: .
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_5F5035005A744F81879BD819CB24B7D3 }}
